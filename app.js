@@ -25,8 +25,18 @@ app.engine('handlebars', engine(
         return new Intl.NumberFormat('en-US').format(value);
       }
     },
-  }
+    helpers: {
+      formatVnd(value) {
+        if (!value) return '';
+        return value.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+      }
+    }
+
+    },
+  
 ));
+
+
 app.set('view engine', 'handlebars');
 app.set('views', './views');
 
@@ -80,7 +90,10 @@ app.use('/student', studentRouter);
 
 import accountRouter from './routes/account.route.js';
 app.use('/account', accountRouter);
-
+import courseRouter from './routes/course.route.js';
+app.use('/courses', courseRouter);
+import watchlistRouter from './routes/watchlist.route.js';
+app.use('/watchlist', watchlistRouter);
 app.use(function (req, res) {
   res.status(404).render('404');
 });
