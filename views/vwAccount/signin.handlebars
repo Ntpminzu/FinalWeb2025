@@ -1,0 +1,28 @@
+<form action="" method="post">
+  <div class="card">
+    <h5 class="card-header">Sign In</h5>
+    <div class="card-body">
+      {{#if error}}
+      <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <strong>Error.</strong> Invalid username or password.
+      </div>  
+      {{/if}}
+      <div class="mb-3">
+        <label for="txtUsername" class="form-label">Username</label>
+        <input type="text" class="form-control" id="txtUsername" name="name" autofocus />
+      </div>
+      <div class="mb-3">
+        <label for="txtPassword" class="form-label">Password</label>
+        <input type="password" class="form-control" id="txtPassword" name="password" />
+      </div>
+    </div>
+    <div class="card-footer text-muted">
+      <button type="submit" class="btn btn-outline-primary">
+        <i class="bi bi-box-arrow-in-right"></i>
+        Sign In
+      </button>
+    </div>
+  </div>
+
+</form>
