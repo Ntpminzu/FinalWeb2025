@@ -21,6 +21,8 @@ export function isInWatchlist(course_id) {
     .first();
 }
 
+/** Lấy tất cả các khóa học trong watchlist */
+
 /**
  * Lấy danh sách watchlist (kèm thông tin khóa học để hiện đẹp ở UI)
  * Nếu chỉ muốn đúng dữ liệu watchlist thì bỏ phần join.
@@ -32,14 +34,9 @@ export function findAll() {
       'w.id',
       'w.course_id',
       'w.course_title',
-      'w.added_at',
       'c.thumbnail',
       'c.short_desc',
-      'c.price',
-      'c.sale_price',
-      'c.description'
     )
-    .orderBy('w.added_at', 'desc');
 }
 
 /** Xóa 1 mục khỏi watchlist theo course_id */

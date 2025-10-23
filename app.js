@@ -92,8 +92,7 @@ import accountRouter from './routes/account.route.js';
 app.use('/account', accountRouter);
 import courseRouter from './routes/course.route.js';
 app.use('/courses', courseRouter);
-import watchlistRouter from './routes/watchlist.route.js';
-app.use('/watchlist', watchlistRouter);
+
 app.use(function (req, res) {
   res.status(404).render('404');
 });

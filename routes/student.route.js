@@ -3,6 +3,8 @@ import bcrypt from 'bcryptjs';
 import { restrict } from '../middlewares/auth.mdw.js';
 import * as userModel from '../models/user.model.js';
 import * as watchlistModel from '../models/watchlist.model.js';
+import * as purchasedModel from '../models/purchased.model.js';
+
 const router = express.Router();
 
 /** Chỉ cho phép student (permission = 1) */
@@ -101,6 +103,34 @@ router.post('/change-pwd', async (req, res) => {
     authUser: req.session.authUser,
     error: false,
     success: 'Đổi mật khẩu thành công!',
+  });
+});
+router.get('/watchlist', async (req, res) => {
+  const items = await watchlistModel.findAll();
+  res.render('vwStudent/watchlist', { items });
+});
+
+router.post('/watchlist/add', async (req, res) => {
+  const { course_id, course_title } = req.body;
+
+  const existed = await watchlistModel.isInWatchlist(course_id);
+  if (!existed) await watchlistModel.add(course_id, course_title);
+  res.redirect('/courses/' + course_id);
+
+
+});
+
+router.post('/watchlist/remove', async (req, res) => {
+  const { course_id } = req.body;
+  await watchlistModel.remove(course_id);
+  res.redirect('/student/watchlist');
+}
+);
+
+router.get('/courses', async (req, res) => {
+  const purchasedCourses = await purchasedModel.findAllCourses();
+  res.render('vwStudent/courses', {
+    purchasedCourses: Array.isArray(purchasedCourses) ? purchasedCourses : [],
   });
 });
 
