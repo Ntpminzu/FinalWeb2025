@@ -59,9 +59,11 @@
                         <h6 class="mb-0">Tổng cộng</h6>
                         <h6 class="mb-0 text-primary fw-bold">{{formatVnd total}}</h6>
                     </div>
-                    <a href="#" class="btn btn-primary w-100 mt-3">
-                        Tiến hành thanh toán
-                    </a>
+                    <form action="/cart/checkout" method="POST">
+                        <button type="submit" class="btn btn-primary w-100 mt-3">
+                            Tiến hành thanh toán
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

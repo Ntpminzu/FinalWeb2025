@@ -1,12 +1,21 @@
-// console.log('Hello, World!');
-
 import express from 'express';
 import { engine } from 'express-handlebars';
 import hsb_sections from 'express-handlebars-sections';
 import session from 'express-session';
 
-const __dirname = import.meta.dirname;
+// === TẤT CẢ IMPORT ĐƯỢC CHUYỂN LÊN ĐẦU ===
+import * as categoryModel from './models/category.model.js';
+import * as courseModel from './models/course.model.js';
+import * as enrollmentModel from './models/enrollment.model.js';
+import studentRouter from './routes/student.route.js';
+import accountRouter from './routes/account.route.js';
+import courseRouter from './routes/course.route.js';
+import categoryRoute from './routes/category.route.js';
+import searchRouter from './routes/search.route.js';
+import cartRouter from './routes/cart.route.js';
+// === KẾT THÚC IMPORT ===
 
+const __dirname = import.meta.dirname;
 const app = express();
 
 app.set('trust proxy', 1) // trust first proxy
@@ -19,8 +28,10 @@ app.use(session({
 
 app.engine('handlebars', engine(
   {
-
     helpers: {
+      // (Helper này từ file gốc của bạn, dùng cho layout)
+      fillContent: hsb_sections(),
+
       formatVnd(value) {
         if (!value) return '';
         return value.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
@@ -31,17 +42,14 @@ app.engine('handlebars', engine(
         }
         return opts.inverse(this);
       },
-
       generateStars(rating) {
         if (typeof rating !== 'number' || rating < 0 || rating > 5) {
-          return ''; // Không hiển thị gì nếu rating không hợp lệ
+          return '';
         }
-
         let stars = '';
         const fullStars = Math.floor(rating);
         const halfStar = (rating % 1) >= 0.5 ? 1 : 0;
         const emptyStars = 5 - fullStars - halfStar;
-
         for (let i = 0; i < fullStars; i++) {
           stars += '<i class="bi bi-star-fill text-warning"></i>';
         }
@@ -52,14 +60,32 @@ app.engine('handlebars', engine(
           stars += '<i class="bi bi-star text-warning"></i>';
         }
         return stars;
-      }
+      },
+      chunk(context, size, options) {
+        if (!context || !Array.isArray(context) || context.length === 0) {
+          return options.inverse(this);
+        }
 
+        const chunks = [];
+        for (let i = 0; i < context.length; i += size) {
+          chunks.push(context.slice(i, i + size));
+        }
+
+        let result = '';
+        for (const chunk of chunks) {
+          result += options.fn(chunk);
+        }
+        return result;
+      },
+
+      if_contains(array, value, opts) {
+        if (array && value && array.includes(value.toString())) {
+          return opts.fn(this);
+          return opts.inverse(this);
+        }
+      },
     },
-
-
-  },
-
-));
+  }));
 
 
 app.set('view engine', 'handlebars');
@@ -69,22 +95,22 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/static', express.static('static'));
 
 
-
-
-
 app.use(async function (req, res, next) {
   if (req.session.isAuthenticated) {
     res.locals.isAuthenticated = true;
     res.locals.authUser = req.session.authUser;
+
+    // Tải danh sách ID khóa học mà user này sở hữu
+    const ownedCourses = await enrollmentModel.findCourseIdsByUserId(req.session.authUser.id);
+    res.locals.ownedCourseIds = ownedCourses;
   } else {
     res.locals.isAuthenticated = false;
+    res.locals.ownedCourseIds = []; // Khách (guest) không sở hữu gì
   }
-
   next();
 });
 
-import * as categoryModel from './models/category.model.js';
-
+// 2. Middleware lấy Categories (cho header)
 app.use(async function (req, res, next) {
   try {
     const categories = await categoryModel.all();
@@ -96,9 +122,8 @@ app.use(async function (req, res, next) {
   next();
 });
 
-
+// 3. Middleware Giỏ hàng (cho header)
 app.use(function (req, res, next) {
-
   if (typeof req.session.cart === 'undefined') {
     req.session.cart = [];
   }
@@ -106,39 +131,55 @@ app.use(function (req, res, next) {
   next();
 });
 
-import * as courseModel from './models/course.model.js';
 
+
+// Route trang chủ
 app.get('/', async function (req, res, next) {
   try {
-    const courses = await courseModel.findOutstandingPastWeek();
-    res.render('home', {
-      featuredCourses: courses
-    });
+    const [
+      outstandingCourses,
+      mostViewedCourses,
+      newestCourses,
+      topCategories
+    ] = await Promise.all([
+      courseModel.findOutstandingPastWeek(),
+      courseModel.findMostViewed(10),
+      courseModel.findNewest(10),
+      categoryModel.findMostEnrolledPastWeek(5)
+    ]);
 
+    res.render('home', {
+      outstandingCourses: outstandingCourses,
+      mostViewedCourses: mostViewedCourses,
+      newestCourses: newestCourses,
+      topCategories: topCategories
+    });
   } catch (err) {
     console.error(err);
     next(err);
   }
 });
 
-import studentRouter from './routes/student.route.js';
+// Các routes khác
 app.use('/student', studentRouter);
-
-
-import accountRouter from './routes/account.route.js';
 app.use('/account', accountRouter);
-import courseRouter from './routes/course.route.js';
 app.use('/courses', courseRouter);
-import categoryRoute from './routes/category.route.js';
 app.use('/categories', categoryRoute);
-import searchRouter from './routes/search.route.js';
 app.use('/search', searchRouter);
-import cartRouter from './routes/cart.route.js';
 app.use('/cart', cartRouter);
 
 
+
+
+// 404
 app.use(function (req, res) {
   res.status(404).render('404');
+});
+
+// 500 
+app.use(function (err, req, res, next) {
+  console.error(err.stack);
+  res.status(500).render('500');
 });
 
 app.listen(4000, function () {
