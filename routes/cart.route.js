@@ -61,7 +61,7 @@ router.get('/', (req, res) => {
 });
 
 /**
- * Xử lý "Tiến hành thanh toán" (ĐÃ SỬA LỖI "duplicate key")
+
  */
 router.post('/checkout', async (req, res, next) => {
     try {
@@ -77,7 +77,7 @@ router.post('/checkout', async (req, res, next) => {
         }
 
         // 1. Lấy danh sách ID các khóa học user ĐÃ SỞ HỮU
-        const ownedCourseIds = await enrollmentModel.findCourseIdsByUserId(userId);
+        const ownedCourseIds = await enrollmentModel.findCourseIdsByStudentId(userId);
 
         // 2. Lọc giỏ hàng, chỉ giữ lại các khóa học CHƯA SỞ HỮU
         const coursesToEnroll = cart.filter(item => {
@@ -88,7 +88,7 @@ router.post('/checkout', async (req, res, next) => {
         if (coursesToEnroll.length > 0) {
             const now = new Date();
             const enrollData = coursesToEnroll.map(course => ({
-                user_id: userId,
+                student_id: userId,
                 course_id: course.id,
                 enrolled_at: now
             }));

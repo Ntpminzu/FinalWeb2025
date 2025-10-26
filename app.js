@@ -101,7 +101,7 @@ app.use(async function (req, res, next) {
     res.locals.authUser = req.session.authUser;
 
     // Tải danh sách ID khóa học mà user này sở hữu
-    const ownedCourses = await enrollmentModel.findCourseIdsByUserId(req.session.authUser.id);
+    const ownedCourses = await enrollmentModel.findCourseIdsByStudentId(req.session.authUser.id);
     res.locals.ownedCourseIds = ownedCourses;
   } else {
     res.locals.isAuthenticated = false;
