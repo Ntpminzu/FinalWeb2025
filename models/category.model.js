@@ -1,7 +1,36 @@
 import db from '../utils/db.js';
 
 export async function all() {
-    return db('categories');
+    // 1. Lấy tất cả danh mục từ DB
+    const allCategories = await db('categories');
+
+    const categories = []; // Mảng kết quả (chỉ chứa cha)
+    const map = {}; // Dùng để tìm danh mục theo ID
+
+    // 2. Tạo một bản đồ (map) để truy cập nhanh
+    allCategories.forEach(cat => {
+        map[cat.id] = {
+            ...cat,
+            children: [] // Thêm mảng 'children'
+        };
+    });
+
+    // 3. Xây dựng cây
+    allCategories.forEach(cat => {
+        if (cat.parent_id !== null && cat.parent_id !== undefined) {
+            // Nếu đây là danh mục con -> tìm cha của nó (map[cat.parent_id])
+            // và thêm nó vào mảng 'children' của cha
+            if (map[cat.parent_id]) {
+                map[cat.parent_id].children.push(map[cat.id]);
+            }
+        } else {
+            // Nếu đây là danh mục cha (parent_id là NULL)
+            // -> thêm nó vào mảng kết quả
+            categories.push(map[cat.id]);
+        }
+    });
+
+    return categories; // Trả về mảng cây đã lồng nhau
 }
 
 export async function findById(id) {
@@ -21,6 +50,15 @@ export async function update(id, entity) {
 
 export async function del(id) {
     return db('categories').where('id', id).del();
+}
+
+export async function findChildIds(parentId) {
+    const children = await db('categories')
+        .where('parent_id', parentId)
+        .select('id');
+
+    // Trả về một mảng ID đơn giản, ví dụ: [9, 10]
+    return children.map(child => child.id);
 }
 
 

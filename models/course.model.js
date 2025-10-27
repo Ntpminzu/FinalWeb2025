@@ -39,6 +39,24 @@ export function findByCategoryId(categoryId) {
     .where('category_id', categoryId);
 }
 
+/**
+ * MỚI: Tìm tất cả khóa học dựa trên một MẢNG category_id
+ */
+export function findByCategoryIds(idArray) {
+  return db('courses as c')
+    .leftJoin('categories as cat', 'c.category_id', 'cat.id') // Dùng leftJoin cho an toàn
+    .select(
+      'c.id',
+      'c.title',
+      'c.thumbnail',
+      'c.price',
+      'c.sale_price',
+      'c.rating_avg',
+      'c.rating_count',
+      'cat.catname as category'
+    )
+    .whereIn('c.category_id', idArray); // Dùng "whereIn" thay vì "where"
+}
 
 export async function findOutstandingPastWeek() {
 
