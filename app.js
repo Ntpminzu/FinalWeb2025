@@ -80,6 +80,12 @@ app.engine('handlebars', engine({
       const chunks=[]; for(let i=0;i<ctx.length;i+=size) chunks.push(ctx.slice(i,i+size));
       return chunks.map(c=>opts.fn(c)).join('');
     },
+    thumb(urlOrFile) {
+  const s = String(urlOrFile || '');
+  if (s.startsWith('http://') || s.startsWith('https://')) return s;
+  return `/static/img/courses/${s || 'placeholder.png'}`;
+},
+
   }
 }));
 app.set('view engine','handlebars');
