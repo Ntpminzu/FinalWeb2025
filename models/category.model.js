@@ -40,18 +40,17 @@ export async function findById(id) {
     return list[0];
 }
 
-export async function add(entity) {
-    return db('categories').insert(entity);
+export async function add(category) {
+  return await db('categories').insert({ catname: category.name });
 }
 
-export async function update(id, entity) {
-    return db('categories').where('id', id).update(entity);
+export async function patch(id, category) {
+  return await db('categories').where('id', id).update({ catname: category.name });
 }
 
-export async function del(id) {
-    return db('categories').where('id', id).del();
+export async function remove(id) {
+  return await db('categories').where('id', id).del();
 }
-
 export async function findChildIds(parentId) {
     const children = await db('categories')
         .where('parent_id', parentId)
@@ -78,4 +77,18 @@ export async function findMostEnrolledPastWeek(limit = 5) {
         .groupBy('cat.id', 'cat.catname')
         .orderBy('enroll_count', 'desc') // Sắp xếp
         .limit(limit);
+}
+export async function getAllWithCourseCount() {
+  return db('categories as c')
+    .leftJoin('courses as cs', 'cs.category_id', 'c.id')
+    .select('c.id', 'c.catname as name')
+    .count('cs.id as courseCount')
+    .groupBy('c.id', 'c.catname')
+    .orderBy('c.id', 'asc')
+    .then(rows =>
+      rows.map(r => ({
+        ...r,
+        courseCount: Number(r.courseCount)
+      }))
+    );
 }

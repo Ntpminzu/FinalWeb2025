@@ -51,13 +51,13 @@ app.engine(
   engine({
     extname: '.handlebars',
     defaultLayout: 'main',
-    // Nếu bạn có thư mục riêng: layoutsDir/partialsDir thì set thêm:
+    // Nếu có cấu trúc layouts/partials riêng, uncomment:
     // layoutsDir: path.join(__dirname, 'views', 'layouts'),
     // partialsDir: path.join(__dirname, 'views', 'partials'),
     helpers: {
       // sections cho layout
       section: hbs_sections(),
-      // alias để tương thích view cũ từng dùng fillContent
+      // alias tương thích view cũ từng dùng fillContent
       fillContent: hbs_sections(),
 
       // number helpers
@@ -77,7 +77,7 @@ app.engine(
         if (!date) return '';
         return new Date(date).toLocaleDateString('vi-VN');
       },
-      // h:mm:ss (h có thể ẩn nếu 0)
+      // h:mm:ss (ẩn h nếu 0)
       formatDuration(sec) {
         const s = Math.max(0, Number(sec) || 0);
         const h = Math.floor(s / 3600);
@@ -204,7 +204,7 @@ app.get('/bs', (req, res) => {
   res.sendFile(path.join(__dirname, 'bs.html'));
 });
 
-// --------------------- Home (lấy dữ liệu DB) ---------------------
+// --------------------- Home (DB) ---------------------
 app.get('/', async (req, res, next) => {
   try {
     const [outstandingCourses, mostViewedCourses, newestCourses, topCategories] =
