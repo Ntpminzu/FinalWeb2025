@@ -28,7 +28,6 @@
           <td>{{this.dob}}</td>
           <td>
             <div class="d-flex justify-content-center gap-2">
-              <a href="/admin/user/{{this.id}}" class="btn btn-sm btn-info">Chi tiết</a>
               <form action="/admin/user/delete/{{this.id}}" method="POST" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn xóa giảng viên này?');">
                 <button type="submit" class="btn btn-sm btn-outline-danger">Xóa</button>
               </form>

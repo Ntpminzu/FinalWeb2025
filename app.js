@@ -243,10 +243,10 @@ app.use((req, res) => {
 });
 
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).render('500');
+  console.error(err.stack);                // xem log ở terminal
+  res.status(500).send(`<pre>${err.stack}</pre>`); // tạm thời: hiện stack trên trình duyệt
+  // Khi sửa xong, đổi lại: res.status(500).render('500');
 });
-
 // --------------------- Start ---------------------
 app.listen(4000, () => {
   console.log('✅ Server is running at http://localhost:4000');

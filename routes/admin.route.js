@@ -48,7 +48,7 @@ router.get('/users', async (req, res) => {
   const students = await userModel.findStudents();
 
   res.render('vwAdmin/users', {
-    layout: 'admin',
+    
     teachers,
     students,
   });
@@ -80,7 +80,7 @@ router.post('/users/delete/:id', async (req, res) => {
 router.get('/courses', async (req, res) => {
   const courses = await courseModel.getAllWithCategoryAndTeacher();
   res.render('vwAdmin/courses', {
-    layout: 'admin',
+    
     courses,
   });
 });
@@ -91,9 +91,9 @@ router.get('/courses', async (req, res) => {
 router.get('/categories', async (req, res) => {
   const categories = await categoryModel.getAllWithCourseCount();
   res.render('vwAdmin/categories', {
-    layout: 'admin',
+   
     categories,
-    user: req.session.authUser,
+    
   });
 });
 
@@ -130,7 +130,7 @@ router.post('/categories/delete', async (req, res) => {
  * -----------------------------*/
 router.get('/profile', (req, res) => {
   res.render('vwAdmin/profile', {
-    layout: 'admin',
+    
     user: req.session.authUser,
     isAuthenticated: req.session.isAuthenticated,
     error: false,
@@ -149,7 +149,7 @@ router.post('/profile', async (req, res) => {
   req.session.authUser.email = updatedUser.email;
 
   res.render('vwAdmin/profile', {
-    layout: 'admin',
+    
     user: req.session.authUser,
     isAuthenticated: true,
     error: false,
@@ -175,7 +175,7 @@ router.post('/change-pwd', async (req, res) => {
 
   if (newPassword.length < 6) {
     return res.render('vwAdmin/profile', {
-      layout: 'admin',
+      
       user: req.session.authUser,
       isAuthenticated: true,
       error: 'Mật khẩu mới phải tối thiểu 6 ký tự.',
