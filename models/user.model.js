@@ -11,7 +11,9 @@ export function findByName(name) {
 export function patch(id, user) {
   return db('users').where('id', id).update(user);
 }
-////
+export function findByUsername(username) {
+  return db('users').where('username', username).first();
+}
 export function findAll() {
   return db('users');
 }
