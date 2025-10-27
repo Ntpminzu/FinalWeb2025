@@ -6,7 +6,6 @@ import * as adminModel from '../models/admin.model.js';
 import * as categoryModel from '../models/category.model.js';
 import * as courseModel from '../models/course.model.js';
 import * as categoryController from '../controllers/categories.controller.js';
-
 import Handlebars from 'handlebars';
 
 Handlebars.registerHelper('eq', (a, b) => a === b);
