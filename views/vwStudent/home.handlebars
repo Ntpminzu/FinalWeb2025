@@ -1,0 +1,46 @@
+
+
+<body>
+
+    <!-- 🔸 Thông tin cá nhân -->
+    <div class="card mx-auto" style="max-width: 600px;">
+      <div class="card-header bg-primary text-white">
+        <i class="bi bi-person-circle"></i> Hồ sơ học viên
+      </div>
+      <div class="card-body">
+        <p><strong>👤 Họ và tên:</strong> {{user.name}}</p>
+        <p><strong>📧 Email:</strong> {{user.email}}</p>
+        <p><strong>🔑 Quyền truy cập:</strong> {{user.permission}}</p>
+
+        <div class="d-flex justify-content-between mt-4">
+          <a href="/student/profile?id={{user.id}}" class="btn btn-outline-primary">
+            <i class="bi bi-pencil-square"></i> Xem / Chỉnh sửa hồ sơ
+          </a>
+          <a href="/student/courses" class="btn btn-success">
+            <i class="bi bi-book"></i> Khóa học của tôi
+          </a>
+          <a href="/student/watchlist" class="btn btn-danger">
+            <i class="bi bi-heart-fill"></i> Danh sách yêu thích
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 🔸 Gợi ý -->
+    <div class="mt-5 text-center">
+      <h4>📚 Khám phá thêm khóa học</h4>
+      <p>Tiếp tục hành trình học tập của bạn với các khóa học mới nhất tại Online Academy.</p>
+      <a href="/courses" class="btn btn-outline-secondary">
+        <i class="bi bi-compass"></i> Khám phá khóa học
+      </a>
+    </div>
+  </main>
+
+  <!-- 🔹 Footer -->
+  <footer class="text-center mt-5 p-3 bg-light border-top">
+    <small>© 2025 Online Academy. All rights reserved.</small>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+

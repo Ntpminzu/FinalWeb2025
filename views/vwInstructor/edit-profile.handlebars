@@ -1,0 +1,20 @@
+<div class="container mt-5">
+    <h2 class="text-primary mb-4">Chỉnh sửa hồ sơ giảng viên</h2>
+
+    <form method="POST" action="/instructor/profile/edit">
+        <div class="mb-3">
+            <label class="form-label">Giới thiệu bản thân (Bio)</label>
+            <textarea name="bio" class="form-control" rows="4">{{instructor.bio}}</textarea>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Chuyên ngành (Specialization)</label>
+            <input type="text" name="specialization" class="form-control" value="{{instructor.specialization}}">
+        </div>
+
+        <div class="text-end">
+            <a href="/instructor/profile" class="btn btn-outline-secondary">Hủy</a>
+            <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+        </div>
+    </form>
+</div>

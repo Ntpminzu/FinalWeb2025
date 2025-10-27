@@ -1,0 +1,72 @@
+<div class="container mt-5 mb-5">
+    <h2 class="mb-4">🛒 Giỏ hàng của bạn</h2>
+
+    {{#if empty}}
+    <div class="alert alert-info" role="alert">
+        Giỏ hàng của bạn đang trống.
+    </div>
+    {{else}}
+    <div class="row">
+        <div class="col-md-8">
+            <ul class="list-group shadow-sm">
+                {{#each courses}}
+                <li class="list-group-item d-flex align-items-center">
+                    <img src="{{this.thumbnail}}" alt="{{this.title}}"
+                        style="width: 100px; height: 60px; object-fit: cover;">
+                    <div class="ms-3 flex-grow-1">
+                        <h5 class="mb-1">{{this.title}}</h5>
+                        {{#if this.sale_price}}
+                        <span class="fw-bold text-primary">{{formatVnd this.sale_price}}</span>
+                        <span class="text-muted text-decoration-line-through ms-1 small">{{formatVnd this.price}}</span>
+                        {{else}}
+                        <span class="fw-bold text-primary">{{formatVnd this.price}}</span>
+                        {{/if}}
+                    </div>
+
+                    <div class="ms-3 text-end">
+                        <form action="/cart/remove" method="POST" class="d-inline">
+                            <input type="hidden" name="course_id" value="{{this.id}}">
+                            <button type="submit" class="btn btn-outline-danger btn-sm border-0" title="Xóa">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </li>
+                {{/each}}
+            </ul>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Tóm tắt</h5>
+                    <hr>
+
+                    <p class="text-muted">Tạm tính ({{cartTotal}} khóa học):</p>
+                    {{#each courses}}
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-truncate" style="max-width: 200px;">{{this.title}}</span>
+                        {{#if this.sale_price}}
+                        <span class="fw-bold">{{formatVnd this.sale_price}}</span>
+                        {{else}}
+                        <span class="fw-bold">{{formatVnd this.price}}</span>
+                        {{/if}}
+                    </div>
+                    {{/each}}
+                    <hr>
+
+                    <div class="d-flex justify-content-between">
+                        <h6 class="mb-0">Tổng cộng</h6>
+                        <h6 class="mb-0 text-primary fw-bold">{{formatVnd total}}</h6>
+                    </div>
+                    <form action="/cart/checkout" method="POST">
+                        <button type="submit" class="btn btn-primary w-100 mt-3">
+                            Tiến hành thanh toán
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{/if}}
+</div>

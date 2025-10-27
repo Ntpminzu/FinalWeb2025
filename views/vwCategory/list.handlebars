@@ -1,0 +1,17 @@
+<h1 class="mb-4">Danh sách lĩnh vực</h1>
+
+{{#if error}}
+<p class="text-danger">{{error}}</p>
+{{else}}
+{{#if empty}}
+<p>Hiện chưa có lĩnh vực nào.</p>
+{{else}}
+<ul class="list-group">
+    {{#each categories}}
+    <li class="list-group-item">
+        {{this.catname}}
+    </li>
+    {{/each}}
+</ul>
+{{/if}}
+{{/if}}

@@ -1,0 +1,101 @@
+<div class="container mt-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <h1 class="fw-bold">
+            Chào mừng, Giảng viên <span class="text-primary">{{authUser.name}}</span>!
+        </h1>
+
+        <div>
+            <a href="/instructor/profile" class="btn btn-primary btn-lg shadow-sm me-3">
+                <i class="fa fa-user-circle me-2"></i> Xem hồ sơ
+            </a>
+            <a href="/instructor/new" class="btn btn-success btn-lg shadow-sm">
+                <i class="fa fa-plus-circle me-2"></i> Tạo Khóa Học Mới
+            </a>
+        </div>
+    </div>
+
+    <h2 class="mb-4 text-secondary">📚 Quản lý Khóa học ({{courses.length}} khóa)</h2>
+
+    {{#if courses}}
+    <div class="table-responsive shadow-sm rounded">
+        <table class="table table-bordered table-striped table-hover align-middle mb-0">
+            <thead class="table-primary">
+                <tr>
+                    <th style="width: 10%;">Ảnh</th>
+                    <th style="width: 35%;">Tên Khóa học & Giá</th>
+                    <th style="width: 10%;">Đánh giá</th>
+                    <th style="width: 15%;">Ngày tạo</th>
+                    <th style="width: 20%;">Thao tác</th>
+                    <th style="width: 20%;">Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each courses}}
+                <tr>
+                    <td>
+                        <img src="{{this.thumbnail_url}}"
+                            onerror="this.onerror=null;this.src='/uploads/thumbnails/default.png';" alt="Thumbnail"
+                            class="img-fluid rounded border" style="width: 100%; height: 60px; object-fit: cover;">
+                    </td>
+                    <td>
+                        <strong class="text-dark">{{this.title}}</strong>
+                        <br>
+                        <small>
+                            {{#if this.discount_price}}
+                            <span class="text-danger fw-bold me-1">{{this.discount_price}} VNĐ</span>
+                            <del class="text-muted">{{this.price}} VNĐ</del>
+                            {{else}}
+                            <span class="text-success fw-bold">{{this.price}} VNĐ</span>
+                            {{/if}}
+                        </small>
+                    </td>
+                    <td class="text-center">
+                        {{#if this.rating_avg}}
+                        <span class="fw-bold text-warning">
+                            <i class="fa fa-star"></i> {{this.rating_avg}}
+                        </span> / 5
+                        {{else}}
+                        <span class="text-muted small">--</span>
+                        {{/if}}
+                    </td>
+                    <td>
+                        <small class="text-muted">{{formatDate this.created_at}}</small>
+                    </td>
+                    <td>
+
+                        <a href="/instructor/edit/course/{{this.id}}" class="btn btn-warning btn-sm w-100 mb-1">
+                            <i class="fa fa-pencil-alt"></i> Chỉnh sửa khóa học
+                        </a>
+                        <a href="/instructor/edit/lectures/{{this.id}}"
+                            class="btn btn-outline-secondary btn-sm w-100 mb-1">
+                            <i class="fa fa-video"></i> Quản lý bài giảng
+                        </a>
+                        <button type="button" class="btn btn-danger btn-sm w-100"
+                            onclick="if(confirm('Xác nhận xóa khóa học {{this.title}}?')) { window.location.href='/instructor/delete/{{this.id}}'; }">
+                            <i class="fa fa-trash"></i> Xóa
+                        </button>
+                    <td>
+                        <form method="post" action="/instructor/courses/toggle/{{id}}">
+                            {{#if Status}}
+                            <button type="submit" class="btn btn-sm btn-success">Đã hoàn thành</button>
+                            {{else}}
+                            <button type="submit" class="btn btn-sm btn-secondary">Chưa hoàn thành</button>
+                            {{/if}}
+                        </form>
+                    </td>
+
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+    {{else}}
+    <div class="alert alert-info text-center py-5" role="alert">
+        <i class="fa fa-chalkboard-teacher fa-3x mb-3"></i>
+        <h4>Bạn chưa có khóa học nào.</h4>
+        <p class="lead">Hãy tạo khóa học đầu tiên để chia sẻ kiến thức của bạn!</p>
+    </div>
+    {{/if}}
+
+</div>
