@@ -44,3 +44,17 @@ export function restrictAdmin(req, res, next) {
 
   next();
 }
+
+export function restrictInstructor(req, res, next) {
+  const user = req.session.authUser;  // user: {id, permission, name, email, avatar, role}  
+  if (!req.session.isAuthenticated || !user) {
+    req.session.retUrl = req.originalUrl;
+    return res.redirect('/account/signin');
+  }
+  if (user.permission !== 2) {
+    return res.status(403).render('403', {
+      message: 'Bạn không có quyền truy cập trang này. (Chỉ dành cho giảng viên)'
+    });
+  } 
+  next();
+}

@@ -1,0 +1,35 @@
+{{! views/vwInstructor/new.hbs }}
+
+<div class="container mt-5">
+
+    {{!-- Breadcrumb đơn giản --}}
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/instructor/dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Đăng khóa học mới</li>
+        </ol>
+    </nav>
+
+    {{!-- Tiêu đề chính --}}
+    <h2 class="mb-3 text-primary">🆕 Đăng khóa học mới</h2>
+    {{#if authUser}}
+    <p class="lead text-muted">Chào {{authUser.name}}, hãy hoàn thiện các thông tin dưới đây để tạo khóa học mới.</p>
+    {{else}}
+    <p class="lead text-muted">Hãy điền đầy đủ thông tin khóa học để bắt đầu.</p>
+    {{/if}}
+
+    <div class="card p-4 shadow-sm">
+        {{!-- FORM BẮT ĐẦU --}}
+        <form action="/instructor/new" method="POST" enctype="multipart/form-data">
+
+            {{> vwInstructor/partials/courseForm }}
+
+            <div class="d-grid mt-4">
+                <button type="submit" class="btn btn-success btn-lg">
+                    <i class="fa fa-paper-plane"></i> Tạo khóa học
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>

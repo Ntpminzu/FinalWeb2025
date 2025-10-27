@@ -1,4 +1,4 @@
-// app.js (EMA — Express + Modules + All-in-one)
+// app.js — Unified (Express + ESM + Handlebars)
 
 // --------------------- Core & Engine ---------------------
 import express from 'express';
@@ -15,7 +15,7 @@ import { restrict, restrictAdmin } from './middlewares/auth.mdw.js';
 import * as categoryModel from './models/category.model.js';
 import * as courseModel from './models/course.model.js';
 import * as enrollmentModel from './models/enrollment.model.js';
-// NOTE: Nếu bạn đã chuyển sang bảng "purchased", tạo purchasedModel và thay enrollmentModel bên dưới.
+// NOTE: Nếu đã chuyển sang bảng "purchased", tạo purchasedModel và thay enrollmentModel ở middleware auth.
 
 // --------------------- Routers ---------------------
 import adminRouter from './routes/admin.route.js';
@@ -25,6 +25,7 @@ import courseRouter from './routes/course.route.js';
 import categoryRoute from './routes/category.route.js';
 import searchRouter from './routes/search.route.js';
 import cartRouter from './routes/cart.route.js';
+import instructorRouter from './routes/instructor.route.js';
 
 // --------------------- __dirname (ESM) ---------------------
 const __filename = fileURLToPath(import.meta.url);
@@ -37,11 +38,10 @@ const app = express();
 app.set('trust proxy', 1);
 app.use(
   session({
-    secret:
-      'b3f8c2a1e7d4f6g9h0j2k5l8m1n3p6q9r2s5t8u1v4w7x0y3z6a9b2c5d8e1',
+    secret: 'b3f8c2a1e7d4f6g9h0j2k5l8m1n3p6q9r2s5t8u1v4w7x0y3z6a9b2c5d8e1',
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false }, // Đổi true khi deploy HTTPS
+    cookie: { secure: false }, // Đặt true khi deploy HTTPS
   })
 );
 
@@ -49,10 +49,15 @@ app.use(
 app.engine(
   'handlebars',
   engine({
+    extname: '.handlebars',
+    defaultLayout: 'main',
+    // Nếu bạn có thư mục riêng: layoutsDir/partialsDir thì set thêm:
+    // layoutsDir: path.join(__dirname, 'views', 'layouts'),
+    // partialsDir: path.join(__dirname, 'views', 'partials'),
     helpers: {
-      // sections for layouts
+      // sections cho layout
       section: hbs_sections(),
-      // alias giữ tương thích nếu view cũ dùng fillContent
+      // alias để tương thích view cũ từng dùng fillContent
       fillContent: hbs_sections(),
 
       // number helpers
@@ -69,9 +74,10 @@ app.engine(
 
       // time & date helpers
       formatDate(date) {
+        if (!date) return '';
         return new Date(date).toLocaleDateString('vi-VN');
       },
-      // Dùng chung: h:mm:ss
+      // h:mm:ss (h có thể ẩn nếu 0)
       formatDuration(sec) {
         const s = Math.max(0, Number(sec) || 0);
         const h = Math.floor(s / 3600);
@@ -82,8 +88,12 @@ app.engine(
 
       // logic helpers
       eq: (a, b) => a === b,
+      isEqual: (a, b) => a === b,
       if_eq(a, b, opts) {
         return a === b ? opts.fn(this) : opts.inverse(this);
+      },
+      ifCond(v1, v2, options) {
+        return v1 == v2 ? options.fn(this) : options.inverse(this);
       },
       if_contains(array, value, opts) {
         if (array && value && array.map(String).includes(String(value))) {
@@ -138,6 +148,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use('/static', express.static(path.join(__dirname, 'static')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Auth locals + owned courses
 app.use(async (req, res, next) => {
@@ -146,7 +157,8 @@ app.use(async (req, res, next) => {
       res.locals.isAuthenticated = true;
       res.locals.authUser = req.session.authUser;
 
-      // NOTE: Nếu đã chuyển sang bảng purchased, thay dòng này bằng purchasedModel.findCourseIdsByUserId(...)
+      // Nếu chuyển sang "purchased": thay bằng
+      // const ownedCourses = await purchasedModel.findCourseIdsByUserId(req.session.authUser.id);
       const ownedCourses =
         await enrollmentModel.findCourseIdsByStudentId(req.session.authUser.id);
       res.locals.ownedCourseIds = ownedCourses;
@@ -188,12 +200,11 @@ app.use((req, res, next) => {
 app.get('/about', (req, res) => {
   res.sendFile(path.join(__dirname, 'about.html'));
 });
-
 app.get('/bs', (req, res) => {
   res.sendFile(path.join(__dirname, 'bs.html'));
 });
 
-// --------------------- Home ---------------------
+// --------------------- Home (lấy dữ liệu DB) ---------------------
 app.get('/', async (req, res, next) => {
   try {
     const [outstandingCourses, mostViewedCourses, newestCourses, topCategories] =
@@ -224,6 +235,7 @@ app.use('/courses', courseRouter);
 app.use('/categories', categoryRoute);
 app.use('/search', searchRouter);
 app.use('/cart', cartRouter);
+app.use('/instructor', instructorRouter);
 
 // --------------------- Errors ---------------------
 app.use((req, res) => {

@@ -1,0 +1,65 @@
+<div class="container mt-5">
+    <h2 class="text-primary mb-4">
+        🎬 Quản lý bài giảng
+    </h2>
+
+    <!-- Form thêm bài giảng -->
+    <div class="card shadow-sm mb-5">
+        <div class="card-header bg-success text-white">
+            <i class="bi bi-plus-circle"></i> Thêm bài giảng mới
+        </div>
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data" action="/instructor/lectures/{{courseId}}/add">
+                <div class="mb-3">
+                    <label class="form-label">Tên bài giảng</label>
+                    <input type="text" name="title" class="form-control" placeholder="Nhập tên bài giảng" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="video_url" class="form-label">Link video bài giảng</label>
+                    <input type="url" class="form-control" id="video_url" name="video_url"
+                        placeholder="Nhập link YouTube, Google Drive hoặc .mp4" required>
+                    <small class="text-muted">
+                        Ví dụ: https://www.youtube.com/watch?v=abc123 hoặc https://cdn.mysite.com/video.mp4
+                    </small>
+                </div>
+
+
+                <div class="text-end">
+                    <button type="submit" class="btn btn-success">Thêm bài giảng</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Danh sách bài giảng -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <i class="bi bi-collection-play"></i> Danh sách bài giảng
+        </div>
+        <div class="card-body">
+            {{#if lectures.length}}
+            <ul class="list-group">
+                {{#each lectures}}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="bi bi-play-btn text-danger"></i> {{this.title}}
+                    </div>
+                    <form method="POST" action="/instructor/lectures/{{this.id}}/delete" style="display:inline;">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash"></i> Xóa
+                        </button>
+                    </form>
+                </li>
+                {{/each}}
+            </ul>
+            {{else}}
+            <p class="text-muted mb-0">Chưa có bài giảng nào trong khóa học này.</p>
+            {{/if}}
+        </div>
+    </div>
+
+    <div class="mt-4 text-center">
+        <a href="/instructor/dashboard" class="btn btn-outline-secondary">← Quay lại Dashboard</a>
+    </div>
+</div>

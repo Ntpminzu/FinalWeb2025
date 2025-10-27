@@ -1,0 +1,133 @@
+<div class="container mt-4">
+    <h2 class="text-primary mb-3">Thông tin giảng viên</h2>
+
+    <!-- Hồ sơ giảng viên -->
+    <div class="card p-4 shadow-sm mb-5 border-0 rounded-4">
+        <div class="d-flex align-items-center">
+            <img src="/static/imgs/avatar-default.png" alt="Avatar" width="90" height="90"
+                class="rounded-circle border me-4">
+            <div>
+                <h4 class="fw-bold mb-1">{{instructor.name}}</h4>
+                <p class="mb-1"><i class="bi bi-envelope me-2"></i>{{instructor.email}}</p>
+                <p class="mb-1"><i class="bi bi-person-badge me-2"></i>{{instructor.username}}</p>
+                <p><i class="bi bi-briefcase me-2"></i>
+                    {{#if instructor.specialization}}
+                    {{instructor.specialization}}
+                    {{else}}
+                    <span class="text-muted fst-italic">Chưa cập nhật chuyên môn</span>
+                    {{/if}}
+                </p>
+            </div>
+        </div>
+
+        <hr>
+
+        <p class="mb-0">
+            <i class="bi bi-chat-left-text me-2"></i>
+            {{#if instructor.bio}}
+            {{instructor.bio}}
+            {{else}}
+            <span class="text-muted fst-italic">Chưa có mô tả cá nhân</span>
+            {{/if}}
+        </p>
+
+        <div class="text-end mt-3">
+            <a href="/instructor/profile/edit" class="btn btn-outline-primary">
+                <i class="bi bi-pencil-square me-1"></i> Chỉnh sửa hồ sơ
+            </a>
+        </div>
+    </div>
+
+    <!-- 🌟 Danh sách khóa học -->
+    <div class="container mt-5">
+        <h3 class="text-primary fw-bold mb-4">
+            <i class="bi bi-journal-text me-2"></i> Khóa học đã đăng tải
+        </h3>
+
+        {{#if courses.length}}
+        <div class="accordion" id="accordionCourses">
+            {{#each courses}}
+            <div class="accordion-item mb-3 shadow-sm border-0 rounded-3">
+                <!-- --- HEADER (summary gọn) --- -->
+                <h2 class="accordion-header" id="heading{{id}}">
+                    <button class="accordion-button collapsed d-flex align-items-center" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#collapse{{id}}" aria-expanded="false"
+                        aria-controls="collapse{{id}}">
+
+                        <!-- Thumbnail -->
+                        <img src="{{thumbnail}}" alt="{{title}}" class="me-3" width="60" height="40"
+                            style="object-fit: cover; border-radius: 6px;">
+
+                        <!-- Nội dung chính -->
+                        <div class="flex-grow-1">
+                            <h5 class="mb-0 fw-semibold">{{title}}</h5>
+                            <div class="small text-muted">
+                                <span class="text-warning fw-bold">{{rating_avg}} / 5</span> |
+                                {{student_count}} học viên |
+                                {{price}} VND
+                            </div>
+                        </div>
+
+                        <!-- Trạng thái -->
+                        <div>
+                            {{#if Status}}
+                            <span class="badge bg-success">Đã hoàn thành</span>
+                            {{else}}
+                            <span class="badge bg-warning text-dark">Chưa hoàn thành</span>
+                            {{/if}}
+                        </div>
+                    </button>
+                </h2>
+
+                <!-- --- BODY (chi tiết khi bấm mở) --- -->
+                <div id="collapse{{id}}" class="accordion-collapse collapse" aria-labelledby="heading{{id}}"
+                    data-bs-parent="#accordionCourses">
+                    <div class="accordion-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <p><strong>Mô tả ngắn:</strong> {{short_desc}}</p>
+                                <p><strong>Mô tả chi tiết:</strong><br>{{full_desc}}</p>
+                            </div>
+                            <div class="col-md-4">
+                                <ul class="list-unstyled mb-3">
+                                    <li><i class="bi bi-tag"></i> <strong>Giá gốc:</strong> {{price}} VND</li>
+                                    <li><i class="bi bi-percent"></i> <strong>Giá khuyến mãi:</strong> {{sale_price}}
+                                        VND
+                                    </li>
+                                    <li><i class="bi bi-people"></i> <strong>Lượt học viên:</strong> {{student_count}}
+                                    </li>
+                                    <li><i class="bi bi-eye"></i> <strong>Lượt xem:</strong> {{view_count}}</li>
+                                    <li><i class="bi bi-calendar"></i> <strong>Ngày tạo:</strong> {{created_at}}</li>
+                                </ul>
+
+                                <div class="d-flex justify-content-end">
+                                    <a href="/instructor/edit/course/{{this.id}}"
+                                        class="btn btn-outline-primary btn-sm me-2">
+                                        <i class="bi bi-pencil"></i> Chỉnh sửa
+                                    </a>
+                                    <a href="/instructor/edit/lectures/{{id}}"
+                                        class="btn btn-outline-secondary btn-sm me-2">
+                                        <i class="bi bi-collection-play"></i> Bài giảng
+                                    </a>
+                                    <form method="POST" action="/instructor/delete/{{id}}" class="d-inline">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm"
+                                            onclick="return confirm('Xóa khóa học này?')">
+                                            <i class="bi bi-trash"></i> Xóa
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{/each}}
+        </div>
+        {{else}}
+        <div class="alert alert-info">Bạn chưa đăng khóa học nào.</div>
+        {{/if}}
+        <a href="/instructor/dashboard" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left-circle me-1"></i> Quay về trang chủ
+        </a>
+    </div>
+</div>
