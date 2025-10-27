@@ -13,7 +13,7 @@ import { restrict, restrictAdmin } from './middlewares/auth.mdw.js';
 // Models
 import * as categoryModel from './models/category.model.js';
 import * as courseModel from './models/course.model.js';
-// import * as enrollmentModel from './models/enrollment.model.js'; // ❌ không dùng nữa ở ownedCourseIds
+// import * as enrollmentModel from './models/enrollment.model.js'; 
 import * as purchasedModel from './models/purchased.model.js';
 
 // Routers
@@ -91,16 +91,16 @@ app.use(express.json());
 app.use('/static', express.static(path.join(__dirname,'static')));
 app.use('/uploads', express.static(path.join(__dirname,'uploads')));
 
-// Auth locals + owned courses (✅ chuyển sang purchased)
+// Auth locals + ownedCourseIds
 app.use(async (req,res,next)=>{
   try{
     if(req.session.isAuthenticated){
       res.locals.isAuthenticated = true;
       res.locals.authUser = req.session.authUser;
 
-      // ✅ Lấy danh sách khóa học đã mua từ purchased
+     
       const ownedCourses = await purchasedModel.findCourseIdsByUserId(req.session.authUser.id);
-      res.locals.ownedCourseIds = ownedCourses; // mảng string id
+      res.locals.ownedCourseIds = ownedCourses; 
     }else{
       res.locals.isAuthenticated = false;
       res.locals.ownedCourseIds = [];
@@ -126,19 +126,14 @@ app.use(async (req,res,next)=>{
   next();
 });
 
-// Cart badge
 app.use((req,res,next)=>{
   if(typeof req.session.cart==='undefined') req.session.cart = [];
   res.locals.cartTotal = req.session.cart.length;
   next();
 });
 
-// Basic pages
-app.get('/about',(req,res)=> res.sendFile(path.join(__dirname,'about.html')));
-app.get('/bs',(req,res)=> res.sendFile(path.join(__dirname,'bs.html')));
 
-// Home (DB)
-// NOTE: nếu muốn thống nhất “mua” thay vì “đăng ký”, hãy đổi các hàm findOutstandingPastWeek / findMostEnrolledPastWeek sang phiên bản dùng purchased.
+
 app.get('/', async (req,res,next)=>{
   try{
     const [outstandingCourses, mostViewedCourses, newestCourses, topCategories] =
@@ -169,7 +164,7 @@ app.use('/instructor', instructorRouter);
 app.use((req,res)=> res.status(404).render('404'));
 app.use((err,req,res,next)=>{
   console.error(err.stack);
-  res.status(500).send(`<pre>${err.stack}</pre>`); // khi ổn đổi lại res.render('500')
+   res.render('500')
 });
 
 // Start
