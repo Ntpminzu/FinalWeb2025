@@ -1,0 +1,54 @@
+<h2 class="my-4 text-center">
+  <i class="bi bi-heart-fill text-danger"></i>
+  Danh sách yêu thích
+</h2>
+
+{{#if items.length}}
+<div class="row row-cols-1 row-cols-md-3 g-4">
+  {{#each items}}
+  <div class="col">
+    <div class="card h-100 shadow-sm border-0">
+      <img src="{{thumbnail}}" alt="{{course_title}}" class="card-img-top"
+        style="height:180px; object-fit:contain; background:#f9f9f9;">
+
+      <div class="card-body">
+        <h5 class="card-title">{{course_title}}</h5>
+        {{#if short_desc}}
+        <p class="card-text text-muted small">{{short_desc}}</p>
+        {{/if}}
+
+        {{#if sale_price}}
+        <div class="mt-2">
+          <span class="text-danger fw-bold">{{formatVnd sale_price}}</span>
+          <span class="text-muted text-decoration-line-through ms-2">{{formatVnd price}}</span>
+        </div>
+        {{else}}
+        {{#if price}}
+        <div class="mt-2 fw-bold">{{formatVnd price}}</div>
+        {{/if}}
+        {{/if}}
+      </div>
+
+      <div class="card-footer bg-transparent border-0 d-flex justify-content-between">
+        <a href="/courses/{{course_id}}" class="btn btn-outline-primary btn-sm">
+          <i class="bi bi-info-circle"></i> Xem chi tiết
+        </a>
+
+        <form action="/student/watchlist/remove" method="post" class="d-inline">
+          <input type="hidden" name="course_id" value="{{course_id}}">
+          <button class="btn btn-outline-danger btn-sm">
+            <i class="bi bi-trash"></i> Xoá
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {{/each}}
+</div>
+{{else}}
+<div class="text-center text-muted my-5">
+  <i class="bi bi-emoji-frown fs-1"></i>
+  <p>Bạn chưa thêm khoá học nào vào danh sách yêu thích.</p>
+  <a href="/courses" class="btn btn-primary">Khám phá khoá học</a>
+</div>
+{{/if}}
