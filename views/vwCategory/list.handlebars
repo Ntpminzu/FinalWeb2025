@@ -1,17 +1,36 @@
-<h1 class="mb-4">Danh sách lĩnh vực</h1>
+<div class="container mt-4 mb-5">
+    <h2 class="mb-4">Khám phá tất cả lĩnh vực</h2>
 
-{{#if error}}
-<p class="text-danger">{{error}}</p>
-{{else}}
-{{#if empty}}
-<p>Hiện chưa có lĩnh vực nào.</p>
-{{else}}
-<ul class="list-group">
-    {{#each categories}}
-    <li class="list-group-item">
-        {{this.catname}}
-    </li>
-    {{/each}}
-</ul>
-{{/if}}
-{{/if}}
+    {{#if empty}}
+    <div class="alert alert-info">Chưa có lĩnh vực nào để hiển thị.</div>
+    {{else}}
+    <div class="row">
+        <div class="col-md-9">
+
+            {{#each categories}}
+            <div class="category-group mb-4">
+
+                <a href="/categories/{{this.id}}" class="text-decoration-none text-dark">
+                    <h4 class="fw-bold border-bottom pb-2 mb-2">{{this.catname}}</h4>
+                </a>
+
+                {{#if this.children.length}}
+                <ul class="list-group list-group-flush">
+                    {{#each this.children}}
+                    <li class="list-group-item border-0 py-1">
+                        <a href="/categories/{{this.id}}" class="text-decoration-none d-block ps-3">
+                            <i class="bi bi-arrow-return-right me-2 text-muted"></i>
+                            {{this.catname}}
+                        </a>
+                    </li>
+                    {{/each}}
+                </ul>
+                {{/if}}
+
+            </div>
+            {{/each}}
+
+        </div>
+    </div>
+    {{/if}}
+</div>
