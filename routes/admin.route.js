@@ -78,12 +78,22 @@ router.post('/users/delete/:id', async (req, res) => {
  * 📚 Quản lý khóa học (chỉ hiển thị danh sách)
  * -----------------------------*/
 router.get('/courses', async (req, res) => {
-  const courses = await courseModel.getAllWithCategoryAndTeacher();
-  res.render('vwAdmin/courses', {
-    
-    courses,
-  });
+  try {
+    const [courses, categories] = await Promise.all([
+      courseModel.getAllWithCategoryAndTeacher(),
+      categoryModel.getAllWithCourseCount(), // 👈 lấy danh sách lĩnh vực
+    ]);
+
+    res.render('vwAdmin/courses', {
+      courses,
+      categories, // 👈 truyền thêm xuống view
+    });
+  } catch (err) {
+    console.error('❌ Lỗi khi tải admin/courses:', err);
+    res.status(500).send('Không thể tải danh sách khóa học.');
+  }
 });
+
 
 /** ------------------------------
  * 🗂️ Quản lý danh mục
@@ -217,5 +227,6 @@ await categoryModel.remove(id);
     res.status(500).json({ message: 'Lỗi khi xóa danh mục' });
   }
 });
+
 
 export default router;
