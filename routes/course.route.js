@@ -1,10 +1,8 @@
 import express from 'express';
 import * as courseModel from '../models/course.model.js';
 const router = express.Router();
+const COURSES_PER_PAGE = 9;
 
-const COURSES_PER_PAGE = 9; // (Bạn có thể đổi số này)
-
-// === SỬA LẠI TOÀN BỘ ROUTE NÀY ===
 router.get('/', async function (req, res, next) { // Thêm next
   try {
     // Logic phân trang
@@ -37,6 +35,34 @@ router.get('/', async function (req, res, next) { // Thêm next
   }
 });
 
-// ... (route router.get('/:id', ...) của bạn giữ nguyên) ...
+
+
+
+router.get('/:id', async function (req, res, next) { // Thêm 'next'
+  try {
+    const courseId = req.params.id;
+
+    // =============================================
+    // === 1. THÊM DÒNG NÀY ĐỂ ĐẾM LƯỢT XEM ===
+    await courseModel.incrementViewCount(courseId);
+    // =============================================
+
+    // 2. Lấy thông tin khóa học (như cũ)
+    const course = await courseModel.findById(courseId);
+    if (!course) {
+      return res.status(404).render('404');
+    }
+
+    // 3. Render trang chi tiết (như cũ)
+    res.render('vwCourse/details', {
+      layout: 'main',
+      course: course
+    });
+
+  } catch (err) {
+    console.error(err);
+    next(err); // Chuyển lỗi cho middleware xử lý
+  }
+});
 
 export default router;
