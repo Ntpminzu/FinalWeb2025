@@ -1,3 +1,4 @@
+// --------------- đầu file routes/admin.route.js ---------------
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import { restrict } from '../middlewares/auth.mdw.js';
@@ -7,10 +8,14 @@ import * as categoryModel from '../models/category.model.js';
 import * as courseModel from '../models/course.model.js';
 import * as categoryController from '../controllers/categories.controller.js';
 import Handlebars from 'handlebars';
+import db from '../utils/db.js'; // <- <<< PHẢI import db ở trên cùng nếu dùng trực tiếp
 
 Handlebars.registerHelper('eq', (a, b) => a === b);
 
 const router = express.Router();
+
+// ... phần ensureAdmin, router.use(restrict, ensureAdmin), các route khác ...
+
 
 /** 🔹 Kiểm tra quyền admin */
 function ensureAdmin(req, res, next) {
@@ -72,8 +77,6 @@ router.post('/users/delete/:id', async (req, res) => {
   res.redirect('/admin/users');
 });
 
-
-
 /** ------------------------------
  * 📚 Quản lý khóa học (chỉ hiển thị danh sách)
  * -----------------------------*/
@@ -93,7 +96,6 @@ router.get('/courses', async (req, res) => {
     res.status(500).send('Không thể tải danh sách khóa học.');
   }
 });
-
 
 /** ------------------------------
  * 🗂️ Quản lý danh mục
@@ -225,6 +227,32 @@ await categoryModel.remove(id);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Lỗi khi xóa danh mục' });
+  }
+});
+
+/** ------------------------------
+ * 🚫 Đình chỉ / Khôi phục khóa học
+ * -----------------------------*/
+// Đình chỉ / Mở lại khóa học
+router.post('/courses/disable/:id', async (req, res) => {
+  const courseId = req.params.id;
+  // Nếu bạn gửi hidden input name="disable" value="true" / "false"
+  // chuyển thành boolean:
+  const disable = req.body.disable === 'true';
+
+  try {
+    // Cách 1: dùng model (nếu bạn đã thêm toggleDisable trong course.model.js)
+    if (typeof courseModel.toggleDisable === 'function') {
+      await courseModel.toggleDisable(courseId, disable);
+    } else {
+      // Cách 2: fallback dùng knex trực tiếp
+      await db('courses').where('id', courseId).update({ is_disabled: disable });
+    }
+
+    return res.redirect('/admin/courses');
+  } catch (err) {
+    console.error('❌ Lỗi khi disable khóa học:', err);
+    return res.status(500).send('Lỗi khi đình chỉ / mở lại khóa học');
   }
 });
 

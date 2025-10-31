@@ -29,7 +29,6 @@ export async function getCourseStatuses() {
     Disabled: 5
   };
 }
-
 export default {
   findAll() {
     return db('users').select('id', 'fullname', 'email', 'isTeacher', 'isLocked');
