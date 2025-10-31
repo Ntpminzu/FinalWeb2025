@@ -9,9 +9,15 @@
       <div class="card-body">
         <h5 class="card-title text-primary fw-bold">{{title}}</h5>
 
+
         <p class="card-text text-muted mb-1">{{short_desc}}</p>
         <p class="text-secondary small mb-2">{{description}}</p>
-
+        <p class="card-text text-muted small mb-1">
+          Lĩnh vực: <strong>{{this.category}}</strong>
+        </p>
+        <p class="card-text text-muted small mb-1">
+          Giảng viên: <strong>{{this.instructor_name}}</strong>
+        </p>
 
         <div class="d-flex align-items-center mb-2">
           <span class="fw-bold text-warning me-1">{{this.rating_avg}}</span>

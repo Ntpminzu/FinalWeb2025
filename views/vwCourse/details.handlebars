@@ -1,4 +1,3 @@
-<!-- Breadcrumb -->
 <nav aria-label="breadcrumb" class="mt-3">
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/">Trang chủ</a></li>
@@ -8,19 +7,13 @@
 </nav>
 
 <div class="row g-4 my-3">
-  <!-- Ảnh -->
   <div class="col-12 col-md-5">
     <div class="card shadow-sm">
-      <img
-        src="{{course.thumbnail}}"
-        alt="{{course.title}}"
-        class="card-img-top"
-        style="height: 320px; object-fit: contain; background:#f9f9f9;"
-      >
+      <img src="{{course.thumbnail}}" alt="{{course.title}}" class="card-img-top"
+        style="height: 320px; object-fit: contain; background:#f9f9f9;">
     </div>
   </div>
 
-  <!-- Thông tin chính -->
   <div class="col-12 col-md-7">
     <div class="card shadow-sm h-100">
       <div class="card-body">
@@ -29,13 +22,12 @@
         <div class="d-flex align-items-center gap-3 mb-2">
           <div class="fs-5">
             {{#if course.sale_price}}
-              <span class="text-danger fw-semibold">{{formatVnd course.sale_price}}</span>
-              <span class="text-muted text-decoration-line-through ms-2">{{formatVnd course.price}}</span>
+            <span class="text-danger fw-semibold">{{formatVnd course.sale_price}}</span>
+            <span class="text-muted text-decoration-line-through ms-2">{{formatVnd course.price}}</span>
             {{else}}
-              <span class="fw-semibold">{{formatVnd course.price}}</span>
+            <span class="fw-semibold">{{formatVnd course.price}}</span>
             {{/if}}
           </div>
-
           {{#if course.rating_avg}}
           <div class="text-warning">
             <i class="bi bi-star-fill"></i>
@@ -43,7 +35,6 @@
             <span class="text-muted">({{course.rating_count}} đánh giá)</span>
           </div>
           {{/if}}
-
           {{#if course.student_count}}
           <div class="text-muted">
             <i class="bi bi-people"></i> {{course.student_count}} học viên
@@ -54,25 +45,29 @@
         {{#if course.short_desc}}
         <p class="text-muted mb-2">{{course.short_desc}}</p>
         {{/if}}
-
         {{#if course.description}}
         <p class="mb-3">{{course.description}}</p>
         {{/if}}
 
         <dl class="row small">
-          {{#if course.category_id}}
+          {{#if course.instructor_name}}
+          <dt class="col-sm-4">Giảng viên</dt>
+          <dd class="col-sm-8">{{course.instructor_name}}</dd>
+          {{/if}}
+
+          {{#if course.category_name}}
           <dt class="col-sm-4">Danh mục</dt>
-          <dd class="col-sm-8">#{{course.category_id}}</dd>
+          <dd class="col-sm-8">{{course.category_name}}</dd>
           {{/if}}
 
           {{#if course.created_at}}
           <dt class="col-sm-4">Ngày tạo</dt>
-          <dd class="col-sm-8">{{course.created_at}}</dd>
+          <dd class="col-sm-8">{{formatDate course.created_at}}</dd>
           {{/if}}
 
           {{#if course.updated_at}}
           <dt class="col-sm-4">Cập nhật</dt>
-          <dd class="col-sm-8">{{course.updated_at}}</dd>
+          <dd class="col-sm-8">{{formatDate course.updated_at}}</dd>
           {{/if}}
         </dl>
       </div>
@@ -81,22 +76,11 @@
         <a href="/courses" class="btn btn-outline-secondary">
           <i class="bi bi-arrow-left"></i> Quay lại
         </a>
-
-        <!-- Nút thêm vào yêu thích -->
-       <form action="/student/watchlist/add" method="post" class="d-inline">
-  <input type="hidden" name="course_id" value="{{course.id}}">
-  <input type="hidden" name="course_title" value="{{course.title}}">
-  <button type="submit" class="btn btn-primary">
-    <i class="bi bi-heart"></i> Thêm vào yêu thích
-  </button>
-</form>
-
       </div>
     </div>
   </div>
 </div>
 
-<!-- Mô tả chi tiết -->
 {{#if course.full_desc}}
 <div class="card shadow-sm my-4">
   <div class="card-header bg-light">
