@@ -1,23 +1,27 @@
 import db from '../utils/db.js';
 
 
-export function findAll() {
+
+export function findPageAll(limit, offset) {
   return db('courses as c')
-    .join('categories as cat', 'c.category_id', 'cat.id')
+    .leftJoin('categories as cat', 'c.category_id', 'cat.id')
     .select(
-      'c.id',
-      'c.title',
-      'c.thumbnail',
-      'c.short_desc',
-      'c.description',
-      'c.price',
-      'c.sale_price',
-      'c.rating_avg',
-      'c.rating_count',
+      'c.id', 'c.title', 'c.thumbnail', 'c.short_desc', 'c.description',
+      'c.price', 'c.sale_price', 'c.rating_avg', 'c.rating_count',
       'cat.catname as category'
-    );
+    )
+    .orderBy('c.id', 'desc') // Thêm sắp xếp
+    .limit(limit)
+    .offset(offset);
 }
 
+
+export async function countAll() {
+  const result = await db('courses')
+    .count('* as total')
+    .first();
+  return result.total;
+}
 
 export function findById(id) {
   return db('courses')
@@ -25,18 +29,25 @@ export function findById(id) {
     .first();
 }
 
-export function findByCategoryId(categoryId) {
-  return db('courses')
+export function findPageByCategoryIds(idArray, limit, offset) {
+  return db('courses as c')
+    .leftJoin('categories as cat', 'c.category_id', 'cat.id')
     .select(
-      'id',
-      'title',
-      'thumbnail',
-      'price',
-      'sale_price',
-      'rating_avg',
-      'rating_count'
+      'c.id', 'c.title', 'c.thumbnail', 'c.price', 'c.sale_price',
+      'c.rating_avg', 'c.rating_count', 'cat.catname as category'
     )
-    .where('category_id', categoryId);
+    .whereIn('c.category_id', idArray)
+    .orderBy('c.id', 'desc') // Thêm sắp xếp
+    .limit(limit)
+    .offset(offset);
+}
+
+export async function countByCategoryIds(idArray) {
+  const result = await db('courses')
+    .whereIn('category_id', idArray)
+    .count('* as total')
+    .first();
+  return result.total;
 }
 
 /**
@@ -85,26 +96,18 @@ export async function findOutstandingPastWeek() {
     .limit(4);
 }
 
-export async function searchByFTS(queryText, sortOption = 'default') {
+export async function findPageByFTS(queryText, sortOption = 'default', limit, offset) {
 
   const ftsQuery = queryText.trim().split(' ').filter(Boolean).join(' & ');
 
-
   const query = db('courses as c')
-    .join('categories as cat', 'c.category_id', 'cat.id')
+    .leftJoin('categories as cat', 'c.category_id', 'cat.id')
     .select(
-      'c.id',
-      'c.title',
-      'c.thumbnail',
-      'c.price',
-      'c.sale_price',
-      'cat.catname as category',
-      'c.rating_avg',
-      'c.rating_count',
+      'c.id', 'c.title', 'c.thumbnail', 'c.price', 'c.sale_price',
+      'cat.catname as category', 'c.rating_avg', 'c.rating_count',
       db.raw("ts_rank(to_tsvector('simple', c.title || ' ' || cat.catname), to_tsquery('simple', ?)) AS rank", [ftsQuery])
     )
     .whereRaw("to_tsvector('simple', c.title || ' ' || cat.catname) @@ to_tsquery('simple', ?)", [ftsQuery]);
-
 
   switch (sortOption) {
     case 'price_asc':
@@ -117,7 +120,26 @@ export async function searchByFTS(queryText, sortOption = 'default') {
       query.orderBy('rank', 'desc');
       break;
   }
+
+  query.limit(limit);
+  query.offset(offset);
+
   return query;
+}
+
+/**
+ Đếm tổng số kết quả FTS
+ */
+export async function countByFTS(queryText) {
+  const ftsQuery = queryText.trim().split(' ').filter(Boolean).join(' & ');
+
+  const result = await db('courses as c')
+    .leftJoin('categories as cat', 'c.category_id', 'cat.id')
+    .whereRaw("to_tsvector('simple', c.title || ' ' || cat.catname) @@ to_tsquery('simple', ?)", [ftsQuery])
+    .count('* as total') // Đếm tổng số
+    .first();
+
+  return result.total;
 }
 
 export async function findNewest(limit = 10) {
