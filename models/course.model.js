@@ -5,16 +5,20 @@ import db from '../utils/db.js';
 export function findPageAll(limit, offset) {
   return db('courses as c')
     .leftJoin('categories as cat', 'c.category_id', 'cat.id')
+
+    // SỬA LẠI JOIN: Bỏ bảng 'instructors'
+    .leftJoin('users as u', 'c.instructor_id', 'u.id')
+
     .select(
       'c.id', 'c.title', 'c.thumbnail', 'c.short_desc', 'c.description',
       'c.price', 'c.sale_price', 'c.rating_avg', 'c.rating_count',
-      'cat.catname as category'
+      'cat.catname as category',
+      'u.name as instructor_name' // Giữ nguyên
     )
-    .orderBy('c.id', 'desc') // Thêm sắp xếp
+    .orderBy('c.id', 'desc')
     .limit(limit)
     .offset(offset);
 }
-
 
 export async function countAll() {
   const result = await db('courses')
@@ -24,20 +28,34 @@ export async function countAll() {
 }
 
 export function findById(id) {
-  return db('courses')
-    .where('id', id)
+  return db('courses as c')
+    // Kết (JOIN) để lấy tên giảng viên
+    .leftJoin('users as u', 'c.instructor_id', 'u.id')
+    // Kết (JOIN) để lấy tên lĩnh vực
+    .leftJoin('categories as cat', 'c.category_id', 'cat.id')
+    .select(
+      'c.*', // Lấy tất cả cột từ bảng 'courses'
+      'u.name as instructor_name', // Tên giảng viên
+      'cat.catname as category_name' // Tên lĩnh vực
+    )
+    .where('c.id', id)
     .first();
 }
-
 export function findPageByCategoryIds(idArray, limit, offset) {
   return db('courses as c')
     .leftJoin('categories as cat', 'c.category_id', 'cat.id')
+
+    // SỬA LẠI JOIN: Bỏ bảng 'instructors'
+    .leftJoin('users as u', 'c.instructor_id', 'u.id')
+
     .select(
       'c.id', 'c.title', 'c.thumbnail', 'c.price', 'c.sale_price',
-      'c.rating_avg', 'c.rating_count', 'cat.catname as category'
+      'c.rating_avg', 'c.rating_count',
+      'cat.catname as category',
+      'u.name as instructor_name' // Giữ nguyên
     )
     .whereIn('c.category_id', idArray)
-    .orderBy('c.id', 'desc') // Thêm sắp xếp
+    .orderBy('c.id', 'desc')
     .limit(limit)
     .offset(offset);
 }
@@ -70,28 +88,24 @@ export function findByCategoryIds(idArray) {
 }
 
 export async function findOutstandingPastWeek() {
-
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
   return db('courses as c')
     .join('enrollments as e', 'c.id', 'e.course_id')
     .join('categories as cat', 'c.category_id', 'cat.id')
-    .where('e.enrolled_at', '>=', sevenDaysAgo)
+
+    // SỬA LẠI JOIN: Bỏ bảng 'instructors'
+    .leftJoin('users as u', 'c.instructor_id', 'u.id')
+
     .select(
-      'c.id',
-      'c.title',
-      'c.description',
-      'c.thumbnail',
-      'c.price',
-      'c.sale_price',
-      'c.rating_avg',
-      'c.rating_count',
+      'c.id', 'c.title', 'c.description', 'c.thumbnail',
+      'c.price', 'c.sale_price', 'c.rating_avg', 'c.rating_count',
       'cat.catname as category',
+      'u.name as instructor_name',
       db.raw('COUNT(e.course_id) as enrollment_count')
     )
-
-    .groupBy('c.id', 'c.title', 'c.description', 'c.thumbnail', 'c.price', 'c.sale_price', 'c.rating_avg', 'c.rating_count', 'cat.catname')
+    .groupBy('c.id', 'c.title', 'c.description', 'c.thumbnail', 'c.price', 'c.sale_price', 'c.rating_avg', 'c.rating_count', 'cat.catname', 'u.name')
     .orderBy('enrollment_count', 'desc')
     .limit(4);
 }
@@ -145,9 +159,15 @@ export async function countByFTS(queryText) {
 export async function findNewest(limit = 10) {
   return db('courses as c')
     .leftJoin('categories as cat', 'c.category_id', 'cat.id')
+
+    // SỬA LẠI JOIN: Bỏ bảng 'instructors'
+    .leftJoin('users as u', 'c.instructor_id', 'u.id')
+
     .select(
       'c.id', 'c.title', 'c.thumbnail', 'c.price', 'c.sale_price',
-      'c.rating_avg', 'c.rating_count', 'cat.catname as category'
+      'c.rating_avg', 'c.rating_count',
+      'cat.catname as category',
+      'u.name as instructor_name'
     )
     .orderBy('c.id', 'desc')
     .limit(limit);
@@ -156,9 +176,15 @@ export async function findNewest(limit = 10) {
 export async function findMostViewed(limit = 10) {
   return db('courses as c')
     .leftJoin('categories as cat', 'c.category_id', 'cat.id')
+
+    // SỬA LẠI JOIN: Bỏ bảng 'instructors'
+    .leftJoin('users as u', 'c.instructor_id', 'u.id')
+
     .select(
       'c.id', 'c.title', 'c.thumbnail', 'c.price', 'c.sale_price',
-      'c.rating_avg', 'c.rating_count', 'cat.catname as category'
+      'c.rating_avg', 'c.rating_count',
+      'cat.catname as category',
+      'u.name as instructor_name'
     )
     .orderBy('c.view_count', 'desc')
     .limit(limit);
