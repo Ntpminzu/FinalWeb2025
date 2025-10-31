@@ -48,7 +48,7 @@
 <script>
   const player = new Plyr('#player');
 
-  // --- resume & gửi duration khi metadata đã tải ---
+ 
   const lastSecond = Number('{{progress.last_second}}') || 0;
   player.on('loadedmetadata', () => {
     try {
@@ -57,7 +57,7 @@
       }
     } catch (_) {}
 
-    // Cập nhật duration lên server (lưu vào DB)
+  
     const dur = Math.floor(player?.duration || 0);
     if (dur > 0) {
       fetch('/student/api/lecture-duration', {
@@ -71,7 +71,7 @@
     }
   });
 
-  // --- lưu tiến trình định kỳ / khi rời trang ---
+
   let lastSent = 0;
 
   function sendProgress(force = false) {
@@ -80,7 +80,7 @@
     const pos = Math.max(0, Math.floor(player.currentTime || 0));
     const dur = Math.max(1, Math.floor(player.duration || 1));
 
-    // tránh spam: chỉ gửi khi lệch >= 3s hoặc bắt buộc
+
     if (!force && Math.abs(pos - lastSent) < 3) return;
     lastSent = pos;
 
