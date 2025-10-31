@@ -31,6 +31,7 @@
             <label class="form-label">Quyền truy cập</label>
             <input type="text" class="form-control" value="{{user.permission}}" disabled>
           </div>
+       
 
           <div class="text-end">
             <button type="submit" class="btn btn-success">
@@ -40,7 +41,7 @@
         </div>
       </div>
     </form>
-
+    
     <!-- Đổi mật khẩu -->
     <form action="/student/change-pwd" method="post">
       <input type="hidden" name="id" value="{{user.id}}">
@@ -75,6 +76,10 @@
         </div>
       </div>
     </form>
+    <a href="/student/watchlist" class="btn btn-outline-primary mt-3">
+      <i class="bi bi-heart"></i> Danh sách yêu thích
+    </a>
+    
   </main>
 </body>
  

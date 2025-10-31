@@ -179,8 +179,24 @@ router.post('/watchlist/remove', async (req, res, next) => {
 //----------------------------- Purchased Courses
 router.get('/courses', async (req, res) => {
   const userId = req.session.authUser.id;
+
+  // danh sách khóa đã mua
   const purchasedCourses = await purchasedModel.listByUser(userId);
-  res.render('vwStudent/courses', { purchasedCourses });
+
+  // gắn thêm % hoàn thành và cờ is_completed
+  const coursesWithProgress = await Promise.all(
+    purchasedCourses.map(async (c) => {
+      const { percent } = await progressModel.courseCompletion(userId, c.course_id);
+      return {
+        ...c,
+        completion_percent: percent,          // số nguyên 0..100
+        is_completed: percent >= 90         // đã hoàn thành khi =90%
+        
+      };
+    })
+  );
+
+  res.render('vwStudent/courses', { purchasedCourses: coursesWithProgress });
 });
 ///-----------------------------
 

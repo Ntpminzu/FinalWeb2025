@@ -22,7 +22,7 @@
       <div class="mb-3">
         <label class="form-label fw-semibold">Chọn số sao (1–5)</label>
         <div class="d-flex gap-2">
-          {{!-- radio 1..5, preselect theo myFeedback.rating --}}
+        
           {{#each (array 1 2 3 4 5) as |star|}}
             <div class="form-check">
               <input class="form-check-input" type="radio" name="rating" id="star{{star}}" value="{{star}}"
@@ -55,16 +55,3 @@
   </div>
 {{/if}}
 
-{{!-- Nếu muốn hiển thị các đánh giá khác, bật block dưới
-{{!--
-<hr class="my-4">
-<h5 class="mb-3"><i class="bi bi-people"></i> Đánh giá từ học viên</h5>
-<ul class="list-group">
-  {{#each feedbacks}}
-    <li class="list-group-item">
-      <strong>{{user_name}}</strong> — {{rating}} ★
-      {{!-- <div class="text-muted small">{{created_at}}</div>
-      {{!-- <div>{{comment}}</div>
-    {{!-- </li>
-    {{/each}}
-    {{!-- </ul> --}} 
