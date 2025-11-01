@@ -41,3 +41,7 @@ export function promoteToTeacher(id) {
 export function deleteById(id) {
   return db('users').where({ id }).del();
 }
+
+export function toggleDisable(id, disable) {
+  return db('users').where('id', id).update({ is_disabled: disable });
+}

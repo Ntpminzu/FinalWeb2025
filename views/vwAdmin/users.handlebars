@@ -1,4 +1,3 @@
-{{!-- Layout kế thừa từ admin.handlebars --}}
 <h2 class="text-center mt-4 mb-4">Quản lý Người dùng</h2>
 
 <div class="container">
@@ -28,6 +27,18 @@
           <td>{{this.dob}}</td>
           <td>
             <div class="d-flex justify-content-center gap-2">
+              {{#if this.is_disabled}}
+                <form action="/admin/users/disable/{{this.id}}" method="POST" style="display:inline;">
+                  <input type="hidden" name="disable" value="false">
+                  <button type="submit" class="btn btn-sm btn-success">Mở lại</button>
+                </form>
+              {{else}}
+                <form action="/admin/users/disable/{{this.id}}" method="POST" style="display:inline;">
+                  <input type="hidden" name="disable" value="true">
+                  <button type="submit" class="btn btn-sm btn-warning">Khoá</button>
+                </form>
+              {{/if}}
+
               <form action="/admin/user/delete/{{this.id}}" method="POST" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn xóa giảng viên này?');">
                 <button type="submit" class="btn btn-sm btn-outline-danger">Xóa</button>
               </form>
@@ -37,7 +48,7 @@
         {{/each}}
       {{else}}
         <tr>
-          <td colspan="5" class="text-center text-muted">Chưa có giảng viên nào.</td>
+          <td colspan="6" class="text-center text-muted">Chưa có giảng viên nào.</td>
         </tr>
       {{/if}}
     </tbody>
@@ -68,9 +79,22 @@
           <td>{{this.dob}}</td>
           <td>
             <div class="d-flex justify-content-center gap-2">
-              <form action="/admin/users/make-teacher/{{this.id}}" method="POST" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn cấp quyền giảng viên cho sinh viên này?');">
-                <button type="submit" class="btn btn-sm btn-warning">Cấp quyền GV</button>
+              {{#if this.is_disabled}}
+                <form action="/admin/users/disable/{{this.id}}" method="POST" style="display:inline;">
+                  <input type="hidden" name="disable" value="false">
+                  <button type="submit" class="btn btn-sm btn-success">Mở lại</button>
+                </form>
+              {{else}}
+                <form action="/admin/users/disable/{{this.id}}" method="POST" style="display:inline;">
+                  <input type="hidden" name="disable" value="true">
+                  <button type="submit" class="btn btn-sm btn-warning">Khoá</button>
+                </form>
+              {{/if}}
+
+              <form action="/admin/users/make-teacher/{{this.id}}" method="POST" style="display:inline;" onsubmit="return confirm('Cấp quyền giảng viên cho sinh viên này?');">
+                <button type="submit" class="btn btn-sm btn-primary">Cấp quyền GV</button>
               </form>
+
               <form action="/admin/users/delete/{{this.id}}" method="POST" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn xóa sinh viên này?');">
                 <button type="submit" class="btn btn-sm btn-outline-danger">Xóa</button>
               </form>
@@ -80,7 +104,7 @@
         {{/each}}
       {{else}}
         <tr>
-          <td colspan="5" class="text-center text-muted">Chưa có sinh viên nào.</td>
+          <td colspan="6" class="text-center text-muted">Chưa có sinh viên nào.</td>
         </tr>
       {{/if}}
     </tbody>

@@ -9,7 +9,7 @@
             <i class="bi bi-plus-circle"></i> Thêm bài giảng mới
         </div>
         <div class="card-body">
-            <form method="POST" enctype="multipart/form-data" action="/instructor/lectures/{{courseId}}/add">
+            <form method="POST" action="/instructor/lectures/{{course.id}}/add">
                 <div class="mb-3">
                     <label class="form-label">Tên bài giảng</label>
                     <input type="text" name="title" class="form-control" placeholder="Nhập tên bài giảng" required>
