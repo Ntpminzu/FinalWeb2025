@@ -4,6 +4,7 @@ import db from '../utils/db.js';
 
 export function findPageAll(limit, offset) {
   return db('courses as c')
+    .where('c.is_disabled', false)
     .leftJoin('categories as cat', 'c.category_id', 'cat.id')
 
     // SỬA LẠI JOIN: Bỏ bảng 'instructors'
@@ -22,6 +23,7 @@ export function findPageAll(limit, offset) {
 
 export async function countAll() {
   const result = await db('courses')
+    .where('is_disabled', false)
     .count('* as total')
     .first();
   return result.total;
@@ -29,7 +31,7 @@ export async function countAll() {
 
 export function findById(id) {
   return db('courses as c')
-    // Kết (JOIN) để lấy tên giảng viên
+    .where('c.is_disabled', false)
     .leftJoin('users as u', 'c.instructor_id', 'u.id')
     // Kết (JOIN) để lấy tên lĩnh vực
     .leftJoin('categories as cat', 'c.category_id', 'cat.id')
@@ -43,6 +45,7 @@ export function findById(id) {
 }
 export function findPageByCategoryIds(idArray, limit, offset) {
   return db('courses as c')
+    .where('c.is_disabled', false)
     .leftJoin('categories as cat', 'c.category_id', 'cat.id')
 
     // SỬA LẠI JOIN: Bỏ bảng 'instructors'
@@ -62,6 +65,7 @@ export function findPageByCategoryIds(idArray, limit, offset) {
 
 export async function countByCategoryIds(idArray) {
   const result = await db('courses')
+    .where('is_disabled', false)
     .whereIn('category_id', idArray)
     .count('* as total')
     .first();
@@ -92,6 +96,7 @@ export async function findOutstandingPastWeek() {
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
   return db('courses as c')
+    .where('c.is_disabled', false)
     .join('enrollments as e', 'c.id', 'e.course_id')
     .join('categories as cat', 'c.category_id', 'cat.id')
 
@@ -121,8 +126,8 @@ export async function findPageByFTS(queryText, sortOption = 'default', limit, of
       'cat.catname as category', 'c.rating_avg', 'c.rating_count',
       db.raw("ts_rank(to_tsvector('simple', c.title || ' ' || cat.catname), to_tsquery('simple', ?)) AS rank", [ftsQuery])
     )
-    .whereRaw("to_tsvector('simple', c.title || ' ' || cat.catname) @@ to_tsquery('simple', ?)", [ftsQuery]);
-
+    .whereRaw("to_tsvector('simple', c.title || ' ' || cat.catname) @@ to_tsquery('simple', ?)", [ftsQuery])
+    .andWhere('c.is_disabled', false);
   switch (sortOption) {
     case 'price_asc':
       query.orderBy('c.price', 'asc');
@@ -150,6 +155,7 @@ export async function countByFTS(queryText) {
   const result = await db('courses as c')
     .leftJoin('categories as cat', 'c.category_id', 'cat.id')
     .whereRaw("to_tsvector('simple', c.title || ' ' || cat.catname) @@ to_tsquery('simple', ?)", [ftsQuery])
+    .andWhere('c.is_disabled', false)
     .count('* as total') // Đếm tổng số
     .first();
 
@@ -158,6 +164,7 @@ export async function countByFTS(queryText) {
 
 export async function findNewest(limit = 10) {
   return db('courses as c')
+    .where('c.is_disabled', false)
     .leftJoin('categories as cat', 'c.category_id', 'cat.id')
 
     // SỬA LẠI JOIN: Bỏ bảng 'instructors'
@@ -175,6 +182,7 @@ export async function findNewest(limit = 10) {
 
 export async function findMostViewed(limit = 10) {
   return db('courses as c')
+    .where('c.is_disabled', false)
     .leftJoin('categories as cat', 'c.category_id', 'cat.id')
 
     // SỬA LẠI JOIN: Bỏ bảng 'instructors'
