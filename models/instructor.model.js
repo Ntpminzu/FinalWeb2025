@@ -48,15 +48,16 @@ export async function addCourse(courseData) {
       .insert({
         instructor_id: courseData.user_id,
         title: courseData.title,
-        category: courseData.category, // id của category
-        short_desc: courseData.short_desc,
-        full_desc: courseData.full_desc,
-        price: courseData.price,
-        discount_price: courseData.discount_price,
-        thumbnail_url: courseData.thumbnail_url,
+        category_id: courseData.category_id ?? courseData.category, // ✅ đúng tên cột
+        short_desc: courseData.short_desc ?? null,
+        full_desc: courseData.full_desc ?? null,
+        description: courseData.full_desc ?? null, // optional, nếu cột này vẫn dùng
+        price: courseData.price ?? 0,
+        sale_price: courseData.discount_price ?? null, // ✅ map đúng với cột sale_price
+        thumbnail: courseData.thumbnail_url ?? null,   // ✅ đúng cột thumbnail
         created_at: new Date(),
       })
-      .returning('*'); // PostgreSQL hỗ trợ returning
+      .returning('*');
     return newCourse;
   } catch (err) {
     throw new Error('Lỗi khi thêm khóa học: ' + err.message);

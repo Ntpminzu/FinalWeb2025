@@ -7,19 +7,25 @@ import { restrictInstructor } from '../middlewares/auth.mdw.js';
 
 const router = express.Router();
 
-// ---------------- CẤU HÌNH UPLOAD ----------------
+import fs from 'fs';
+import path from 'path';
+
+const ensureDir = (dir) => fs.mkdirSync(dir, { recursive: true });
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    if (file.mimetype.startsWith('video/')) cb(null, 'uploads/videos/');
-    else cb(null, 'uploads/thumbnails/');
+    const dir = file.mimetype.startsWith('video/')
+      ? path.join(process.cwd(), 'uploads', 'videos')
+      : path.join(process.cwd(), 'uploads', 'thumbnails');
+    ensureDir(dir);                 // <= tạo nếu chưa có
+    cb(null, dir);
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + file.originalname);
+    const ext = path.extname(file.originalname) || '.jpg';
+    cb(null, `${Date.now()}-thumbnail${ext}`);
   },
 });
-
 const upload = multer({ storage });
-
 // ---------------- ROUTES ----------------
 
 // Trang chính: redirect về Dashboard
@@ -54,14 +60,13 @@ router.get('/new', restrictInstructor, async (req, res) => {
 // Xử lý tạo khóa học mới
 router.post('/new', restrictInstructor, upload.single('thumbnail'), async (req, res) => {
   try {
-    const { title, category, short_desc, full_desc, price, discount_price } = req.body;
+    const { title, category_id, short_desc, full_desc, price, discount_price } = req.body;
     const thumbnail_url = req.file ? `/uploads/thumbnails/${req.file.filename}` : null;
-    const user_id = req.session.authUser.id;
 
     await instructorModel.addCourse({
-      user_id,
+      user_id: req.session.authUser.id,
       title,
-      category,
+      category_id, // ✅
       short_desc,
       full_desc,
       price,
@@ -75,6 +80,7 @@ router.post('/new', restrictInstructor, upload.single('thumbnail'), async (req, 
     res.status(500).send('Đã xảy ra lỗi khi tạo khóa học.');
   }
 });
+
 
 // ---------------- KHÓA HỌC ----------------
 

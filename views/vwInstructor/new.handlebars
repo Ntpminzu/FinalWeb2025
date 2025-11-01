@@ -1,5 +1,3 @@
-{{! views/vwInstructor/new.hbs }}
-
 <div class="container mt-5">
 
     {{!-- Breadcrumb đơn giản --}}
@@ -22,7 +20,7 @@
         {{!-- FORM BẮT ĐẦU --}}
         <form action="/instructor/new" method="POST" enctype="multipart/form-data">
 
-            {{> vwInstructor/partials/courseForm }}
+            {{> courseForm }}
 
             <div class="d-grid mt-4">
                 <button type="submit" class="btn btn-success btn-lg">
@@ -33,3 +31,29 @@
     </div>
 
 </div>
+{{#fillContent 'css'}}
+<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+{{/fillContent}}
+
+{{#fillContent 'js'}}
+<script src="https://cdn.quilljs.com/1.3.7/quill.js"></script>
+<script>
+    const quill = new Quill('#editor', {
+        theme: 'snow',
+        placeholder: 'Nhập mô tả chi tiết khóa học...',
+        modules: {
+            toolbar: [
+                ['bold', 'italic', 'underline'],
+                [{ 'header': 1 }, { 'header': 2 }],
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                ['link', 'blockquote', 'code-block'],
+                ['clean']
+            ]
+        }
+    });
+
+    document.querySelector('form').addEventListener('submit', function () {
+        document.querySelector('#txtFullDesc').value = quill.root.innerHTML;
+    });
+</script>
+{{/fillContent}}
