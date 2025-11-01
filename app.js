@@ -130,6 +130,7 @@ app.engine('handlebars', engine({
     },
   },
   partialsDir: [
+    path.join(__dirname, 'views', 'partials'),
     path.join(__dirname, 'views', 'vwAccount'),
     path.join(__dirname, 'views', 'vwAdminCategory'),
     path.join(__dirname, 'views', 'vwAdminProduct'),
