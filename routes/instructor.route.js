@@ -17,7 +17,7 @@ const storage = multer.diskStorage({
     const dir = file.mimetype.startsWith('video/')
       ? path.join(process.cwd(), 'uploads', 'videos')
       : path.join(process.cwd(), 'uploads', 'thumbnails');
-    ensureDir(dir);                 // <= tạo nếu chưa có
+    ensureDir(dir);
     cb(null, dir);
   },
   filename: (req, file, cb) => {
@@ -26,12 +26,9 @@ const storage = multer.diskStorage({
   },
 });
 const upload = multer({ storage });
-// ---------------- ROUTES ----------------
 
-// Trang chính: redirect về Dashboard
 router.get('/', (req, res) => res.redirect('/instructor/dashboard'));
 
-// Dashboard giảng viên
 router.get('/dashboard', restrictInstructor, async (req, res) => {
   try {
     const instructorId = req.session.authUser.id;
@@ -66,7 +63,7 @@ router.post('/new', restrictInstructor, upload.single('thumbnail'), async (req, 
     await instructorModel.addCourse({
       user_id: req.session.authUser.id,
       title,
-      category_id, // ✅
+      category_id,
       short_desc,
       full_desc,
       price,
@@ -91,7 +88,6 @@ router.get('/edit/course/:id', restrictInstructor, async (req, res) => {
     const course = await instructorModel.getCourseById(courseId);
     const lectures = await instructorModel.getLecturesByCourse(courseId);
 
-    // 🔹 Thêm dòng này để lấy danh sách lĩnh vực
     const categories = await instructorModel.getAllCategories();
     res.render('vwInstructor/edit-course', {
       course,

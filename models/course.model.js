@@ -12,7 +12,7 @@ export function findPageAll(limit, offset) {
       'c.id', 'c.title', 'c.thumbnail', 'c.short_desc', 'c.description',
       'c.price', 'c.sale_price', 'c.rating_avg', 'c.rating_count',
       'cat.catname as category',
-      'u.name as instructor_name' // Giữ nguyên
+      'u.name as instructor_name'
     )
     .orderBy('c.id', 'desc')
     .limit(limit)
@@ -31,16 +31,19 @@ export function findById(id) {
   return db('courses as c')
     .where('c.is_disabled', false)
     .leftJoin('users as u', 'c.instructor_id', 'u.id')
-    // Kết (JOIN) để lấy tên lĩnh vực
+    .leftJoin('instructors as i', 'i.user_id', 'u.id')
     .leftJoin('categories as cat', 'c.category_id', 'cat.id')
     .select(
-      'c.*', // Lấy tất cả cột từ bảng 'courses'
-      'u.name as instructor_name', // Tên giảng viên
-      'cat.catname as category_name' // Tên lĩnh vực
+      'c.*',
+      'u.name as instructor_name',
+      'i.bio as instructor_bio',
+      'i.specialization as instructor_specialization',
+      'cat.catname as category_name'
     )
     .where('c.id', id)
     .first();
 }
+
 export function findPageByCategoryIds(idArray, limit, offset) {
   return db('courses as c')
     .where('c.is_disabled', false)

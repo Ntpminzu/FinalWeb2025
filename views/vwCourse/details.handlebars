@@ -49,27 +49,61 @@
         <p class="mb-3">{{course.description}}</p>
         {{/if}}
 
-        <dl class="row small">
-          {{#if course.instructor_name}}
-          <dt class="col-sm-4">Giảng viên</dt>
-          <dd class="col-sm-8">{{course.instructor_name}}</dd>
-          {{/if}}
+        <!-- 🔹 Thông tin khóa học & giảng viên -->
+        <div class="card border-0 shadow-sm bg-light bg-opacity-75 mt-3">
+          <div class="card-header bg-primary bg-opacity-10 border-0 py-2">
+            <h6 class="fw-bold text-primary mb-0">
+              <i class="bi bi-info-square me-2"></i> Thông tin khóa học
+            </h6>
+          </div>
 
-          {{#if course.category_name}}
-          <dt class="col-sm-4">Danh mục</dt>
-          <dd class="col-sm-8">{{course.category_name}}</dd>
-          {{/if}}
+          <div class="card-body">
+            {{#if course.instructor_name}}
+            <div class="d-flex align-items-start gap-3 mb-3">
+              <img src="/static/img/instructor-avatar.png" alt="Giảng viên" class="rounded-circle border"
+                style="width:60px; height:60px; object-fit:cover;">
+              <div>
+                <h6 class="fw-bold mb-1 text-dark">{{course.instructor_name}}</h6>
+                {{#if course.instructor_specialization}}
+                <p class="text-muted mb-1">
+                  <i class="bi bi-mortarboard"></i> {{course.instructor_specialization}}
+                </p>
+                {{/if}}
+                {{#if course.instructor_bio}}
+                <p class="small text-secondary mb-0">
+                  <i class="bi bi-info-circle"></i> {{course.instructor_bio}}
+                </p>
+                {{/if}}
+              </div>
+            </div>
+            <hr class="my-2">
+            {{/if}}
 
-          {{#if course.created_at}}
-          <dt class="col-sm-4">Ngày tạo</dt>
-          <dd class="col-sm-8">{{formatDate course.created_at}}</dd>
-          {{/if}}
+            <div class="row small text-dark">
+              {{#if course.category_name}}
+              <div class="col-12 col-md-6 mb-2">
+                <i class="bi bi-folder2-open text-primary me-1"></i>
+                <strong>Danh mục:</strong> {{course.category_name}}
+              </div>
+              {{/if}}
 
-          {{#if course.updated_at}}
-          <dt class="col-sm-4">Cập nhật</dt>
-          <dd class="col-sm-8">{{formatDate course.updated_at}}</dd>
-          {{/if}}
-        </dl>
+              {{#if course.created_at}}
+              <div class="col-12 col-md-6 mb-2">
+                <i class="bi bi-calendar-plus text-primary me-1"></i>
+                <strong>Ngày tạo:</strong> {{formatDate course.created_at}}
+              </div>
+              {{/if}}
+
+              {{#if course.updated_at}}
+              <div class="col-12 col-md-6">
+                <i class="bi bi-calendar-check text-primary me-1"></i>
+                <strong>Cập nhật:</strong> {{formatDate course.updated_at}}
+              </div>
+              {{/if}}
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <div class="card-footer bg-white d-flex justify-content-end gap-2">

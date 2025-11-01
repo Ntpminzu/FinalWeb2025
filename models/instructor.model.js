@@ -44,7 +44,6 @@ export async function updateCourse(courseId, data) {
       updated_at: new Date()
     };
 
-    // Nếu có thumbnail thì cập nhật luôn
     if (data.thumbnail_url) updateData.thumbnail = data.thumbnail_url;
 
     await db('courses').where('id', courseId).update(updateData);
@@ -71,13 +70,13 @@ export async function addCourse(courseData) {
       .insert({
         instructor_id: courseData.user_id,
         title: courseData.title,
-        category_id: courseData.category_id ?? courseData.category, // ✅ đúng tên cột
+        category_id: courseData.category_id ?? courseData.category,
         short_desc: courseData.short_desc ?? null,
         full_desc: courseData.full_desc ?? null,
-        description: courseData.full_desc ?? null, // optional, nếu cột này vẫn dùng
+        description: courseData.full_desc ?? null,
         price: courseData.price ?? 0,
-        sale_price: courseData.discount_price ?? null, // ✅ map đúng với cột sale_price
-        thumbnail: courseData.thumbnail_url ?? null,   // ✅ đúng cột thumbnail
+        sale_price: courseData.discount_price ?? null,
+        thumbnail: courseData.thumbnail_url ?? null,
         created_at: new Date(),
       })
       .returning('*');
@@ -98,7 +97,6 @@ export async function getCoursesByInstructor(instructorId) {
       .count('id as total_students')
       .first();
 
-    // ✅ Đọc trực tiếp từ cột Status thay vì kiểm tra lectures
     course.status = course.Status ? 'Đã hoàn thành' : 'Chưa hoàn thành';
     course.total_students = studentCount?.total_students || 0;
   }
@@ -107,7 +105,6 @@ export async function getCoursesByInstructor(instructorId) {
 }
 
 
-// 🟢 Lấy chi tiết một khóa học theo ID
 export async function getCourseById(id) {
   try {
     const course = await db('courses')
@@ -119,7 +116,6 @@ export async function getCourseById(id) {
   }
 }
 
-// 🟢 Lấy danh sách bài giảng của một khóa học
 export async function getLecturesByCourse(course_id) {
   try {
     return await db('lectures')
@@ -131,7 +127,6 @@ export async function getLecturesByCourse(course_id) {
   }
 }
 
-// 🟢 Thêm một bài giảng mới
 export async function addLecture(course_id, title, video_url) {
   try {
     const [lecture] = await db('lectures')
@@ -149,7 +144,6 @@ export async function addLecture(course_id, title, video_url) {
 }
 
 
-// 🟢 Xóa bài giảng
 export async function deleteLecture(id) {
   try {
     await db('lectures')
