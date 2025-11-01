@@ -93,7 +93,7 @@ router.get('/edit/course/:id', restrictInstructor, async (req, res) => {
 
     // 🔹 Thêm dòng này để lấy danh sách lĩnh vực
     const categories = await instructorModel.getAllCategories();
-res.render('vwInstructor/edit-course', {
+    res.render('vwInstructor/edit-course', {
       course,
       lectures,
       categories,
@@ -147,7 +147,7 @@ router.get('/edit/lectures/:id', restrictInstructor, async (req, res) => {
 router.post('/lectures/:courseId/add', restrictInstructor, async (req, res) => {
   try {
     const { courseId } = req.params;
-    const { title, video_url } = req.body; // 👈 đọc trực tiếp từ form
+    const { title, video_url } = req.body;
 
     if (!title || !video_url) {
       return res.status(400).send('Thiếu tiêu đề hoặc link video.');
@@ -155,7 +155,7 @@ router.post('/lectures/:courseId/add', restrictInstructor, async (req, res) => {
 
     await instructorModel.addLecture(courseId, title, video_url);
 
-    res.redirect(`/instructor/edit/lectures/${courseId}`); // 👈 đúng URL trang quản lý bài giảng
+    res.redirect(`/instructor/edit/lectures/${courseId}`);
   } catch (err) {
     console.error('❌ Lỗi thêm bài giảng:', err);
     res.status(500).send('Không thể thêm bài giảng.');
@@ -182,7 +182,7 @@ router.get('/profile', restrictInstructor, async (req, res) => {
   try {
     const instructorId = req.session.authUser.id;
     const instructor = await instructorModel.findById(instructorId);
-const courses = await instructorModel.getCoursesByInstructor(instructorId);
+    const courses = await instructorModel.getCoursesByInstructor(instructorId);
 
     res.render('vwInstructor/profile', {
       instructor,

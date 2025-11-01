@@ -32,6 +32,29 @@ export function findCoursesByInstructor(instructorId) {
   return db('courses').where('instructor_id', instructorId);
 }
 
+export async function updateCourse(courseId, data) {
+  try {
+    const updateData = {
+      title: data.title,
+      short_desc: data.short_desc,
+      full_desc: data.full_desc,
+      category_id: data.category_id,
+      price: data.price,
+      sale_price: data.sale_price || null,
+      updated_at: new Date()
+    };
+
+    // Nếu có thumbnail thì cập nhật luôn
+    if (data.thumbnail_url) updateData.thumbnail = data.thumbnail_url;
+
+    await db('courses').where('id', courseId).update(updateData);
+    return true;
+  } catch (err) {
+    console.error('❌ Lỗi khi updateCourse:', err);
+    throw new Error('Không thể cập nhật khóa học.');
+  }
+}
+
 export async function getAllCategories() {
   try {
     const categories = await db('categories')
@@ -104,7 +127,7 @@ export async function getLecturesByCourse(course_id) {
       .orderBy('id', 'asc')
       .select('id', 'title', 'video_url');
   } catch (err) {
-throw new Error('Lỗi khi lấy danh sách bài giảng: ' + err.message);
+    throw new Error('Lỗi khi lấy danh sách bài giảng: ' + err.message);
   }
 }
 
@@ -116,7 +139,7 @@ export async function addLecture(course_id, title, video_url) {
         course_id,
         title,
         video_url,
-        created_at: new Date(),
+
       })
       .returning(['id', 'title', 'video_url']);
     return lecture;
