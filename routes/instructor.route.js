@@ -57,18 +57,19 @@ router.get('/new', restrictInstructor, async (req, res) => {
 // Xử lý tạo khóa học mới
 router.post('/new', restrictInstructor, upload.single('thumbnail'), async (req, res) => {
   try {
-    const { title, category_id, short_desc, full_desc, price, discount_price } = req.body;
-    const thumbnail_url = req.file ? `/uploads/thumbnails/${req.file.filename}` : null;
+    const { title, category_id, short_desc, full_desc, price, sale_price } = req.body;
+    const thumbnail = req.file ? `/uploads/thumbnails/${req.file.filename}` : null;
 
     await instructorModel.addCourse({
-      user_id: req.session.authUser.id,
+      instructor_id: req.session.authUser.id,
       title,
       category_id,
       short_desc,
       full_desc,
+      description: full_desc,
       price,
-      discount_price,
-      thumbnail_url,
+      sale_price,
+      thumbnail,
     });
 
     res.redirect('/instructor/dashboard');
@@ -105,17 +106,17 @@ router.get('/edit/course/:id', restrictInstructor, async (req, res) => {
 // Cập nhật thông tin khóa học
 router.post('/edit/:id', restrictInstructor, upload.single('thumbnail'), async (req, res) => {
   try {
-    const { title, short_desc, full_desc, category, price, discount_price } = req.body;
-    const thumbnail_url = req.file ? `/uploads/thumbnails/${req.file.filename}` : null;
+    const { title, short_desc, full_desc, category_id, price, sale_price } = req.body;
+    const thumbnail = req.file ? `/uploads/thumbnails/${req.file.filename}` : null;
 
     await instructorModel.updateCourse(req.params.id, {
       title,
       short_desc,
       full_desc,
-      category,
+      description: full_desc,
       price,
-      discount_price,
-      thumbnail_url,
+      sale_price,
+      thumbnail,
     });
 
     res.redirect('/instructor/dashboard');
@@ -124,7 +125,6 @@ router.post('/edit/:id', restrictInstructor, upload.single('thumbnail'), async (
     res.status(500).send('Không thể cập nhật khóa học.');
   }
 });
-
 // Trang quản lý bài giảng riêng (tách ra khỏi chỉnh sửa khóa học)
 router.get('/edit/lectures/:id', restrictInstructor, async (req, res) => {
   try {

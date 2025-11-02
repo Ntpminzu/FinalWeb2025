@@ -51,12 +51,13 @@ router.post('/signup', async (req, res) => {
     });
 
     // gửi mail OTP (Mailtrap sandbox)
+    // Looking to send emails in production? Check out our Email API/SMTP product!
     const transporter = nodemailer.createTransport({
       host: "sandbox.smtp.mailtrap.io",
       port: 2525,
       auth: {
-        user: "e8f719756dd9b2",
-        pass: "1232d9cf419048"
+        user: "325d3a4b14039a",
+        pass: "17b0afcd916ef6"
       }
     });
 

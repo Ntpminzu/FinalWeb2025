@@ -38,13 +38,13 @@ export async function updateCourse(courseId, data) {
       title: data.title,
       short_desc: data.short_desc,
       full_desc: data.full_desc,
-      category_id: data.category_id,
+      description: data.description || data.full_desc,
       price: data.price,
       sale_price: data.sale_price || null,
-      updated_at: new Date()
+      updated_at: new Date(),
     };
 
-    if (data.thumbnail_url) updateData.thumbnail = data.thumbnail_url;
+    if (data.thumbnail) updateData.thumbnail = data.thumbnail;
 
     await db('courses').where('id', courseId).update(updateData);
     return true;
@@ -68,21 +68,24 @@ export async function addCourse(courseData) {
   try {
     const [newCourse] = await db('courses')
       .insert({
-        instructor_id: courseData.user_id,
+        instructor_id: courseData.instructor_id,
         title: courseData.title,
-        category_id: courseData.category_id ?? courseData.category,
+        category_id: courseData.category_id,
         short_desc: courseData.short_desc ?? null,
         full_desc: courseData.full_desc ?? null,
-        description: courseData.full_desc ?? null,
+        description: courseData.description ?? courseData.full_desc ?? null,
         price: courseData.price ?? 0,
-        sale_price: courseData.discount_price ?? null,
-        thumbnail: courseData.thumbnail_url ?? null,
+        sale_price: courseData.sale_price ?? null,
+        thumbnail: courseData.thumbnail ?? null,
         created_at: new Date(),
+        updated_at: new Date(),
       })
       .returning('*');
+
     return newCourse;
   } catch (err) {
-    throw new Error('Lỗi khi thêm khóa học: ' + err.message);
+    console.error('❌ Lỗi khi thêm khóa học:', err);
+    throw new Error('Không thể thêm khóa học.');
   }
 }
 
