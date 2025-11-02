@@ -1,41 +1,37 @@
-{{! views/vwInstructor/partials/courseForm.handlebars }}
-
-{{!--
-Partial này chứa các trường nhập liệu cho cả việc TẠO MỚI và CHỈNH SỬA khóa học.
-Nếu đang trong chế độ chỉnh sửa, 'course' object sẽ được truyền vào.
---}}
-
 <div class="row">
-    {{!-- Cột 1: Thông tin cơ bản --}}
     <div class="col-md-8">
 
         <div class="mb-3">
-            <label for="courseTitle" class="form-label fw-bold">Tiêu đề Khóa học <span
-                    class="text-danger">*</span></label>
+            <label for="courseTitle" class="form-label fw-bold">
+                Tiêu đề Khóa học <span class="text-danger">*</span>
+            </label>
             <input type="text" class="form-control" id="courseTitle" name="title" value="{{course.title}}"
                 placeholder="Nhập tiêu đề khóa học" required>
         </div>
+
         <div class="mb-3">
-            <label for="shortDesc" class="form-label fw-bold">Mô tả Ngắn gọn <span class="text-danger">*</span></label>
+            <label for="shortDesc" class="form-label fw-bold">
+                Mô tả Ngắn gọn <span class="text-danger">*</span>
+            </label>
             <input type="text" class="form-control" id="shortDesc" name="short_desc" value="{{course.short_desc}}"
                 placeholder="Tóm tắt ngắn (dưới 100 ký tự)" required>
         </div>
 
         <div class="mb-3">
-            <label for="fullDesc" class="form-label fw-bold">Mô tả Chi tiết <span class="text-danger">*</span></label>
-            <textarea class="form-control" id="fullDesc" name="full_desc" rows="5"
-                placeholder="Mô tả chi tiết nội dung, đối tượng học viên và mục tiêu khóa học"
-                required>{{course.full_desc}}</textarea>
+            <label class="form-label fw-bold">Mô tả Chi tiết</label>
+            <div id="editor" style="height: 200px; border: 1px solid #ced4da; border-radius: 6px;">
+                {{{course.full_desc}}}
+            </div>
+            <input type="hidden" name="full_desc" id="txtFullDesc" required>
+            <small class="text-muted">Bạn có thể in đậm, gạch đầu dòng, chèn link, đoạn code, v.v.</small>
         </div>
 
     </div>
 
-    {{!-- Cột 2: Danh mục, Giá và Thumbnail --}}
     <div class="col-md-4">
 
         <div class="mb-3">
             <label for="courseCategory" class="form-label fw-bold">Lĩnh Vực <span class="text-danger">*</span></label>
-            {{!-- Giả định bạn đã truyền danh sách categories để tạo dropdown --}}
             <select class="form-select" id="category" name="category" required>
                 <option value="" disabled selected>Chọn lĩnh vực</option>
                 {{#each categories}}
@@ -44,36 +40,38 @@ Nếu đang trong chế độ chỉnh sửa, 'course' object sẽ được truy�
                 </option>
                 {{/each}}
             </select>
-
-
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="coursePrice" class="form-label fw-bold">Giá Gốc (VNĐ) <span
-                            class="text-danger">*</span></label>
-                    <input type="number" class="form-control" id="coursePrice" name="price" value="{{course.price}}"
-                        placeholder="1.000.000" min="0" required>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="discountPrice" class="form-label fw-bold">Giá Khuyến mãi</label>
-                    <input type="number" class="form-control" id="discountPrice" name="discount_price"
-                        value="{{course.discount_price}}" placeholder="800.000" min="0">
-                </div>
-            </div>
-
-            <div class="mb-3">
-                <label for="courseThumbnail" class="form-label fw-bold">Ảnh Thumbnail <span
-                        class="text-danger">*</span></label>
-                <input class="form-control" type="file" id="courseThumbnail" name="thumbnail" accept="image/*" {{#unless
-                    course.thumbnail_url}}required{{/unless}}>
-
-                {{#if course.thumbnail_url}}
-                <div class="mt-2 text-center">
-                    <small class="text-muted d-block mb-1">Ảnh hiện tại:</small>
-                    <img src="{{course.thumbnail_url}}" class="img-fluid rounded border"
-                        style="max-height: 100px; object-fit: cover;" alt="Thumbnail khóa học">
-                </div>
-                {{/if}}
-            </div>
-
         </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="coursePrice" class="form-label fw-bold">Giá Gốc (VNĐ) <span
+                        class="text-danger">*</span></label>
+                <input type="number" class="form-control" id="coursePrice" name="price" value="{{course.price}}"
+                    placeholder="1.000.000" min="0" required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="discountPrice" class="form-label fw-bold">Giá Khuyến mãi</label>
+                <input type="number" class="form-control" id="discountPrice" name="discount_price"
+                    value="{{course.discount_price}}" placeholder="800.000" min="0">
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label for="courseThumbnail" class="form-label fw-bold">Ảnh Thumbnail <span
+                    class="text-danger">*</span></label>
+            <input class="form-control" type="file" id="courseThumbnail" name="thumbnail" accept="image/*" {{#unless
+                course.thumbnail_url}}required{{/unless}}>
+
+            {{#if course.thumbnail_url}}
+            <div class="mt-2 text-center">
+                <small class="text-muted d-block mb-1">Ảnh hiện tại:</small>
+                <img src="{{course.thumbnail_url}}" class="img-fluid rounded border"
+                    style="max-height: 100px; object-fit: cover;" alt="Thumbnail khóa học">
+            </div>
+            {{/if}}
+        </div>
+
     </div>
+
+
+</div>

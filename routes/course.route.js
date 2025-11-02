@@ -1,46 +1,72 @@
 import express from 'express';
 import * as courseModel from '../models/course.model.js';
+import * as feedbackModel from '../models/feedback.model.js';
 const router = express.Router();
+const COURSES_PER_PAGE = 9;
 
-router.get('/', async function (req, res) {
+router.get('/', async function (req, res, next) {
   try {
-    const list = await courseModel.findAll();
+    const page = parseInt(req.query.page || 1, 10);
+    const limit = COURSES_PER_PAGE;
+    const offset = (page - 1) * limit;
+
+    const [courses, totalCourses] = await Promise.all([
+      courseModel.findPageAll(limit, offset),
+      courseModel.countAll()
+    ]);
+
+    const totalPages = Math.ceil(totalCourses / limit);
+
     res.render('vwCourse/list', {
       layout: 'main',
-      courses: list,
+      courses: courses,
+      empty: courses.length === 0,
+      pagination: {
+        totalPages: totalPages,
+        currentPage: page,
+        queryString: null
+      }
     });
+
   } catch (err) {
     console.error(err);
-    res.status(500).send('Lỗi server');
+    next(err);
   }
 });
 
 
-router.get('/:id', async function (req, res, next) { // Thêm 'next'
+
+
+router.get('/:id', async function (req, res, next) {
   try {
     const courseId = req.params.id;
-
-    // =============================================
-    // === 1. THÊM DÒNG NÀY ĐỂ ĐẾM LƯỢT XEM ===
     await courseModel.incrementViewCount(courseId);
-    // =============================================
 
-    // 2. Lấy thông tin khóa học (như cũ)
-    const course = await courseModel.findById(courseId);
+    const [course, feedbacks] = await Promise.all([
+      courseModel.findById(courseId),
+      feedbackModel.findByCourse(courseId)
+    ]);
+
     if (!course) {
       return res.status(404).render('404');
     }
 
-    // 3. Render trang chi tiết (như cũ)
     res.render('vwCourse/details', {
       layout: 'main',
-      course: course
+      course: course,
+      feedbacks: feedbacks,
+      feedbackEmpty: feedbacks.length === 0,
+
+      instructor: {
+        name: course.instructor_name,
+        bio: course.instructor_bio,
+        specialization: course.instructor_specialization
+      }
     });
 
   } catch (err) {
     console.error(err);
-    next(err); // Chuyển lỗi cho middleware xử lý
+    next(err);
   }
 });
-
 export default router;

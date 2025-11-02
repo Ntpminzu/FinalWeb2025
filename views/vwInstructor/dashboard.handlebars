@@ -75,6 +75,9 @@
                             onclick="if(confirm('Xác nhận xóa khóa học {{this.title}}?')) { window.location.href='/instructor/delete/{{this.id}}'; }">
                             <i class="fa fa-trash"></i> Xóa
                         </button>
+                        <a href="/courses/{{this.id}}" class="btn btn-outline-info btn-sm w-100">
+                            <i class="bi bi-info-circle"></i> Chi tiết khóa học
+                        </a>
                     <td>
                         <form method="post" action="/instructor/courses/toggle/{{id}}">
                             {{#if Status}}

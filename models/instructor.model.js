@@ -32,6 +32,28 @@ export function findCoursesByInstructor(instructorId) {
   return db('courses').where('instructor_id', instructorId);
 }
 
+export async function updateCourse(courseId, data) {
+  try {
+    const updateData = {
+      title: data.title,
+      short_desc: data.short_desc,
+      full_desc: data.full_desc,
+      category_id: data.category_id,
+      price: data.price,
+      sale_price: data.sale_price || null,
+      updated_at: new Date()
+    };
+
+    if (data.thumbnail_url) updateData.thumbnail = data.thumbnail_url;
+
+    await db('courses').where('id', courseId).update(updateData);
+    return true;
+  } catch (err) {
+    console.error('❌ Lỗi khi updateCourse:', err);
+    throw new Error('Không thể cập nhật khóa học.');
+  }
+}
+
 export async function getAllCategories() {
   try {
     const categories = await db('categories')
@@ -48,15 +70,16 @@ export async function addCourse(courseData) {
       .insert({
         instructor_id: courseData.user_id,
         title: courseData.title,
-        category: courseData.category, // id của category
-        short_desc: courseData.short_desc,
-        full_desc: courseData.full_desc,
-        price: courseData.price,
-        discount_price: courseData.discount_price,
-        thumbnail_url: courseData.thumbnail_url,
+        category_id: courseData.category_id ?? courseData.category,
+        short_desc: courseData.short_desc ?? null,
+        full_desc: courseData.full_desc ?? null,
+        description: courseData.full_desc ?? null,
+        price: courseData.price ?? 0,
+        sale_price: courseData.discount_price ?? null,
+        thumbnail: courseData.thumbnail_url ?? null,
         created_at: new Date(),
       })
-      .returning('*'); // PostgreSQL hỗ trợ returning
+      .returning('*');
     return newCourse;
   } catch (err) {
     throw new Error('Lỗi khi thêm khóa học: ' + err.message);
@@ -74,7 +97,6 @@ export async function getCoursesByInstructor(instructorId) {
       .count('id as total_students')
       .first();
 
-    // ✅ Đọc trực tiếp từ cột Status thay vì kiểm tra lectures
     course.status = course.Status ? 'Đã hoàn thành' : 'Chưa hoàn thành';
     course.total_students = studentCount?.total_students || 0;
   }
@@ -83,7 +105,6 @@ export async function getCoursesByInstructor(instructorId) {
 }
 
 
-// 🟢 Lấy chi tiết một khóa học theo ID
 export async function getCourseById(id) {
   try {
     const course = await db('courses')
@@ -95,7 +116,6 @@ export async function getCourseById(id) {
   }
 }
 
-// 🟢 Lấy danh sách bài giảng của một khóa học
 export async function getLecturesByCourse(course_id) {
   try {
     return await db('lectures')
@@ -103,11 +123,10 @@ export async function getLecturesByCourse(course_id) {
       .orderBy('id', 'asc')
       .select('id', 'title', 'video_url');
   } catch (err) {
-throw new Error('Lỗi khi lấy danh sách bài giảng: ' + err.message);
+    throw new Error('Lỗi khi lấy danh sách bài giảng: ' + err.message);
   }
 }
 
-// 🟢 Thêm một bài giảng mới
 export async function addLecture(course_id, title, video_url) {
   try {
     const [lecture] = await db('lectures')
@@ -115,7 +134,7 @@ export async function addLecture(course_id, title, video_url) {
         course_id,
         title,
         video_url,
-        created_at: new Date(),
+
       })
       .returning(['id', 'title', 'video_url']);
     return lecture;
@@ -125,7 +144,6 @@ export async function addLecture(course_id, title, video_url) {
 }
 
 
-// 🟢 Xóa bài giảng
 export async function deleteLecture(id) {
   try {
     await db('lectures')

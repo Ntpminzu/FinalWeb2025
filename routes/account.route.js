@@ -160,25 +160,38 @@ router.get('/signin', (req, res) => {
 
 router.post('/signin', async (req, res) => {
   try {
-    // hỗ trợ cả name và username từ form
     const username = (req.body.username || req.body.name || '').trim();
     const password = req.body.password || '';
 
-    // tương thích hàm tìm user
     const user =
       (await userModel.findByUsername?.(username)) ||
       (await userModel.findByName?.(username)) ||
       null;
 
-    if (!user) return res.render('vwAccount/signin', { error: true });
+    // Không tồn tại user
+    if (!user) {
+      return res.render('vwAccount/signin', { error: true });
+    }
 
+    // 🔒 Bị vô hiệu hóa -> chặn đăng nhập
+    if (user.is_disabled === true || user.is_disabled === 'TRUE' || user.is_disabled === 1) {
+      // có thể log/track tại đây nếu muốn
+      return res.render('vwAccount/signin', {
+        error: true,
+        disabled: true,              // gửi cờ để hiển thị thông báo rõ ràng
+      });
+    }
+
+    // So khớp mật khẩu
     const ok = bcrypt.compareSync(password, user.password || '');
-    if (!ok) return res.render('vwAccount/signin', { error: true });
+    if (!ok) {
+      return res.render('vwAccount/signin', { error: true });
+    }
 
+    // Lưu session & điều hướng theo permission
     req.session.isAuthenticated = true;
     req.session.authUser = user;
 
-    // điều hướng theo permission
     switch (Number(user.permission)) {
       case 1: return res.redirect('/student');
       case 2: return res.redirect('/instructor');
@@ -194,6 +207,7 @@ router.post('/signin', async (req, res) => {
     return res.render('vwAccount/signin', { error: true });
   }
 });
+
 
 /* =========================
  * 5) SIGN OUT

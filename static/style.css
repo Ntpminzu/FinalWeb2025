@@ -1,13 +1,279 @@
-.carousel img {
-    height: 420px;
-    object-fit: cover;
+/* ====== THEME B: Nền xanh gradient sang trọng ====== */
+body.theme-blue {
+    background: linear-gradient(180deg, #E7EEFF 0%, #D0DBFF 40%, #F7F9FF 100%);
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    background-size: cover;
+    color: var(--ink);
 }
 
-.carousel-caption h5 {
-    font-size: 1.5rem;
-    font-weight: bold;
+/* Làm hero nổi bật với bóng gradient đậm hơn */
+/* ===== Hero Brand hiện đại & thu hút hơn ===== */
+.hero-brand {
+    position: relative;
+    border-radius: 28px;
+    padding: 4rem 2rem;
+    color: #fff;
+    text-align: center;
+    background: linear-gradient(135deg, #4C8EFF 0%, #2B59C3 45%, #1E429F 100%);
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(43, 89, 195, 0.35);
 }
 
-.carousel-caption p {
+/* Hiệu ứng ánh sáng động phía sau */
+.hero-brand::before {
+    content: "";
+    position: absolute;
+    inset: -100px;
+    background: radial-gradient(600px 200px at 20% 10%, rgba(255, 255, 255, 0.25), transparent 70%),
+        radial-gradient(500px 180px at 90% 90%, rgba(255, 255, 255, 0.18), transparent 70%);
+    opacity: 0.8;
+    z-index: 0;
+}
+
+/* Tăng chiều sâu với lớp mờ nhẹ */
+.hero-brand::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.25) 100%);
+    border-radius: 28px;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Nội dung */
+.hero-brand h1 {
+    position: relative;
+    z-index: 2;
+    font-weight: 800;
+    font-size: 2rem;
+    letter-spacing: 0.3px;
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.hero-brand p {
+    position: relative;
+    z-index: 2;
+    color: rgba(255, 255, 255, 0.85);
     font-size: 1rem;
+    margin-bottom: 1.5rem;
 }
+
+/* Nút CTA nổi bật */
+.hero-brand .btn-brand-lg {
+    position: relative;
+    z-index: 3;
+    background: linear-gradient(135deg, #FFD43B, #F59E0B);
+    border: none;
+    color: #1E293B;
+    font-weight: 700;
+    box-shadow: 0 8px 20px rgba(245, 158, 11, .45);
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.hero-brand .btn-brand-lg:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(245, 158, 11, .6);
+}
+
+/* Card nổi rõ hơn trên nền gradient */
+.card {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 8px 24px rgba(43, 89, 195, 0.12);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 40px rgba(43, 89, 195, 0.22);
+}
+
+/* Nút chính – đậm và sáng hơn */
+.btn-success {
+    background: linear-gradient(135deg, #3F73E0, #1E429F);
+    border: none;
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #4C82FF, #2B59C3);
+}
+
+/* Footer đồng bộ màu gradient */
+footer {
+    background: linear-gradient(135deg, #1E429F, #2B59C3);
+    color: #fff;
+    border-top: none;
+    box-shadow: 0 -6px 24px rgba(43, 89, 195, 0.3);
+}
+
+/* Tô đậm navbar một chút để hòa với nền */
+.navbar {
+    background: #ffffffaa;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 6px 20px rgba(43, 89, 195, 0.15);
+}
+/* ==== Khung + hiệu ứng đẹp cho card khóa học ==== */
+
+/* Card nền tảng */
+.course-card {
+    position: relative;
+    border-radius: 20px;
+    border: 1.5px solid var(--brand-200);
+    /* viền nhạt */
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(43, 89, 195, .10);
+    transition: border-color .2s ease, box-shadow .25s ease, transform .2s ease;
+}
+
+/* Đổi viền + bóng khi hover */
+.course-card:hover {
+    border-color: var(--brand-400);
+    box-shadow: 0 16px 44px rgba(43, 89, 195, .22);
+    transform: translateY(-6px);
+}
+
+/* Ánh sáng mờ phía sau card khi hover */
+.course-card::before {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 22px;
+    background: radial-gradient(600px 120px at 20% -10%, rgba(63, 115, 224, .20), transparent 70%);
+    filter: blur(14px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s ease;
+}
+
+.course-card:hover::before {
+    opacity: 1;
+}
+
+/* Ảnh: bo góc + hiệu ứng "shine" */
+.course-card .card-img-top {
+    height: 180px;
+    object-fit: cover;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: transform .25s ease;
+}
+
+.course-card:hover .card-img-top {
+    transform: scale(1.03)
+}
+
+/* Vệt sáng quét qua ảnh khi hover */
+.course-card .card-img-top::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, .35) 35%, rgba(255, 255, 255, 0) 70%);
+    transform: translateX(-120%);
+}
+
+.course-card:hover .card-img-top::after {
+    transform: translateX(120%);
+    transition: transform .9s ease;
+}
+
+/* Tiêu đề & text */
+.course-card .card-title {
+    font-weight: 800;
+    color: var(--ink);
+    margin-bottom: .35rem
+}
+
+.course-card .card-text.text-muted {
+    color: var(--muted)
+}
+
+/* Hàng nút dưới cùng */
+.course-card .btn {
+    border-radius: 12px
+}
+
+.course-card .btn-success {
+    background: linear-gradient(135deg, var(--brand-400), var(--brand-600));
+    border: none;
+    box-shadow: 0 8px 18px rgba(43, 89, 195, .22);
+}
+
+.course-card .btn-success:hover {
+    filter: brightness(1.03);
+    transform: translateY(-1px);
+    box-shadow: 0 12px 26px rgba(43, 89, 195, .28);
+}
+
+/* Nút “Xem chi tiết” đồng bộ 1 màu */
+.course-card .btn-outline-primary {
+    border-color: var(--brand-500);
+    color: var(--brand-600);
+}
+
+.course-card .btn-outline-primary:hover {
+    background: var(--brand-500);
+    color: #fff;
+}
+
+/* Viền mảnh dưới khu vực giá để tách khối */
+.course-card .card-body .mt-auto {
+    padding-top: .4rem;
+    border-top: 1px dashed rgba(43, 89, 195, .15)
+}
+
+/* Giá */
+.course-card .price-now {
+    color: var(--brand-600);
+    font-weight: 900
+}
+
+.course-card .price-old {
+    color: #9CA3AF;
+    text-decoration: line-through
+}
+
+/* Sao rating cùng tông brand */
+.course-card .bi-star,
+.course-card .bi-star-fill,
+.course-card .bi-star-half {
+    color: var(--brand-400)
+}
+/* ===== FIX nút "Thêm vào giỏ" bị ẩn ===== */
+.course-card form button.btn-success {
+    display: inline-block !important;
+    background: linear-gradient(135deg, #3F73E0, #1E429F) !important;
+    color: #fff !important;
+    border: none !important;
+    font-weight: 600;
+    border-radius: 12px;
+    padding: 6px 10px;
+    box-shadow: 0 6px 16px rgba(43, 89, 195, .25);
+    transition: transform .15s ease, box-shadow .25s ease;
+}
+
+.course-card form button.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(43, 89, 195, .35);
+    filter: brightness(1.05);
+}
+
+/* Đảm bảo form không bị co */
+.course-card form {
+    flex-grow: 1;
+    width: 100%;
+}
+.navbar {
+    position: relative;
+    z-index: 2000;
+}
+
+.dropdown-menu {
+    position: absolute;
+    z-index: 2100;
+}
+
+/* cao hơn hero */

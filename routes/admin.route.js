@@ -1,3 +1,4 @@
+// --------------- đầu file routes/admin.route.js ---------------
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import { restrict } from '../middlewares/auth.mdw.js';
@@ -7,6 +8,7 @@ import * as categoryModel from '../models/category.model.js';
 import * as courseModel from '../models/course.model.js';
 import * as categoryController from '../controllers/categories.controller.js';
 import Handlebars from 'handlebars';
+import db from '../utils/db.js'; // <- PHẢI import db ở trên cùng nếu dùng trực tiếp
 
 Handlebars.registerHelper('eq', (a, b) => a === b);
 
@@ -48,7 +50,6 @@ router.get('/users', async (req, res) => {
   const students = await userModel.findStudents();
 
   res.render('vwAdmin/users', {
-    
     teachers,
     students,
   });
@@ -64,6 +65,28 @@ router.post('/users/make-teacher/:id', async (req, res) => {
 });
 
 /** ------------------------------
+ * 🚫 Khóa / Mở khóa tài khoản người dùng
+ * -----------------------------*/
+router.post('/users/disable/:id', async (req, res) => {
+  const { id } = req.params;
+  const disable = req.body.disable === 'true';
+ 
+  try {
+    // Nếu userModel có hàm toggleDisable thì dùng
+    if (typeof userModel.toggleDisable === 'function') {
+      await userModel.toggleDisable(id, disable);
+    } else {
+      await db('users').where('id', id).update({ is_disabled: disable });
+    }
+
+    res.redirect('/admin/users');
+  } catch (err) {
+    console.error('❌ Lỗi khi khóa/mở khóa user:', err);
+    res.status(500).send('Không thể thay đổi trạng thái tài khoản.');
+  }
+});
+
+/** ------------------------------
  * 🗑️ Xóa người dùng
  * -----------------------------*/
 router.post('/users/delete/:id', async (req, res) => {
@@ -72,17 +95,24 @@ router.post('/users/delete/:id', async (req, res) => {
   res.redirect('/admin/users');
 });
 
-
-
 /** ------------------------------
- * 📚 Quản lý khóa học (chỉ hiển thị danh sách)
+ * 📚 Quản lý khóa học
  * -----------------------------*/
 router.get('/courses', async (req, res) => {
-  const courses = await courseModel.getAllWithCategoryAndTeacher();
-  res.render('vwAdmin/courses', {
-    
-    courses,
-  });
+  try {
+    const [courses, categories] = await Promise.all([
+      courseModel.getAllWithCategoryAndTeacher(),
+      categoryModel.getAllWithCourseCount(),
+    ]);
+
+    res.render('vwAdmin/courses', {
+      courses,
+      categories,
+    });
+  } catch (err) {
+    console.error('❌ Lỗi khi tải admin/courses:', err);
+    res.status(500).send('Không thể tải danh sách khóa học.');
+  }
 });
 
 /** ------------------------------
@@ -90,16 +120,12 @@ router.get('/courses', async (req, res) => {
  * -----------------------------*/
 router.get('/categories', async (req, res) => {
   const categories = await categoryModel.getAllWithCourseCount();
-  res.render('vwAdmin/categories', {
-   
-    categories,
-    
-  });
+  res.render('vwAdmin/categories', { categories });
 });
 
 router.post('/categories/add', async (req, res) => {
   const name = req.body.name?.trim();
-if (name) await categoryModel.add({ name });
+  if (name) await categoryModel.add({ name });
   res.redirect('/admin/categories');
 });
 
@@ -111,7 +137,6 @@ router.post('/categories/edit', async (req, res) => {
   res.redirect('/admin/categories');
 });
 
-// Xóa lĩnh vực
 router.post('/categories/delete', async (req, res) => {
   try {
     const { id } = req.body;
@@ -119,9 +144,7 @@ router.post('/categories/delete', async (req, res) => {
     res.redirect('/admin/categories');
   } catch (error) {
     console.error(error);
-    res.render('admin/categories', {
-      error: 'Lỗi khi xóa lĩnh vực',
-    });
+    res.render('admin/categories', { error: 'Lỗi khi xóa lĩnh vực' });
   }
 });
 
@@ -130,7 +153,6 @@ router.post('/categories/delete', async (req, res) => {
  * -----------------------------*/
 router.get('/profile', (req, res) => {
   res.render('vwAdmin/profile', {
-    
     user: req.session.authUser,
     isAuthenticated: req.session.isAuthenticated,
     error: false,
@@ -149,7 +171,6 @@ router.post('/profile', async (req, res) => {
   req.session.authUser.email = updatedUser.email;
 
   res.render('vwAdmin/profile', {
-    
     user: req.session.authUser,
     isAuthenticated: true,
     error: false,
@@ -175,7 +196,6 @@ router.post('/change-pwd', async (req, res) => {
 
   if (newPassword.length < 6) {
     return res.render('vwAdmin/profile', {
-      
       user: req.session.authUser,
       isAuthenticated: true,
       error: 'Mật khẩu mới phải tối thiểu 6 ký tự.',
@@ -205,16 +225,24 @@ router.post('/courses/delete/:id', async (req, res) => {
   res.redirect('/admin/courses');
 });
 
-router.post('/categories/delete', categoryController.deleteCategory);
+/** ------------------------------
+ * 🚫 Đình chỉ / Khôi phục khóa học
+ * -----------------------------*/
+router.post('/courses/disable/:id', async (req, res) => {
+  const courseId = req.params.id;
+  const disable = req.body.disable === 'true';
 
-router.delete('/:id', async (req, res) => {
   try {
-    const { id } = req.params;
-await categoryModel.remove(id);
-    res.json({ message: 'Xóa danh mục thành công!' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Lỗi khi xóa danh mục' });
+    if (typeof courseModel.toggleDisable === 'function') {
+      await courseModel.toggleDisable(courseId, disable);
+    } else {
+      await db('courses').where('id', courseId).update({ is_disabled: disable });
+    }
+
+    return res.redirect('/admin/courses');
+  } catch (err) {
+    console.error('❌ Lỗi khi disable khóa học:', err);
+    return res.status(500).send('Lỗi khi đình chỉ / mở lại khóa học');
   }
 });
 

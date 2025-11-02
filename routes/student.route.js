@@ -13,7 +13,7 @@ const router = express.Router();
 /** Chỉ cho phép student (permission = 1) */
 function ensureStudent(req, res, next) {
   if (!req.session?.authUser || Number(req.session.authUser.permission) !== 1) {
-    // Có thể đổi sang res.redirect('/') nếu bạn muốn trả về trang chủ
+  
     return res.status(403).send('Forbidden: Students only.');
   }
   next();
@@ -83,7 +83,7 @@ router.post('/change-pwd', async (req, res) => {
     });
   }
 
-  // (tuỳ chọn) ràng buộc độ dài mật khẩu mới
+  //  ràng buộc độ dài mật khẩu mới
   if (newPassword.length < 6) {
     return res.render('vwStudent/profile', {
       user: req.session.authUser,
@@ -109,8 +109,8 @@ router.post('/change-pwd', async (req, res) => {
   });
 });
 //----------------------------- Watchlist
-// ================== WATCHLIST (theo từng student) ==================
-// ================== WATCHLIST (theo từng student) ==================
+
+
 router.get('/watchlist', async (req, res, next) => {
   try {
     const userId = req.session.authUser.id;
@@ -142,10 +142,9 @@ router.post('/watchlist/add', async (req, res, next) => {
     const course = await courseModel.findById(courseId);
     if (!course) return res.status(404).render('404');
 
-    // nếu client không gửi title, lấy từ bảng courses
+  
     const title = (req.body.course_title ?? course.title ?? null)?.toString() ?? null;
 
-    // (không bắt buộc) kiểm tra trùng để tránh query insert dư thừa
     const existed = await watchlistModel.isInWatchlist(userId, courseId);
     if (!existed) {
       await watchlistModel.add({ user_id: userId, course_id: courseId, course_title: title });
@@ -170,7 +169,7 @@ router.post('/watchlist/remove', async (req, res, next) => {
 
     await watchlistModel.remove(userId, courseId);
 
-    // Về trang watchlist với cờ removed để hiện thông báo nếu muốn
+  
     return res.redirect('/student/watchlist?removed=1');
   } catch (err) {
     next(err);
@@ -179,15 +178,30 @@ router.post('/watchlist/remove', async (req, res, next) => {
 //----------------------------- Purchased Courses
 router.get('/courses', async (req, res) => {
   const userId = req.session.authUser.id;
+
+  // danh sách khóa đã mua
   const purchasedCourses = await purchasedModel.listByUser(userId);
-  res.render('vwStudent/courses', { purchasedCourses });
+
+  // gắn thêm % hoàn thành và cờ is_completed
+  const coursesWithProgress = await Promise.all(
+    purchasedCourses.map(async (c) => {
+      const { percent } = await progressModel.courseCompletion(userId, c.course_id);
+      return {
+        ...c,
+        completion_percent: percent,          
+        is_completed: percent >= 90        
+        
+      };
+    })
+  );
+
+  res.render('vwStudent/courses', { purchasedCourses: coursesWithProgress });
 });
 ///-----------------------------
 
 router.get('/courses/:courseId', restrict, async (req, res) => {
   const { courseId } = req.params;
-  // TODO (khuyến nghị): kiểm tra học viên có sở hữu khóa này chưa.
- //if (!(await purchasedModel.isPurchased(req.session.authUser.id, courseId))) return res.status(403).render('403');
+
   const lectures = await lectureModel.findByCourse(courseId);
    const feedbacks = await feedbackModel.findByCourse(courseId);
   res.render('vwStudent/course-lectures', {
@@ -196,13 +210,12 @@ router.get('/courses/:courseId', restrict, async (req, res) => {
     feedbacks
   });
 });
-////----------------------------- bài giảng ( phát video)
+
 router.get('/courses/:courseId/:lectureId', restrict, async (req, res) => {
   const user = req.session.authUser;
   const { courseId, lectureId } = req.params;
 
-  // TODO: kiểm tra user có sở hữu khóa này chưa (enrollment/purchased)
-  // if (!(await purchasedModel.isPurchased(user.id, courseId))) return res.status(403).render('403');
+  
 
   const lectures = await lectureModel.findByCourse(courseId);
   const current = await lectureModel.findById(lectureId);
@@ -259,10 +272,10 @@ router.get('/course/:courseId/feedback', restrict, ensureStudent, async (req, re
 
   return res.render('vwStudent/feedback', {
     course,
-    completion,              // { total, done, percent }
+    completion,              
     canReview,
-    myFeedback,              // nếu đã có -> fill vào form
-    ok: req.query.ok === '1' // hiển thị thông báo thành công
+    myFeedback,             
+    ok: req.query.ok === '1' 
   });
 });
 

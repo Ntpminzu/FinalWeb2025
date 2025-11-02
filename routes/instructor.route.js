@@ -7,25 +7,28 @@ import { restrictInstructor } from '../middlewares/auth.mdw.js';
 
 const router = express.Router();
 
-// ---------------- CẤU HÌNH UPLOAD ----------------
+import fs from 'fs';
+import path from 'path';
+
+const ensureDir = (dir) => fs.mkdirSync(dir, { recursive: true });
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    if (file.mimetype.startsWith('video/')) cb(null, 'uploads/videos/');
-    else cb(null, 'uploads/thumbnails/');
+    const dir = file.mimetype.startsWith('video/')
+      ? path.join(process.cwd(), 'uploads', 'videos')
+      : path.join(process.cwd(), 'uploads', 'thumbnails');
+    ensureDir(dir);
+    cb(null, dir);
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + file.originalname);
+    const ext = path.extname(file.originalname) || '.jpg';
+    cb(null, `${Date.now()}-thumbnail${ext}`);
   },
 });
-
 const upload = multer({ storage });
 
-// ---------------- ROUTES ----------------
-
-// Trang chính: redirect về Dashboard
 router.get('/', (req, res) => res.redirect('/instructor/dashboard'));
 
-// Dashboard giảng viên
 router.get('/dashboard', restrictInstructor, async (req, res) => {
   try {
     const instructorId = req.session.authUser.id;
@@ -54,14 +57,13 @@ router.get('/new', restrictInstructor, async (req, res) => {
 // Xử lý tạo khóa học mới
 router.post('/new', restrictInstructor, upload.single('thumbnail'), async (req, res) => {
   try {
-    const { title, category, short_desc, full_desc, price, discount_price } = req.body;
+    const { title, category_id, short_desc, full_desc, price, discount_price } = req.body;
     const thumbnail_url = req.file ? `/uploads/thumbnails/${req.file.filename}` : null;
-    const user_id = req.session.authUser.id;
 
     await instructorModel.addCourse({
-      user_id,
+      user_id: req.session.authUser.id,
       title,
-      category,
+      category_id,
       short_desc,
       full_desc,
       price,
@@ -76,6 +78,7 @@ router.post('/new', restrictInstructor, upload.single('thumbnail'), async (req, 
   }
 });
 
+
 // ---------------- KHÓA HỌC ----------------
 
 // Trang chỉnh sửa khóa học (đã tách riêng)
@@ -85,9 +88,8 @@ router.get('/edit/course/:id', restrictInstructor, async (req, res) => {
     const course = await instructorModel.getCourseById(courseId);
     const lectures = await instructorModel.getLecturesByCourse(courseId);
 
-    // 🔹 Thêm dòng này để lấy danh sách lĩnh vực
     const categories = await instructorModel.getAllCategories();
-res.render('vwInstructor/edit-course', {
+    res.render('vwInstructor/edit-course', {
       course,
       lectures,
       categories,
@@ -141,7 +143,7 @@ router.get('/edit/lectures/:id', restrictInstructor, async (req, res) => {
 router.post('/lectures/:courseId/add', restrictInstructor, async (req, res) => {
   try {
     const { courseId } = req.params;
-    const { title, video_url } = req.body; // 👈 đọc trực tiếp từ form
+    const { title, video_url } = req.body;
 
     if (!title || !video_url) {
       return res.status(400).send('Thiếu tiêu đề hoặc link video.');
@@ -149,7 +151,7 @@ router.post('/lectures/:courseId/add', restrictInstructor, async (req, res) => {
 
     await instructorModel.addLecture(courseId, title, video_url);
 
-    res.redirect(`/instructor/edit/lectures/${courseId}`); // 👈 đúng URL trang quản lý bài giảng
+    res.redirect(`/instructor/edit/lectures/${courseId}`);
   } catch (err) {
     console.error('❌ Lỗi thêm bài giảng:', err);
     res.status(500).send('Không thể thêm bài giảng.');
@@ -176,7 +178,7 @@ router.get('/profile', restrictInstructor, async (req, res) => {
   try {
     const instructorId = req.session.authUser.id;
     const instructor = await instructorModel.findById(instructorId);
-const courses = await instructorModel.getCoursesByInstructor(instructorId);
+    const courses = await instructorModel.getCoursesByInstructor(instructorId);
 
     res.render('vwInstructor/profile', {
       instructor,
