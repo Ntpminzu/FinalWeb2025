@@ -266,3 +266,14 @@ footer {
     flex-grow: 1;
     width: 100%;
 }
+.navbar {
+    position: relative;
+    z-index: 2000;
+}
+
+.dropdown-menu {
+    position: absolute;
+    z-index: 2100;
+}
+
+/* cao hơn hero */
