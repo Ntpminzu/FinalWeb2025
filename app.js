@@ -216,6 +216,7 @@ app.use('/search', searchRouter);
 app.use('/cart', cartRouter);
 app.use('/instructor', instructorRouter);
 
+
 // Errors
 app.use((req, res) => res.status(404).render('404'));
 app.use((err, req, res, next) => {
