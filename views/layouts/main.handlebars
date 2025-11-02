@@ -92,27 +92,45 @@
           <!-- User -->
           {{#if isAuthenticated}}
           <div class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownUser" role="button" data-bs-toggle="dropdown"
-              aria-expanded="false">
-              👋 Welcome, <strong>{{authUser.name}}</strong>
+            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdownUser" role="button"
+              data-bs-toggle="dropdown" aria-expanded="false">
+              👋 Welcome,&nbsp;<strong>{{authUser.name}}</strong>
             </a>
-            <ul class="dropdown-menu dropdown-menu-end text-center" aria-labelledby="navbarDropdownUser">
-              <li><a class="dropdown-item" href="/{{authUser.role}}/profile">My Profile</a></li>
+
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3"
+              aria-labelledby="navbarDropdownUser">
+              <li>
+                <a class="dropdown-item d-flex align-items-center gap-2" href="/{{authUser.role}}/profile">
+                  <i class="bi bi-person fs-5 text-primary"></i>
+                  <span>My Profile</span>
+                </a>
+              </li>
 
               {{#if (eq authUser.role "instructor")}}
-              <li><a class="dropdown-item" href="/instructor/dashboard">My Courses</a></li>
+              <li>
+                <a class="dropdown-item d-flex align-items-center gap-2" href="/instructor/dashboard">
+                  <i class="bi bi-journal-text fs-5 text-primary"></i>
+                  <span>My Courses</span>
+                </a>
+              </li>
               {{else if (eq authUser.role "student")}}
-              <li><a class="dropdown-item" href="/student/courses">My Courses</a></li>
+              <li>
+                <a class="dropdown-item d-flex align-items-center gap-2" href="/student/courses">
+                  <i class="bi bi-journal-text fs-5 text-primary"></i>
+                  <span>My Courses</span>
+                </a>
+              </li>
               {{/if}}
 
               <li>
-                <hr class="dropdown-divider">
+                <hr class="dropdown-divider my-1">
               </li>
 
               <li>
-                <form action="/account/signout" method="post" class="d-inline px-2">
-                  <button type="submit" class="btn btn-link nav-link p-0 text-danger">
-                    <i class="bi bi-box-arrow-right"></i> Logout
+                <form action="/account/signout" method="post" class="m-0">
+                  <button type="submit" class="dropdown-item d-flex align-items-center gap-2 text-danger">
+                    <i class="bi bi-box-arrow-right fs-5"></i>
+                    <span>Logout</span>
                   </button>
                 </form>
               </li>

@@ -52,12 +52,12 @@ router.post('/signup', async (req, res) => {
 
     // gửi mail OTP (Mailtrap sandbox)
     const transporter = nodemailer.createTransport({
-      host: 'sandbox.smtp.mailtrap.io',
+      host: "sandbox.smtp.mailtrap.io",
       port: 2525,
       auth: {
-        user: '1ce6c9f98f4e73',
-        pass: '18358c1d991aad',
-      },
+        user: "e8f719756dd9b2",
+        pass: "1232d9cf419048"
+      }
     });
 
     await transporter.sendMail({
@@ -120,7 +120,7 @@ router.post('/verify-otp', async (req, res) => {
       dob,
       permission: 1,       // 1: student, 2: instructor, 3: admin
       role: 'student',
-      
+
     });
 
     // xoá otp đã dùng

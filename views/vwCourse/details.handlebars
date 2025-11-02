@@ -59,23 +59,22 @@
 
           <div class="card-body">
             {{#if course.instructor_name}}
-            <div class="d-flex align-items-start gap-3 mb-3">
-              <img src="/static/img/instructor-avatar.png" alt="Giảng viên" class="rounded-circle border"
-                style="width:60px; height:60px; object-fit:cover;">
-              <div>
-                <h6 class="fw-bold mb-1 text-dark">{{course.instructor_name}}</h6>
-                {{#if course.instructor_specialization}}
-                <p class="text-muted mb-1">
-                  <i class="bi bi-mortarboard"></i> {{course.instructor_specialization}}
-                </p>
-                {{/if}}
-                {{#if course.instructor_bio}}
-                <p class="small text-secondary mb-0">
-                  <i class="bi bi-info-circle"></i> {{course.instructor_bio}}
-                </p>
-                {{/if}}
-              </div>
+            <div class="mb-3">
+              <h6 class="fw-bold mb-1 text-dark">
+                <i class="bi bi-person-badge text-primary me-2"></i>{{course.instructor_name}}
+              </h6>
+              {{#if course.instructor_specialization}}
+              <p class="text-muted mb-1">
+                <i class="bi bi-mortarboard"></i> {{course.instructor_specialization}}
+              </p>
+              {{/if}}
+              {{#if course.instructor_bio}}
+              <p class="small text-secondary mb-0">
+                <i class="bi bi-info-circle"></i> {{course.instructor_bio}}
+              </p>
+              {{/if}}
             </div>
+
             <hr class="my-2">
             {{/if}}
 
@@ -106,22 +105,22 @@
 
       </div>
 
-    <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
-      <!-- 🔹 Nút thêm vào danh sách yêu thích -->
-      <form action="/student/watchlist/add" method="post" class="m-0">
-        <input type="hidden" name="course_id" value="{{course.id}}">
-        <input type="hidden" name="course_title" value="{{course.title}}">
-        <button type="submit" class="btn btn-danger d-flex align-items-center px-3 py-2 rounded-3 shadow-sm">
-          <i class="bi bi-heart-fill me-2"></i> Thêm vào danh sách yêu thích
+      <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <!-- 🔹 Nút thêm vào danh sách yêu thích -->
+        <form action="/student/watchlist/add" method="post" class="m-0">
+          <input type="hidden" name="course_id" value="{{course.id}}">
+          <input type="hidden" name="course_title" value="{{course.title}}">
+          <button type="submit" class="btn btn-danger d-flex align-items-center px-3 py-2 rounded-3 shadow-sm">
+            <i class="bi bi-heart-fill me-2"></i> Thêm vào danh sách yêu thích
+          </button>
+        </form>
+
+        <!-- 🔹 Nút quay lại -->
+        <button type="button" class="btn btn-outline-secondary d-flex align-items-center px-3 py-2 rounded-3"
+          onclick="window.history.back()">
+          <i class="bi bi-arrow-left me-2"></i> Quay lại
         </button>
-      </form>
-    
-      <!-- 🔹 Nút quay lại -->
-      <button type="button" class="btn btn-outline-secondary d-flex align-items-center px-3 py-2 rounded-3"
-        onclick="window.history.back()">
-        <i class="bi bi-arrow-left me-2"></i> Quay lại
-      </button>
-    </div>
+      </div>
 
 
     </div>

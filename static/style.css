@@ -114,6 +114,7 @@ footer {
     backdrop-filter: blur(10px);
     box-shadow: 0 6px 20px rgba(43, 89, 195, 0.15);
 }
+
 /* ==== Khung + hiệu ứng đẹp cho card khóa học ==== */
 
 /* Card nền tảng */
@@ -242,6 +243,7 @@ footer {
 .course-card .bi-star-half {
     color: var(--brand-400)
 }
+
 /* ===== FIX nút "Thêm vào giỏ" bị ẩn ===== */
 .course-card form button.btn-success {
     display: inline-block !important;
@@ -266,6 +268,7 @@ footer {
     flex-grow: 1;
     width: 100%;
 }
+
 .navbar {
     position: relative;
     z-index: 2000;
@@ -277,3 +280,118 @@ footer {
 }
 
 /* cao hơn hero */
+
+
+.profile-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+    transition: all 0.3s ease-in-out;
+    border: 1px solid #e6e9f2;
+}
+
+.profile-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.info-list>div {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    color: #333;
+    border-left: 3px solid transparent;
+    padding-left: 10px;
+    transition: all 0.2s ease;
+}
+
+.info-list>div:hover {
+    border-left-color: #3b82f6;
+    background-color: rgba(59, 130, 246, 0.05);
+    border-radius: 6px;
+    padding-left: 14px;
+}
+
+.btn-primary {
+    background: linear-gradient(90deg, #2563eb, #1d4ed8);
+    border: none;
+    font-weight: 500;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(90deg, #1d4ed8, #1e40af);
+}
+
+h2 {
+    letter-spacing: 0.5px;
+}
+
+.profile-card {
+    background: #ffffff;
+    border: 1px solid #e6e9f2;
+    transition: all 0.3s ease;
+}
+
+.profile-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.07);
+}
+
+.info-label {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+    color: #6c757d;
+    margin-bottom: 6px;
+    display: block;
+}
+
+.info-item {
+    border-left: 3px solid transparent;
+    padding-left: 10px;
+    transition: all 0.25s ease;
+}
+
+.info-item:hover {
+    border-left-color: #2563eb;
+    background: #f8faff;
+    border-radius: 6px;
+    padding-left: 14px;
+}
+
+.btn-primary {
+    background: linear-gradient(90deg, #2563eb, #1e40af);
+    border: none;
+    font-weight: 500;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(90deg, #1e40af, #1d4ed8);
+}
+
+h2 {
+    letter-spacing: 0.5px;
+}
+
+.bi-person-badge {
+    font-size: 1.2rem;
+}
+
+.card-body p {
+    line-height: 1.5;
+}
+
+.dropdown-item {
+    font-size: 0.95rem;
+    padding: 8px 14px;
+}
+
+.dropdown-item:hover {
+    background-color: #f3f6ff;
+    color: #2563eb;
+}
+
+.dropdown-item.text-danger:hover {
+    background-color: #ffeaea;
+    color: #dc3545 !important;
+}
