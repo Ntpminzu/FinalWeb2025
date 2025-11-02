@@ -8,7 +8,7 @@ const db = knex({
     user: 'postgres.prhtpzqtpkriksdmeorj',
     password: 'webprogramming12345!',
     database: 'postgres',
-    pool: { min: 0, max: 15 },
+    pool: { min: 0, max: 20 },
     ssl: { rejectUnauthorized: false }
   }
 });
