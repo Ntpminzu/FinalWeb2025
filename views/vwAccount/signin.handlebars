@@ -2,7 +2,11 @@
   <div class="card shadow border-0 rounded-4 mt-5" style="max-width: 500px; margin: auto;">
     <h5 class="card-header text-center bg-primary text-white fw-bold">Sign In</h5>
     <div class="card-body">
-      {{#if error}}
+      {{#if disabled}}
+      <div class="alert alert-danger">
+        Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.
+      </div>
+      {{else if error}}
       <div class="alert alert-warning alert-dismissible fade show" role="alert">
         <strong>⚠️ Error.</strong> Invalid username or password.
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
