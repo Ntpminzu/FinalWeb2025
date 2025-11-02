@@ -32,7 +32,7 @@
 
         <div class="mb-3">
             <label for="courseCategory" class="form-label fw-bold">Lĩnh Vực <span class="text-danger">*</span></label>
-            <select class="form-select" id="category" name="category" required>
+            <select class="form-select" id="category_id" name="category_id" required>
                 <option value="" disabled selected>Chọn lĩnh vực</option>
                 {{#each categories}}
                 <option value="{{this.id}}" {{#ifCond this.id ../course.category}}selected{{/ifCond}}>
@@ -50,15 +50,15 @@
                     placeholder="1.000.000" min="0" required>
             </div>
             <div class="col-md-6 mb-3">
-                <label for="discountPrice" class="form-label fw-bold">Giá Khuyến mãi</label>
-                <input type="number" class="form-control" id="discountPrice" name="discount_price"
-                    value="{{course.discount_price}}" placeholder="800.000" min="0">
+                <label for="sale_price" class="form-label fw-bold">Giá Khuyến mãi</label>
+                <input type="number" class="form-control" id="sale_price" name="sale_price"
+                    value="{{course.sale_price}}" placeholder="800.000" min="0">
             </div>
         </div>
 
         <div class="mb-3">
             <label for="courseThumbnail" class="form-label fw-bold">Ảnh Thumbnail <span
-                    class="text-danger">*</span></label>
+                    class="text-danger">*</span></label>    
             <input class="form-control" type="file" id="courseThumbnail" name="thumbnail" accept="image/*" {{#unless
                 course.thumbnail_url}}required{{/unless}}>
 
