@@ -1,4 +1,10 @@
 import db from '../utils/db.js';
+function sanitizeFTS(input) {
+  return (input || '')
+    .replace(/[&|!():]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
 export function findPageAll(limit, offset) {
   return db('courses as c')
@@ -118,17 +124,30 @@ export async function findOutstandingPastWeek() {
 
 export async function findPageByFTS(queryText, sortOption = 'default', limit, offset) {
 
-  const ftsQuery = queryText.trim().split(' ').filter(Boolean).join(' & ');
+  const safeQuery = sanitizeFTS(queryText);
 
   const query = db('courses as c')
     .leftJoin('categories as cat', 'c.category_id', 'cat.id')
     .select(
-      'c.id', 'c.title', 'c.thumbnail', 'c.price', 'c.sale_price',
-      'cat.catname as category', 'c.rating_avg', 'c.rating_count',
-      db.raw("ts_rank(to_tsvector('simple', c.title || ' ' || cat.catname), to_tsquery('simple', ?)) AS rank", [ftsQuery])
+      'c.id',
+      'c.title',
+      'c.thumbnail',
+      'c.price',
+      'c.sale_price',
+      'cat.catname as category',
+      'c.rating_avg',
+      'c.rating_count',
+      db.raw(
+        "ts_rank(to_tsvector('simple', c.title || ' ' || cat.catname), plainto_tsquery('simple', ?)) AS rank",
+        [safeQuery]
+      )
     )
-    .whereRaw("to_tsvector('simple', c.title || ' ' || cat.catname) @@ to_tsquery('simple', ?)", [ftsQuery])
+    .whereRaw(
+      "to_tsvector('simple', c.title || ' ' || cat.catname) @@ plainto_tsquery('simple', ?)",
+      [safeQuery]
+    )
     .andWhere('c.is_disabled', false);
+
   switch (sortOption) {
     case 'price_asc':
       query.orderBy('c.price', 'asc');
@@ -141,27 +160,30 @@ export async function findPageByFTS(queryText, sortOption = 'default', limit, of
       break;
   }
 
-  query.limit(limit);
-  query.offset(offset);
-
+  query.limit(limit).offset(offset);
   return query;
 }
+
 
 /**
  Đếm tổng số kết quả FTS
  */
 export async function countByFTS(queryText) {
-  const ftsQuery = queryText.trim().split(' ').filter(Boolean).join(' & ');
+  const safeQuery = sanitizeFTS(queryText);
 
   const result = await db('courses as c')
     .leftJoin('categories as cat', 'c.category_id', 'cat.id')
-    .whereRaw("to_tsvector('simple', c.title || ' ' || cat.catname) @@ to_tsquery('simple', ?)", [ftsQuery])
+    .whereRaw(
+      "to_tsvector('simple', c.title || ' ' || cat.catname) @@ plainto_tsquery('simple', ?)",
+      [safeQuery]
+    )
     .andWhere('c.is_disabled', false)
-    .count('* as total') // Đếm tổng số
+    .count('* as total')
     .first();
 
   return result.total;
 }
+
 
 export async function findNewest(limit = 10) {
   return db('courses as c')
