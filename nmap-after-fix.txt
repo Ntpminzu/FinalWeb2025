@@ -1,0 +1,101 @@
+# Nmap 7.94SVN scan initiated Sat Apr 11 01:24:21 2026 as: nmap -sT -Pn -sV -p 4000 --script http-headers,http-methods,http-security-headers -oN /mnt/c/Users/GameLap/Desktop/zoo_git/FinalWeb2025/nmap-after-fix.txt 172.27.0.1
+Nmap scan report for AN.mshome.net (172.27.0.1)
+Host is up (0.00064s latency).
+
+PORT     STATE SERVICE         VERSION
+4000/tcp open  remoteanything?
+| fingerprint-strings: 
+|   GetRequest: 
+|     HTTP/1.1 200 OK
+|     Cross-Origin-Opener-Policy: same-origin
+|     Cross-Origin-Resource-Policy: same-origin
+|     Origin-Agent-Cluster: ?1
+|     Referrer-Policy: no-referrer
+|     X-Content-Type-Options: nosniff
+|     X-DNS-Prefetch-Control: off
+|     X-Download-Options: noopen
+|     X-Frame-Options: SAMEORIGIN
+|     X-Permitted-Cross-Domain-Policies: none
+|     X-XSS-Protection: 0
+|     Content-Type: text/html; charset=utf-8
+|     Content-Length: 57673
+|     ETag: W/"e149-GCO568n0nzTxNghObSNGGcOCMaQ"
+|     Set-Cookie: connect.sid=s%3AjV1NLbDYtit7UwwtKG-M-tGA1Pg1VPFU.dhSsUZI4HGk5AUeuNLiYctbSMjxUmrOjedgwKAgHnws; Path=/; HttpOnly; SameSite=Lax
+|     Date: Fri, 10 Apr 2026 18:24:32 GMT
+|     Connection: close
+|     <!DOCTYPE html>
+|     <html lang="vi">
+|     <head>
+|     <meta charset="UTF-8">
+|     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+|     <title>Online Academy</title>
+|     <!-- Bootstrap -->
+|     <link href="https://cdn.jsdelivr.net/npm/bootstra
+|   HTTPOptions: 
+|     HTTP/1.1 404 Not Found
+|     Cross-Origin-Opener-Policy: same-origin
+|     Cross-Origin-Resource-Policy: same-origin
+|     Origin-Agent-Cluster: ?1
+|     Referrer-Policy: no-referrer
+|     X-Content-Type-Options: nosniff
+|     X-DNS-Prefetch-Control: off
+|     X-Download-Options: noopen
+|     X-Frame-Options: SAMEORIGIN
+|     X-Permitted-Cross-Domain-Policies: none
+|     X-XSS-Protection: 0
+|     Content-Type: text/html; charset=utf-8
+|     Content-Length: 6387
+|     ETag: W/"18f3-ebj+034EGs3BfG8l31WWy8KFDPQ"
+|     Set-Cookie: connect.sid=s%3AADjytHmL_A6Krj8QriM9CZnSvGdj49JD.XMSvpUbnjX74mCbpArTY9Q5Z0il5LlqV17reU9DH%2BuY; Path=/; HttpOnly; SameSite=Lax
+|     Date: Fri, 10 Apr 2026 18:24:37 GMT
+|     Connection: close
+|     <!DOCTYPE html>
+|     <html lang="vi">
+|     <head>
+|     <meta charset="UTF-8">
+|     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+|     <title>Online Academy</title>
+|     <!-- Bootstrap -->
+|     <link href="https://cdn.jsdelivr.net/npm/
+|   NoMachine: 
+|     HTTP/1.1 400 Bad Request
+|_    Connection: close
+1 service unrecognized despite returning data. If you know the service/version, please submit the following fingerprint at https://nmap.org/cgi-bin/submit.cgi?new-service :
+SF-Port4000-TCP:V=7.94SVN%I=7%D=4/11%Time=69D9405F%P=x86_64-pc-linux-gnu%r
+SF:(GetRequest,3840,"HTTP/1\.1\x20200\x20OK\r\nCross-Origin-Opener-Policy:
+SF:\x20same-origin\r\nCross-Origin-Resource-Policy:\x20same-origin\r\nOrig
+SF:in-Agent-Cluster:\x20\?1\r\nReferrer-Policy:\x20no-referrer\r\nX-Conten
+SF:t-Type-Options:\x20nosniff\r\nX-DNS-Prefetch-Control:\x20off\r\nX-Downl
+SF:oad-Options:\x20noopen\r\nX-Frame-Options:\x20SAMEORIGIN\r\nX-Permitted
+SF:-Cross-Domain-Policies:\x20none\r\nX-XSS-Protection:\x200\r\nContent-Ty
+SF:pe:\x20text/html;\x20charset=utf-8\r\nContent-Length:\x2057673\r\nETag:
+SF:\x20W/\"e149-GCO568n0nzTxNghObSNGGcOCMaQ\"\r\nSet-Cookie:\x20connect\.s
+SF:id=s%3AjV1NLbDYtit7UwwtKG-M-tGA1Pg1VPFU\.dhSsUZI4HGk5AUeuNLiYctbSMjxUmr
+SF:OjedgwKAgHnws;\x20Path=/;\x20HttpOnly;\x20SameSite=Lax\r\nDate:\x20Fri,
+SF:\x2010\x20Apr\x202026\x2018:24:32\x20GMT\r\nConnection:\x20close\r\n\r\
+SF:n<!DOCTYPE\x20html>\r\n<html\x20lang=\"vi\">\r\n\r\n<head>\r\n\x20\x20<
+SF:meta\x20charset=\"UTF-8\">\r\n\x20\x20<meta\x20name=\"viewport\"\x20con
+SF:tent=\"width=device-width,\x20initial-scale=1\.0\">\r\n\x20\x20<title>O
+SF:nline\x20Academy</title>\r\n\r\n\r\n\r\n\r\n\x20\x20<!--\x20Bootstrap\x
+SF:20-->\r\n\x20\x20<link\x20href=\"https://cdn\.jsdelivr\.net/npm/bootstr
+SF:a")%r(NoMachine,2F,"HTTP/1\.1\x20400\x20Bad\x20Request\r\nConnection:\x
+SF:20close\r\n\r\n")%r(HTTPOptions,1B7C,"HTTP/1\.1\x20404\x20Not\x20Found\
+SF:r\nCross-Origin-Opener-Policy:\x20same-origin\r\nCross-Origin-Resource-
+SF:Policy:\x20same-origin\r\nOrigin-Agent-Cluster:\x20\?1\r\nReferrer-Poli
+SF:cy:\x20no-referrer\r\nX-Content-Type-Options:\x20nosniff\r\nX-DNS-Prefe
+SF:tch-Control:\x20off\r\nX-Download-Options:\x20noopen\r\nX-Frame-Options
+SF::\x20SAMEORIGIN\r\nX-Permitted-Cross-Domain-Policies:\x20none\r\nX-XSS-
+SF:Protection:\x200\r\nContent-Type:\x20text/html;\x20charset=utf-8\r\nCon
+SF:tent-Length:\x206387\r\nETag:\x20W/\"18f3-ebj\+034EGs3BfG8l31WWy8KFDPQ\
+SF:"\r\nSet-Cookie:\x20connect\.sid=s%3AADjytHmL_A6Krj8QriM9CZnSvGdj49JD\.
+SF:XMSvpUbnjX74mCbpArTY9Q5Z0il5LlqV17reU9DH%2BuY;\x20Path=/;\x20HttpOnly;\
+SF:x20SameSite=Lax\r\nDate:\x20Fri,\x2010\x20Apr\x202026\x2018:24:37\x20GM
+SF:T\r\nConnection:\x20close\r\n\r\n<!DOCTYPE\x20html>\r\n<html\x20lang=\"
+SF:vi\">\r\n\r\n<head>\r\n\x20\x20<meta\x20charset=\"UTF-8\">\r\n\x20\x20<
+SF:meta\x20name=\"viewport\"\x20content=\"width=device-width,\x20initial-s
+SF:cale=1\.0\">\r\n\x20\x20<title>Online\x20Academy</title>\r\n\r\n\r\n\r\
+SF:n\r\n\x20\x20<!--\x20Bootstrap\x20-->\r\n\x20\x20<link\x20href=\"https:
+SF://cdn\.jsdelivr\.net/npm/");
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+# Nmap done at Sat Apr 11 01:24:37 2026 -- 1 IP address (1 host up) scanned in 16.27 seconds

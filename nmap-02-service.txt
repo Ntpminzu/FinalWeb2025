@@ -1,0 +1,9 @@
+# Nmap 7.94SVN scan initiated Sat Apr 11 00:49:53 2026 as: nmap -sT -Pn -sV -p 4000 -oN /mnt/c/Users/GameLap/Desktop/zoo_git/FinalWeb2025/nmap-02-service.txt 172.27.0.1
+Nmap scan report for AN.mshome.net (172.27.0.1)
+Host is up (0.00058s latency).
+
+PORT     STATE SERVICE VERSION
+4000/tcp open  http    Node.js (Express middleware)
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+# Nmap done at Sat Apr 11 00:50:02 2026 -- 1 IP address (1 host up) scanned in 9.16 seconds
