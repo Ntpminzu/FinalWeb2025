@@ -33,6 +33,13 @@ router.post('/signup', async (req, res) => {
       });
     }
 
+    if (password.length < 6) {
+      return res.status(400).render('vwAccount/signup', {
+        systemError: true,
+        message: 'Mật khẩu phải có ít nhất 6 ký tự.',
+      });
+    }
+
     // kiểm tra email tồn tại
     const existsEmail = await db('users').where('email', email);
     if (existsEmail.length > 0) {
@@ -68,13 +75,18 @@ router.post('/signup', async (req, res) => {
       text: `Xin chào ${name}, mã OTP của bạn là ${otp}. Mã có hiệu lực trong 5 phút.`,
     });
 
-    // chuyển sang trang nhập OTP (pass data ẩn)
-    return res.render('vwAccount/verify-otp', {
+    // Lưu dữ liệu đăng ký tạm ở server session để không đẩy password xuống client.
+    req.session.pendingSignup = {
       username,
-      password,
       name,
       email,
       dob,
+      passwordHash: bcrypt.hashSync(password, 10),
+    };
+
+    // chuyển sang trang nhập OTP
+    return res.render('vwAccount/verify-otp', {
+      email,
     });
   } catch (err) {
     console.error('❌ Lỗi tại signup:', err);
@@ -90,14 +102,16 @@ router.post('/signup', async (req, res) => {
  * ======================= */
 router.post('/verify-otp', async (req, res) => {
   try {
-    const username = (req.body.username || req.body.name || '').trim();
-    const password = req.body.password || '';
-    const name = (req.body.name || username || '').trim();
-    const email = (req.body.email || '').trim();
-    const dob = req.body.dob || null;
     const otp = (req.body.otp || '').trim();
+    const pending = req.session.pendingSignup;
 
-    if (!email || !username || !password) {
+    if (!pending) {
+      return res.status(400).send('❌ Phiên đăng ký đã hết hạn. Vui lòng đăng ký lại.');
+    }
+
+    const { username, name, email, dob, passwordHash } = pending;
+
+    if (!email || !username || !passwordHash) {
       return res.status(400).send('❌ Thiếu thông tin. Vui lòng đăng ký lại.');
     }
 
@@ -110,13 +124,11 @@ router.post('/verify-otp', async (req, res) => {
     if (record.otp_code !== otp) return res.send('❌ Mã OTP không đúng.');
     if (new Date() > record.expires_at) return res.send('❌ Mã OTP đã hết hạn.');
 
-    const hashed = bcrypt.hashSync(password, 10);
-
     // tạo user: mặc định student
     await db('users').insert({
       username,            // nếu schema không có cột username, đổi thành name
       name,                // giữ thêm tên hiển thị
-      password: hashed,
+      password: passwordHash,
       email,
       dob,
       permission: 1,       // 1: student, 2: instructor, 3: admin
@@ -126,6 +138,7 @@ router.post('/verify-otp', async (req, res) => {
 
     // xoá otp đã dùng
     await db('otp_tokens').where('email', email).del();
+    delete req.session.pendingSignup;
 
     return res.render('vwAccount/signin', { success: true });
   } catch (err) {
