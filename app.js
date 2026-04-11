@@ -4,6 +4,7 @@ import express from 'express';
 import { engine } from 'express-handlebars';
 import hbs_sections from 'express-handlebars-sections';
 import session from 'express-session';
+import helmet from 'helmet';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -32,15 +33,36 @@ const __dirname = path.dirname(__filename);
 
 // App
 const app = express();
+const isProd = process.env.NODE_ENV === 'production';
+
+// Reduce basic framework fingerprinting.
+app.disable('x-powered-by');
 
 // Session
 app.set('trust proxy', 1);
 app.use(session({
-  secret: 'b3f8c2a1e7d4f6g9h0j2k5l8m1n3p6q9r2s5t8u1v4w7x0y3z6a9b2c5d8e1',
+  secret: process.env.SESSION_SECRET || 'b3f8c2a1e7d4f6g9h0j2k5l8m1n3p6q9r2s5t8u1v4w7x0y3z6a9b2c5d8e1',
   resave: false,
-  saveUninitialized: true,
-  cookie: { secure: false }, // Bật true khi dùng HTTPS
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: isProd,
+  },
 }));
+
+// Keep CSP disabled for now because current templates use inline scripts/styles.
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+  hsts: false,
+}));
+
+const hstsMiddleware = helmet.hsts({ maxAge: 31536000, includeSubDomains: true });
+app.use((req, res, next) => {
+  if (isProd && req.secure) return hstsMiddleware(req, res, next);
+  next();
+});
 
 // Handlebars
 app.engine('handlebars', engine({
@@ -225,4 +247,16 @@ app.use((err, req, res, next) => {
 });
 
 // Start
-app.listen(4000, () => console.log('✅ Server is running at http://localhost:4000'));
+const PORT = 4000;
+const HOST = '0.0.0.0';
+
+// Keep an explicit server reference so runtime GC does not tear down the socket.
+const server = app.listen(PORT, HOST, () => {
+  console.log(`✅ Server is running at http://localhost:${PORT}`);
+});
+
+server.on('error', (err) => {
+  console.error('Server start error:', err);
+});
+
+globalThis.__finalweb_server = server;

@@ -1,0 +1,8 @@
+# Nmap 7.94SVN scan initiated Sat Apr 11 01:23:44 2026 as: nmap -sT -Pn -p 4000 --script vuln -oN /mnt/c/Users/GameLap/Desktop/zoo_git/FinalWeb2025/nmap-05-vuln.txt 172.27.0.1
+Nmap scan report for AN.mshome.net (172.27.0.1)
+Host is up (0.0013s latency).
+
+PORT     STATE SERVICE
+4000/tcp open  remoteanything
+
+# Nmap done at Sat Apr 11 01:23:55 2026 -- 1 IP address (1 host up) scanned in 10.44 seconds
