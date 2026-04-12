@@ -7,6 +7,7 @@ import session from 'express-session';
 import helmet from 'helmet';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import 'dotenv/config'; // Load env vars from .env for secure runtime configuration.
 
 // Auth
 import { restrict, restrictAdmin } from './middlewares/auth.mdw.js';
@@ -33,21 +34,27 @@ const __dirname = path.dirname(__filename);
 
 // App
 const app = express();
-const isProd = process.env.NODE_ENV === 'production';
 
 // Reduce basic framework fingerprinting.
 app.disable('x-powered-by');
 
 // Session
-app.set('trust proxy', 1);
+const isProd = process.env.NODE_ENV === 'production'; // True when running in production.
+const sessionSecret = process.env.SESSION_SECRET || 'dev-only-session-secret-change-in-production'; // Use env secret; fallback is for local dev only.
+
+if (isProd && !process.env.SESSION_SECRET) {
+  throw new Error('SESSION_SECRET is required in production'); // Prevent insecure production startup.
+}
+
+app.set('trust proxy', isProd ? 1 : 0); // Trust reverse proxy only in production HTTPS setups.
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'b3f8c2a1e7d4f6g9h0j2k5l8m1n3p6q9r2s5t8u1v4w7x0y3z6a9b2c5d8e1',
-  resave: false,
-  saveUninitialized: false,
+  secret: sessionSecret, // Sign session ID cookie with server-side secret.
+  resave: false, // Avoid rewriting unchanged sessions.
+  saveUninitialized: false, // Do not create sessions until something is stored.
   cookie: {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: isProd,
+    secure: isProd, // Send cookie only over HTTPS in production.
+    httpOnly: true, // Block JavaScript access to the cookie.
+    sameSite: 'lax', // Reduce CSRF risk for cross-site requests.
   },
 }));
 
