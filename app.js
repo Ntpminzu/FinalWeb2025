@@ -8,7 +8,6 @@ import helmet from 'helmet';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import 'dotenv/config'; // Load env vars from .env for secure runtime configuration.
-import rateLimit from 'express-rate-limit'; 
 
 // Auth
 import { restrict, restrictAdmin } from './middlewares/auth.mdw.js';
