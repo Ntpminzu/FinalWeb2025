@@ -37,8 +37,41 @@ const __dirname = path.dirname(__filename);
 // App
 const app = express();
 
+
 // Reduce basic framework fingerprinting.
 app.disable('x-powered-by');
+
+// Security headers (including CSP) to mitigate XSS and clickjacking risks.
+app.use(helmet({
+  contentSecurityPolicy: {
+    useDefaults: true,
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        'https://cdn.jsdelivr.net',
+        'https://cdnjs.cloudflare.com',
+        'https://cdn.quilljs.com',
+        'https://cdn.plyr.io',
+      ],
+      styleSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        'https://cdn.jsdelivr.net',
+        'https://cdn.quilljs.com',
+      ],
+      fontSrc: ["'self'", 'https://cdn.jsdelivr.net', 'data:'],
+      imgSrc: ["'self'", 'data:', 'https:'],
+      connectSrc: ["'self'"],
+      frameAncestors: ["'self'"],
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+}));
 
 // Session
 const isProd = process.env.NODE_ENV === 'production'; // True when running in production.
@@ -50,35 +83,11 @@ if (isProd && !process.env.SESSION_SECRET) {
 
 app.set('trust proxy', isProd ? 1 : 0); // Trust reverse proxy only in production HTTPS setups.
 app.use(session({
-  secret: sessionSecret, // Sign session ID cookie with server-side secret.
-  resave: false, // Avoid rewriting unchanged sessions.
-  saveUninitialized: false, // Do not create sessions until something is stored.
-  cookie: {
-    secure: isProd, // Send cookie only over HTTPS in production.
-    httpOnly: true, // Block JavaScript access to the cookie.
-    sameSite: 'lax', // Reduce CSRF risk for cross-site requests.
-  },
+  secret: sessionSecret,
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false }, // Bật true khi dùng HTTPS
 }));
-
-// CSRF Protection
-app.use(csurf());
-app.use((req, res, next) => {
-  res.locals.csrfToken = req.csrfToken();
-  next();
-});
-
-// Keep CSP disabled for now because current templates use inline scripts/styles.
-app.use(helmet({
-  contentSecurityPolicy: false,
-  crossOriginEmbedderPolicy: false,
-  hsts: false,
-}));
-
-const hstsMiddleware = helmet.hsts({ maxAge: 31536000, includeSubDomains: true });
-app.use((req, res, next) => {
-  if (isProd && req.secure) return hstsMiddleware(req, res, next);
-  next();
-});
 
 // Handlebars
 app.engine('handlebars', engine({
@@ -243,15 +252,7 @@ app.get('/', async (req, res, next) => {
     next(err);
   }
 });
-const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, 
-  max: 5, 
-  message: 'You have entered incorrectly too many times or there are signs of spam. Please try again in 15 minutes!',
-  standardHeaders: true, 
-  legacyHeaders: false, 
-});
 
-app.post('/account/signin', loginLimiter);
 // Routers
 app.use('/admin', restrict, restrictAdmin, adminRouter);
 app.use('/student', studentRouter);
