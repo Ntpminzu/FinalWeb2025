@@ -85,8 +85,12 @@ app.set('trust proxy', isProd ? 1 : 0); // Trust reverse proxy only in productio
 app.use(session({
   secret: sessionSecret,
   resave: false,
-  saveUninitialized: true,
-  cookie: { secure: false }, // Bật true khi dùng HTTPS
+  saveUninitialized: false,
+  cookie: {
+    secure: isProd,
+    httpOnly: true,
+    sameSite: 'lax',
+  },
 }));
 
 // Handlebars
