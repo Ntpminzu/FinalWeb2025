@@ -173,54 +173,46 @@ router.get('/signin', (req, res) => {
 });
 
 router.post('/signin', async (req, res) => {
-  try {
-    const username = (req.body.username || req.body.name || '').trim();
-    const password = req.body.password || '';
+  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+  const ua = req.headers['user-agent'] || 'unknown';
 
-    const user =
-      (await userModel.findByUsername?.(username)) ||
-      (await userModel.findByName?.(username)) ||
-      null;
+  const user = await userModel.findByUsername(username);
 
-    // Không tồn tại user
-    if (!user) {
-      return res.render('vwAccount/signin', { error: true });
-    }
-
-    // 🔒 Bị vô hiệu hóa -> chặn đăng nhập
-    if (user.is_disabled === true || user.is_disabled === 'TRUE' || user.is_disabled === 1) {
-      // có thể log/track tại đây nếu muốn
-      return res.render('vwAccount/signin', {
-        error: true,
-        disabled: true,              // gửi cờ để hiển thị thông báo rõ ràng
-      });
-    }
-
-    // So khớp mật khẩu
-    const ok = bcrypt.compareSync(password, user.password || '');
-    if (!ok) {
-      return res.render('vwAccount/signin', { error: true });
-    }
-
-    // Lưu session & điều hướng theo permission
-    req.session.isAuthenticated = true;
-    req.session.authUser = user;
-
-    switch (Number(user.permission)) {
-      case 1: return res.redirect('/student');
-      case 2: return res.redirect('/instructor');
-      case 3: return res.redirect('/admin');
-      default: {
-        const retUrl = req.session.retUrl || '/';
-        delete req.session.retUrl;
-        return res.redirect(retUrl);
-      }
-    }
-  } catch (err) {
-    console.error('❌ Signin error:', err);
+  if (!user) {
+    logger.warn({
+      event: 'LOGIN_FAILED', reason: 'USER_NOT_FOUND',
+      username, ip, ua, timestamp: new Date().toISOString()
+    });
     return res.render('vwAccount/signin', { error: true });
   }
+
+  if (user.is_disabled) {
+    logger.warn({
+      event: 'LOGIN_BLOCKED', reason: 'ACCOUNT_DISABLED',
+      userId: user.id, username, ip, ua, timestamp: new Date().toISOString()
+    });
+    return res.render('vwAccount/signin', { disabled: true });
+  }
+
+  const ok = bcrypt.compareSync(password, user.password);
+  if (!ok) {
+    logger.warn({
+      event: 'LOGIN_FAILED', reason: 'WRONG_PASSWORD',
+      userId: user.id, username, ip, ua, timestamp: new Date().toISOString()
+    });
+    return res.render('vwAccount/signin', { error: true });
+  }
+
+  logger.info({
+    event: 'LOGIN_SUCCESS',
+    userId: user.id, username, permission: user.permission,
+    ip, ua, timestamp: new Date().toISOString()
+  });
+  req.session.isAuthenticated = true;
+  req.session.authUser = user;
+  return res.redirect('/student');
 });
+
 
 
 /* =========================
@@ -246,7 +238,7 @@ router.get('/profile', restrict, (req, res) => {
 });
 
 router.post('/profile', restrict, async (req, res) => {
-  const id = req.body.id;
+  const id = req.session.authUser.id;
   const userPatch = {
     name: (req.body.name || '').trim(),
     email: (req.body.email || '').trim(),
@@ -265,7 +257,7 @@ router.get('/change-pwd', restrict, (req, res) => {
 });
 
 router.post('/change-pwd', restrict, async (req, res) => {
-  const id = req.body.id;
+  const id = req.session.authUser.id;
   const curPwd = req.body.currentPassword || req.body.curPassword || '';
   const newPwd = req.body.newPassword || '';
 

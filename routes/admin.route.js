@@ -161,7 +161,7 @@ router.get('/profile', (req, res) => {
 });
 
 router.post('/profile', async (req, res) => {
-  const id = req.body.id;
+  const id = req.session.authUser.id;
   const updatedUser = {
     name: req.body.name?.trim(),
     email: req.body.email?.trim(),
@@ -179,7 +179,7 @@ router.post('/profile', async (req, res) => {
 });
 
 router.post('/change-pwd', async (req, res) => {
-  const id = req.body.id;
+  const id = req.session.authUser.id;
   const currentPassword = req.body.currentPassword || '';
   const newPassword = req.body.newPassword || '';
 
