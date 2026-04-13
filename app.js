@@ -8,6 +8,7 @@ import helmet from 'helmet';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import 'dotenv/config'; // Load env vars from .env for secure runtime configuration.
+import rateLimit from 'express-rate-limit'; 
 
 // Auth
 import { restrict, restrictAdmin } from './middlewares/auth.mdw.js';
@@ -234,7 +235,15 @@ app.get('/', async (req, res, next) => {
     next(err);
   }
 });
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, 
+  max: 5, 
+  message: 'You have entered incorrectly too many times or there are signs of spam. Please try again in 15 minutes!',
+  standardHeaders: true, 
+  legacyHeaders: false, 
+});
 
+app.post('/account/signin', loginLimiter);
 // Routers
 app.use('/admin', restrict, restrictAdmin, adminRouter);
 app.use('/student', studentRouter);
