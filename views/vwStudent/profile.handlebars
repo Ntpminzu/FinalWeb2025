@@ -10,6 +10,7 @@
 
     <!-- Thông tin cá nhân -->
     <form action="/student/profile" method="post">
+        <input type="hidden" name="_csrf" value="{{csrfToken}}">
       <input type="hidden" name="id" value="{{user.id}}">
 
       <div class="card mb-4">
@@ -44,6 +45,7 @@
     
     <!-- Đổi mật khẩu -->
     <form action="/student/change-pwd" method="post">
+        <input type="hidden" name="_csrf" value="{{csrfToken}}">
       <input type="hidden" name="id" value="{{user.id}}">
 
       <div class="card">

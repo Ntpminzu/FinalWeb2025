@@ -48,17 +48,20 @@
         <td class="text-center">
           <!-- Nút Xóa -->
           <form action="/admin/courses/delete/{{this.id}}" method="POST" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn xóa khóa học này?');">
+            <input type="hidden" name="_csrf" value="{{csrfToken}}">
             <button type="submit" class="btn btn-sm btn-danger">Xóa</button>
           </form>
 
           <!-- Nút Đình chỉ / Mở lại -->
           {{#if this.is_disabled}}
           <form action="/admin/courses/disable/{{this.id}}" method="POST" style="display:inline;">
+            <input type="hidden" name="_csrf" value="{{csrfToken}}">
             <input type="hidden" name="disable" value="false">
             <button type="submit" class="btn btn-sm btn-success">Mở lại</button>
           </form>
           {{else}}
           <form action="/admin/courses/disable/{{this.id}}" method="POST" style="display:inline;">
+            <input type="hidden" name="_csrf" value="{{csrfToken}}">
             <input type="hidden" name="disable" value="true">
             <button type="submit" class="btn btn-sm btn-warning">Đình chỉ</button>
           </form>

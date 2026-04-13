@@ -9,6 +9,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import 'dotenv/config'; // Load env vars from .env for secure runtime configuration.
 import rateLimit from 'express-rate-limit'; 
+import csurf from 'csurf'; 
 
 // Auth
 import { restrict, restrictAdmin } from './middlewares/auth.mdw.js';
@@ -58,6 +59,13 @@ app.use(session({
     sameSite: 'lax', // Reduce CSRF risk for cross-site requests.
   },
 }));
+
+// CSRF Protection
+app.use(csurf());
+app.use((req, res, next) => {
+  res.locals.csrfToken = req.csrfToken();
+  next();
+});
 
 // Keep CSP disabled for now because current templates use inline scripts/styles.
 app.use(helmet({

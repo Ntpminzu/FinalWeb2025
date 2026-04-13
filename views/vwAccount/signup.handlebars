@@ -91,6 +91,7 @@
 
     <div class="card-body px-4">
         <form id="frmSignup" method="post" action="/account/signup">
+            <input type="hidden" name="_csrf" value="{{csrfToken}}">
             <div class="mb-3">
                 <label for="txtUsername" class="form-label fw-semibold">Tên đăng nhập</label>
                 <input type="text" class="form-control" id="txtUsername" name="username"

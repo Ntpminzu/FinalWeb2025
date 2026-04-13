@@ -64,6 +64,7 @@
 
                 {{#if (eq this.courseCount 0)}}
                 <form action="/admin/categories/delete" method="POST" class="d-inline">
+                  <input type="hidden" name="_csrf" value="{{csrfToken}}">
                   <input type="hidden" name="id" value="{{this.id}}">
                   <button type="submit" class="btn btn-danger btn-sm"
                           onclick="return confirm('Bạn có chắc chắn muốn xóa lĩnh vực này không?');">
@@ -95,6 +96,7 @@
   <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <form class="modal-content" action="/admin/categories/add" method="POST">
+        <input type="hidden" name="_csrf" value="{{csrfToken}}">
         <div class="modal-header bg-success text-white">
           <h5 class="modal-title" id="addModalLabel">
             <i class="bi bi-plus-circle"></i> Thêm Lĩnh vực mới
@@ -119,6 +121,7 @@
   <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <form class="modal-content" action="/admin/categories/edit" method="POST">
+        <input type="hidden" name="_csrf" value="{{csrfToken}}">
         <div class="modal-header bg-warning">
           <h5 class="modal-title" id="editModalLabel">
             <i class="bi bi-pencil-square"></i> Sửa Lĩnh vực
