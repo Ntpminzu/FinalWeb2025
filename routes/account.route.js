@@ -173,44 +173,48 @@ router.get('/signin', (req, res) => {
 });
 
 router.post('/signin', async (req, res) => {
-  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
-  const ua = req.headers['user-agent'] || 'unknown';
+  try {
+    const username = (req.body.username || req.body.name || '').trim();
+    const password = req.body.password || '';
+    const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+    const ua = req.headers['user-agent'] || 'unknown';
 
-  const user = await userModel.findByUsername(username);
+    if (!username || !password) {
+      return res.render('vwAccount/signin', { error: true });
+    }
 
-  if (!user) {
-    logger.warn({
-      event: 'LOGIN_FAILED', reason: 'USER_NOT_FOUND',
-      username, ip, ua, timestamp: new Date().toISOString()
+    const user =
+      (await userModel.findByUsername?.(username)) ||
+      (await userModel.findByName?.(username)) ||
+      null;
+
+    if (!user) {
+      console.warn('LOGIN_FAILED USER_NOT_FOUND', { username, ip, ua });
+      return res.render('vwAccount/signin', { error: true });
+    }
+
+    if (user.is_disabled) {
+      console.warn('LOGIN_BLOCKED ACCOUNT_DISABLED', { userId: user.id, username, ip, ua });
+      return res.render('vwAccount/signin', { disabled: true });
+    }
+
+    const ok = bcrypt.compareSync(password, user.password || '');
+    if (!ok) {
+      console.warn('LOGIN_FAILED WRONG_PASSWORD', { userId: user.id, username, ip, ua });
+      return res.render('vwAccount/signin', { error: true });
+    }
+
+    console.info('LOGIN_SUCCESS', { userId: user.id, username, permission: user.permission, ip, ua });
+    req.session.isAuthenticated = true;
+    req.session.authUser = user;
+    return res.redirect('/student');
+  } catch (err) {
+    console.error('LOGIN_ERROR', err);
+    return res.status(500).render('vwAccount/signin', {
+      systemError: true,
+      message: 'Không thể đăng nhập lúc này, vui lòng thử lại.',
     });
-    return res.render('vwAccount/signin', { error: true });
   }
-
-  if (user.is_disabled) {
-    logger.warn({
-      event: 'LOGIN_BLOCKED', reason: 'ACCOUNT_DISABLED',
-      userId: user.id, username, ip, ua, timestamp: new Date().toISOString()
-    });
-    return res.render('vwAccount/signin', { disabled: true });
-  }
-
-  const ok = bcrypt.compareSync(password, user.password);
-  if (!ok) {
-    logger.warn({
-      event: 'LOGIN_FAILED', reason: 'WRONG_PASSWORD',
-      userId: user.id, username, ip, ua, timestamp: new Date().toISOString()
-    });
-    return res.render('vwAccount/signin', { error: true });
-  }
-
-  logger.info({
-    event: 'LOGIN_SUCCESS',
-    userId: user.id, username, permission: user.permission,
-    ip, ua, timestamp: new Date().toISOString()
-  });
-  req.session.isAuthenticated = true;
-  req.session.authUser = user;
-  return res.redirect('/student');
 });
 
 
