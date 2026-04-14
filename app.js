@@ -257,6 +257,16 @@ app.get('/', async (req, res, next) => {
   }
 });
 
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, 
+  max: 5, 
+  message: 'You have entered incorrectly too many times or there are signs of spam. Please try again in 15 minutes!',
+  standardHeaders: true, 
+  legacyHeaders: false, 
+});
+
+app.post('/account/signin', loginLimiter);
+
 // Routers
 app.use('/admin', restrict, restrictAdmin, adminRouter);
 app.use('/student', studentRouter);
