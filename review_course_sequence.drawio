@@ -1,0 +1,155 @@
+<mxfile host="Electron" modified="2024-05-13T16:00:00.000Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="seq_diagram_2" name="Review Course Sequence">
+    <mxGraphModel dx="1400" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="1600" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Lifelines -->
+        <mxCell id="Student" value="Student" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="100" y="80" width="100" height="900" as="geometry" />
+        </mxCell>
+        <mxCell id="Act_Student" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;" vertex="1" parent="Student">
+          <mxGeometry x="45" y="60" width="10" height="760" as="geometry" />
+        </mxCell>
+
+        <mxCell id="UI" value="View (Handlebars)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="300" y="80" width="100" height="900" as="geometry" />
+        </mxCell>
+        <mxCell id="Act_UI" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;" vertex="1" parent="UI">
+          <mxGeometry x="45" y="60" width="10" height="760" as="geometry" />
+        </mxCell>
+
+        <mxCell id="Controller" value="ReviewController" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="500" y="80" width="120" height="900" as="geometry" />
+        </mxCell>
+        <mxCell id="Act_Ctrl" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;" vertex="1" parent="Controller">
+          <mxGeometry x="55" y="100" width="10" height="720" as="geometry" />
+        </mxCell>
+
+        <mxCell id="Service" value="ReviewService" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="720" y="80" width="120" height="900" as="geometry" />
+        </mxCell>
+        <mxCell id="Act_Svc" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;" vertex="1" parent="Service">
+          <mxGeometry x="55" y="140" width="10" height="680" as="geometry" />
+        </mxCell>
+
+        <mxCell id="Database" value="Database" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="940" y="80" width="100" height="900" as="geometry" />
+        </mxCell>
+        <mxCell id="Act_DB" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;" vertex="1" parent="Database">
+          <mxGeometry x="45" y="180" width="10" height="640" as="geometry" />
+        </mxCell>
+
+        <!-- Messages -->
+        
+        <!-- y=140 -->
+        <mxCell id="m1" value="1. Chọn Viết đánh giá" style="html=1;verticalAlign=bottom;endArrow=block;edgeStyle=elbowEdgeStyle;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="155" y="140" as="sourcePoint" /><mxPoint x="345" y="140" as="targetPoint" /></mxGeometry>
+        </mxCell>
+
+        <!-- y=180 -->
+        <mxCell id="m2" value="2. Hiển thị form đánh giá" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;edgeStyle=elbowEdgeStyle;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="345" y="180" as="sourcePoint" /><mxPoint x="155" y="180" as="targetPoint" /></mxGeometry>
+        </mxCell>
+
+        <!-- y=220 -->
+        <mxCell id="m3" value="3. Nhập thông tin &amp; Gửi" style="html=1;verticalAlign=bottom;endArrow=block;edgeStyle=elbowEdgeStyle;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="155" y="220" as="sourcePoint" /><mxPoint x="345" y="220" as="targetPoint" /></mxGeometry>
+        </mxCell>
+
+        <!-- y=260 -->
+        <mxCell id="m4" value="POST /api/reviews" style="html=1;verticalAlign=bottom;endArrow=block;edgeStyle=elbowEdgeStyle;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="355" y="260" as="sourcePoint" /><mxPoint x="555" y="260" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        
+        <!-- y=300 -->
+        <mxCell id="m5" value="Yêu cầu lưu đánh giá" style="html=1;verticalAlign=bottom;endArrow=block;edgeStyle=elbowEdgeStyle;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="565" y="300" as="sourcePoint" /><mxPoint x="775" y="300" as="targetPoint" /></mxGeometry>
+        </mxCell>
+
+        <!-- y=340 -->
+        <mxCell id="m6" value="4. Kiểm tra lịch sử đánh giá" style="html=1;verticalAlign=bottom;endArrow=block;edgeStyle=elbowEdgeStyle;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="785" y="340" as="sourcePoint" /><mxPoint x="985" y="340" as="targetPoint" /></mxGeometry>
+        </mxCell>
+
+        <!-- ALT BLOCK -->
+        <mxCell id="alt" value="alt" style="shape=umlFrame;whiteSpace=wrap;html=1;pointerEvents=0;" vertex="1" parent="1">
+          <mxGeometry x="60" y="360" width="1000" height="480" as="geometry" />
+        </mxCell>
+        <mxCell id="alt_label_1" value="[Ngoại lệ 4.a: Đã từng đánh giá]" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="140" y="360" width="200" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- y=380 -->
+        <mxCell id="m7" value="Kết quả: Đã tồn tại" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;edgeStyle=elbowEdgeStyle;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="985" y="380" as="sourcePoint" /><mxPoint x="785" y="380" as="targetPoint" /></mxGeometry>
+        </mxCell>
+
+        <!-- y=420 -->
+        <mxCell id="m8" value="Thông báo: Đã đánh giá" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;edgeStyle=elbowEdgeStyle;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="775" y="420" as="sourcePoint" /><mxPoint x="565" y="420" as="targetPoint" /></mxGeometry>
+        </mxCell>
+
+        <!-- y=460 -->
+        <mxCell id="m9" value="HTTP 409 Conflict (hoặc tương tự)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;edgeStyle=elbowEdgeStyle;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="555" y="460" as="sourcePoint" /><mxPoint x="355" y="460" as="targetPoint" /></mxGeometry>
+        </mxCell>
+
+        <!-- y=500 -->
+        <mxCell id="m10" value="4.a Chuyển form sang Cập nhật" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;edgeStyle=elbowEdgeStyle;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="345" y="500" as="sourcePoint" /><mxPoint x="155" y="500" as="targetPoint" /></mxGeometry>
+        </mxCell>
+
+        <!-- ALT DIVIDER -->
+        <mxCell id="alt_divider" value="" style="line;strokeWidth=1;dashed=1;labelPosition=center;verticalLabelPosition=bottom;align=left;verticalAlign=top;spacingLeft=20;spacingTop=15;html=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="60" y="520" width="1000" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="alt_label_2" value="[Luồng chính: Chưa đánh giá]" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="140" y="530" width="200" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- y=540 -->
+        <mxCell id="m11" value="Kết quả: Chưa tồn tại" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;edgeStyle=elbowEdgeStyle;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="985" y="540" as="sourcePoint" /><mxPoint x="785" y="540" as="targetPoint" /></mxGeometry>
+        </mxCell>
+
+        <!-- y=580 -->
+        <mxCell id="m12" value="5. Lưu đánh giá (Thêm mới)" style="html=1;verticalAlign=bottom;endArrow=block;edgeStyle=elbowEdgeStyle;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="785" y="580" as="sourcePoint" /><mxPoint x="985" y="580" as="targetPoint" /></mxGeometry>
+        </mxCell>
+
+        <!-- y=620 -->
+        <mxCell id="m13" value="Lưu thành công" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;edgeStyle=elbowEdgeStyle;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="985" y="620" as="sourcePoint" /><mxPoint x="785" y="620" as="targetPoint" /></mxGeometry>
+        </mxCell>
+
+        <!-- y=660 -->
+        <mxCell id="m14" value="6. Tính toán lại Rating TB khóa học" style="html=1;verticalAlign=bottom;endArrow=block;edgeStyle=elbowEdgeStyle;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="785" y="660" as="sourcePoint" /><mxPoint x="985" y="660" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        
+        <!-- y=700 -->
+        <mxCell id="m15" value="Cập nhật Rating thành công" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;edgeStyle=elbowEdgeStyle;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="985" y="700" as="sourcePoint" /><mxPoint x="785" y="700" as="targetPoint" /></mxGeometry>
+        </mxCell>
+
+        <!-- y=740 -->
+        <mxCell id="m16" value="Trả về kết quả thành công" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;edgeStyle=elbowEdgeStyle;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="775" y="740" as="sourcePoint" /><mxPoint x="565" y="740" as="targetPoint" /></mxGeometry>
+        </mxCell>
+
+        <!-- y=780 -->
+        <mxCell id="m17" value="HTTP 200/201 OK" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;edgeStyle=elbowEdgeStyle;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="555" y="780" as="sourcePoint" /><mxPoint x="355" y="780" as="targetPoint" /></mxGeometry>
+        </mxCell>
+
+        <!-- y=820 -->
+        <mxCell id="m18" value="7. Thông báo &quot;Cảm ơn bạn đã đánh giá&quot;" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;edgeStyle=elbowEdgeStyle;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="345" y="820" as="sourcePoint" /><mxPoint x="155" y="820" as="targetPoint" /></mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
