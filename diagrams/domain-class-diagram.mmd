@@ -1,0 +1,179 @@
+%% Domain Class Diagram (UML ~ ERD)
+%% Source of truth: Supabase schema inferred from code (models/*, routes/*)
+%% Paste into Draw.io: Insert -> Advanced -> Mermaid
+
+classDiagram
+
+%% =====================
+%% Core entities (DB)
+%% =====================
+class User {
+  +int id
+  +string username
+  +string name
+  +string email
+  +string password
+  +date dob
+  +int permission
+  +string role
+  +bool is_disabled
+}
+
+class InstructorProfile {
+  +int user_id
+  +string bio
+  +string specialization
+  +int total_students
+  +int total_courses
+  +float rating_avg
+}
+
+class Category {
+  +int id
+  +string catname
+  +int parent_id
+}
+
+class Course {
+  +int id
+  +int instructor_id
+  +int category_id
+  +string title
+  +string thumbnail
+  +string short_desc
+  +string full_desc
+  +string description
+  +decimal price
+  +decimal sale_price
+  +float rating_avg
+  +int rating_count
+  +int student_count
+  +int view_count
+  +bool Status
+  +bool is_disabled
+  +datetime created_at
+  +datetime updated_at
+}
+
+class Lecture {
+  +int id
+  +int course_id
+  +string title
+  +string video_url
+  +int duration_sec
+  +int order_index
+}
+
+%% =====================
+%% Association classes (DB)
+%% =====================
+class Purchased {
+  +int id
+  +int user_id
+  +int course_id
+  +string course_title
+  +datetime purchased_at
+}
+
+class Watchlist {
+  +int id
+  +int user_id
+  +int course_id
+  +datetime added_at
+  +string course_title
+}
+
+class Feedback {
+  +int user_id
+  +int course_id
+  +int rating
+  +string comment
+  +datetime created_at
+}
+
+class LectureProgress {
+  +int user_id
+  +int lecture_id
+  +bool is_completed
+}
+
+class Enrollment {
+  +int id
+  +int student_id
+  +int course_id
+  +datetime enrolled_at
+}
+
+class OtpToken {
+  +string email
+  +string otp_code
+  +datetime expires_at
+  +datetime created_at
+}
+
+%% =====================
+%% Session-scoped (not persisted)
+%% =====================
+class Session {
+  +bool isAuthenticated
+  +int authUserId
+}
+
+class Cart {
+  +int itemCount
+}
+
+%% =====================
+%% Relationships + multiplicities
+%% =====================
+
+%% Instructor profile is 1:1 with User (optional)
+User "1" --> "0..1" InstructorProfile : has
+
+%% Category tree (self-reference)
+Category "0..1" --> "0..*" Category : parent
+
+%% Course classification
+Category "1" <-- "0..*" Course : categorizes
+
+%% Course ownership (Instructor is a User with permission=2)
+User "1" <-- "0..*" Course : teaches
+
+%% Course lectures
+Course "1" *-- "0..*" Lecture : contains
+
+%% Purchased access (unique user_id+course_id)
+User "1" <-- "0..*" Purchased : buyer
+Course "1" <-- "0..*" Purchased : item
+
+%% Watchlist (unique user_id+course_id)
+User "1" <-- "0..*" Watchlist : owner
+Course "1" <-- "0..*" Watchlist : course
+
+%% Feedback (recommend unique user_id+course_id for UC10 upsert)
+User "1" <-- "0..*" Feedback : author
+Course "1" <-- "0..*" Feedback : course
+
+%% Lecture progress (recommend unique user_id+lecture_id)
+User "1" <-- "0..*" LectureProgress : learner
+Lecture "1" <-- "0..*" LectureProgress : lecture
+
+%% Enrollment (legacy/statistics; used for trending)
+User "1" <-- "0..*" Enrollment : student
+Course "1" <-- "0..*" Enrollment : course
+
+%% OTP token is email-scoped (verify before creating User)
+
+%% Session cart (code stores list of Course objects, no duplicates)
+Session "1" o-- "0..1" Cart : cart
+Cart "1" o-- "0..*" Course : items
+
+%% =====================
+%% Constraints (notes)
+%% =====================
+%% Purchased: unique(user_id, course_id)
+%% Watchlist: unique(user_id, course_id)
+%% Feedback: unique(user_id, course_id)  (needed for upsert semantics)
+%% LectureProgress: unique(user_id, lecture_id) (needed for upsert semantics)
+%% InstructorProfile: unique(user_id)
+%% Course.Status (bool) = instructor publish/hide; Course.is_disabled (bool) = admin disable/enable
