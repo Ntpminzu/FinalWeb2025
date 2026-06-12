@@ -1,0 +1,189 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="UC02 - Login (Simple BCE)" id="uc02_simple_bce_seq">
+    <mxGraphModel dx="1200" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="900" pageHeight="750" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- ==================== TITLE ==================== -->
+        <mxCell id="title" value="&lt;b&gt;Sequence Diagram: UC02 - Log in (Đăng nhập) [Simple BCE with DAO &amp; DB]&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="200" y="5" width="500" height="30" as="geometry"/>
+        </mxCell>
+
+        <!-- ==================== LIFELINES ==================== -->
+
+        <!-- Guest (Actor) -->
+        <mxCell id="guest" value="Guest" style="shape=umlLifeline;participant=umlActor;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="60" y="40" width="100" height="600" as="geometry"/>
+        </mxCell>
+
+        <!-- :LoginBoundary (Boundary) -->
+        <mxCell id="boundary" value="&lt;b&gt;:LoginBoundary&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="200" y="40" width="130" height="600" as="geometry"/>
+        </mxCell>
+
+        <!-- :AccountController (Control) -->
+        <mxCell id="control" value="&lt;b&gt;:AccountController&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="370" y="40" width="140" height="600" as="geometry"/>
+        </mxCell>
+
+        <!-- :UserDAO (Entity/DAO) -->
+        <mxCell id="userDAO" value="&lt;b&gt;:UserDAO&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="550" y="40" width="110" height="600" as="geometry"/>
+        </mxCell>
+
+        <!-- Database (DBMS) -->
+        <mxCell id="db" value="&lt;b&gt;Database&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="690" y="40" width="100" height="600" as="geometry"/>
+        </mxCell>
+
+        <!-- ==================== FLOW MESSAGES ==================== -->
+
+        <!-- 1. Guest -> :LoginBoundary: enter credentials -->
+        <mxCell id="msg1" value="enter login credentials (username, password)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="110" y="110" as="sourcePoint"/>
+            <mxPoint x="265" y="110" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 2. :LoginBoundary -> :AccountController: doSignin(username, password) -->
+        <mxCell id="msg2" value="doSignin(username, password)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="265" y="140" as="sourcePoint"/>
+            <mxPoint x="440" y="140" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 3. :AccountController -> :UserDAO: findByUsername(username) -->
+        <mxCell id="msg3" value="findByUsername(username)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="440" y="170" as="sourcePoint"/>
+            <mxPoint x="605" y="170" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 3_db. :UserDAO -> Database: execute select query -->
+        <mxCell id="msg3_db" value="execute select query" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="605" y="195" as="sourcePoint"/>
+            <mxPoint x="740" y="195" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 3_db_ret. Database -> :UserDAO: return user record -->
+        <mxCell id="msg3_db_ret" value="return user record" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="740" y="220" as="sourcePoint"/>
+            <mxPoint x="605" y="220" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 4. :UserDAO -> :AccountController: return user record -->
+        <mxCell id="msg4" value="return user record" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="605" y="245" as="sourcePoint"/>
+            <mxPoint x="440" y="245" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ALT Frame [authentication status] -->
+        <mxCell id="alt_auth" value="alt" style="shape=umlFrame;whiteSpace=wrap;html=1;width=40;height=20;boundedLbl=1;verticalAlign=top;align=left;spacingLeft=5;dashed=0;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="45" y="270" width="750" height="300" as="geometry"/>
+        </mxCell>
+
+        <!-- Guard [wrong credentials (Exception 3.2)] -->
+        <mxCell id="guard_wrong" value="[user not found / wrong credentials (Exception 3.2)]" style="text;html=1;align=left;verticalAlign=top;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontStyle=3;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="55" y="280" width="280" height="25" as="geometry"/>
+        </mxCell>
+
+        <!-- 5_err. :AccountController -> :LoginBoundary: renderSignin(error: true) -->
+        <mxCell id="msg5_err1" value="renderSignin(error: true)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="440" y="305" as="sourcePoint"/>
+            <mxPoint x="265" y="305" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 6_err. :LoginBoundary -> Guest: show error -->
+        <mxCell id="msg6_err1" value="show message &quot;Thông tin đăng nhập không chính xác&quot;" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="265" y="330" as="sourcePoint"/>
+            <mxPoint x="110" y="330" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Separator -->
+        <mxCell id="sep_auth1" value="" style="endArrow=none;dashed=1;html=1;strokeWidth=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="45" y="360" as="sourcePoint"/>
+            <mxPoint x="795" y="360" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Guard [account is_disabled (Exception 3.3)] -->
+        <mxCell id="guard_disabled" value="[account is_disabled (Exception 3.3)]" style="text;html=1;align=left;verticalAlign=top;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontStyle=3;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="55" y="370" width="220" height="25" as="geometry"/>
+        </mxCell>
+
+        <!-- 7_err. :AccountController -> :LoginBoundary: renderSignin(error: true, disabled: true) -->
+        <mxCell id="msg7_err2" value="renderSignin(error: true, disabled: true)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="440" y="395" as="sourcePoint"/>
+            <mxPoint x="265" y="395" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 8_err. :LoginBoundary -> Guest: show error -->
+        <mxCell id="msg8_err2" value="show message &quot;Tài khoản bị vô hiệu hóa, vui lòng liên hệ admin&quot;" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="265" y="420" as="sourcePoint"/>
+            <mxPoint x="110" y="420" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Separator -->
+        <mxCell id="sep_auth2" value="" style="endArrow=none;dashed=1;html=1;strokeWidth=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="45" y="450" as="sourcePoint"/>
+            <mxPoint x="795" y="450" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Guard [authentication success] -->
+        <mxCell id="guard_success" value="[authentication success]" style="text;html=1;align=left;verticalAlign=top;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontStyle=3;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="55" y="460" width="140" height="25" as="geometry"/>
+        </mxCell>
+
+        <!-- 9. :AccountController -> :AccountController: setSession(user) -->
+        <mxCell id="msg9" value="setSession(user)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="440" y="485" as="sourcePoint"/>
+            <mxPoint x="440" y="515" as="targetPoint"/>
+            <Array as="points">
+              <mxPoint x="490" y="485"/>
+              <mxPoint x="490" y="515"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 10. :AccountController -> :LoginBoundary: redirect(dashboardUrl) -->
+        <mxCell id="msg10" value="redirect(dashboardUrl)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="440" y="540" as="sourcePoint"/>
+            <mxPoint x="265" y="540" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 11. :LoginBoundary -> Guest: redirect -->
+        <mxCell id="msg11" value="redirect to Homepage or Dashboard (by role)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="265" y="565" as="sourcePoint"/>
+            <mxPoint x="110" y="565" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
