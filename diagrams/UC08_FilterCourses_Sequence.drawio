@@ -1,0 +1,146 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="UC08 - Filter Courses" id="uc08_seq">
+    <mxGraphModel dx="1422" dy="920" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="950" pageHeight="550" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- ==================== TITLE ==================== -->
+        <mxCell id="title" value="&lt;b&gt;Sequence Diagram: UC08 - Filter Courses (Lọc/Sắp xếp khóa học) [Layered Architecture]&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="200" y="5" width="550" height="30" as="geometry"/>
+        </mxCell>
+
+        <!-- ==================== LIFELINES ==================== -->
+
+        <!-- Guest (Actor) -->
+        <mxCell id="guest" value="Guest" style="shape=umlLifeline;participant=umlActor;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="60" y="40" width="100" height="420" as="geometry"/>
+        </mxCell>
+
+        <!-- FilterView (Boundary) -->
+        <mxCell id="view" value="&lt;b&gt;FilterView&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="200" y="40" width="120" height="420" as="geometry"/>
+        </mxCell>
+
+        <!-- SearchAPI (Controller) -->
+        <mxCell id="api" value="&lt;b&gt;SearchAPI&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="350" y="40" width="130" height="420" as="geometry"/>
+        </mxCell>
+
+        <!-- CourseService (Service) -->
+        <mxCell id="courseService" value="&lt;b&gt;CourseService&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="510" y="40" width="140" height="420" as="geometry"/>
+        </mxCell>
+
+        <!-- CourseDAO (DAO) -->
+        <mxCell id="courseDAO" value="&lt;b&gt;CourseDAO&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="680" y="40" width="110" height="420" as="geometry"/>
+        </mxCell>
+
+        <!-- Database (Entity/DBMS) -->
+        <mxCell id="db" value="&lt;b&gt;Database&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="830" y="40" width="100" height="420" as="geometry"/>
+        </mxCell>
+
+        <!-- ==================== FLOW MESSAGES ==================== -->
+
+        <!-- 1. Guest -> FilterView: click dropdown -->
+        <mxCell id="msg1" value="click filter dropdown &quot;Liên quan nhất (Mặc định)&quot;" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="110" y="110" as="sourcePoint"/>
+            <mxPoint x="260" y="110" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 2. FilterView -> Guest: display options -->
+        <mxCell id="msg2" value="display sort options dropdown menu" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="260" y="135" as="sourcePoint"/>
+            <mxPoint x="110" y="135" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 3. Guest -> FilterView: select sort criteria -->
+        <mxCell id="msg3" value="select sort criteria (e.g. sortBy = rating)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="110" y="170" as="sourcePoint"/>
+            <mxPoint x="260" y="170" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 4. FilterView -> SearchAPI: filterCourses(keyword, filterOptions) -->
+        <mxCell id="msg4" value="filterCourses(keyword, filterOptions)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="260" y="195" as="sourcePoint"/>
+            <mxPoint x="415" y="195" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 5. SearchAPI -> CourseService: filterCourses(keyword, filterOptions) -->
+        <mxCell id="msg5" value="filterCourses(keyword, filterOptions)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="415" y="225" as="sourcePoint"/>
+            <mxPoint x="580" y="225" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 6. CourseService -> CourseDAO: searchAndSort(keyword, sortBy) -->
+        <mxCell id="msg6" value="searchAndSort(keyword, sortBy)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="580" y="255" as="sourcePoint"/>
+            <mxPoint x="735" y="255" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 7. CourseDAO -> Database: execute query -->
+        <mxCell id="msg7" value="execute query with ORDER BY sortBy" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="735" y="280" as="sourcePoint"/>
+            <mxPoint x="880" y="280" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 8. Database -> CourseDAO: returns sorted list -->
+        <mxCell id="msg8" value="return sorted courses list" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="880" y="310" as="sourcePoint"/>
+            <mxPoint x="735" y="310" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 9. CourseDAO -> CourseService: returns sorted list -->
+        <mxCell id="msg9" value="return sorted list" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="735" y="335" as="sourcePoint"/>
+            <mxPoint x="580" y="335" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 10. CourseService -> SearchAPI: returns sorted list -->
+        <mxCell id="msg10" value="return sorted results" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="580" y="360" as="sourcePoint"/>
+            <mxPoint x="415" y="360" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 11. SearchAPI -> FilterView: returns sorted list -->
+        <mxCell id="msg11" value="return sorted results" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="415" y="385" as="sourcePoint"/>
+            <mxPoint x="260" y="385" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 12. FilterView -> Guest: displays sorted list -->
+        <mxCell id="msg12" value="re-render courses list sorted by user preference" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="260" y="410" as="sourcePoint"/>
+            <mxPoint x="110" y="410" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

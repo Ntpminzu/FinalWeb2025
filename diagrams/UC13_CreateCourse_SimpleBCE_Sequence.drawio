@@ -1,0 +1,176 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="UC13 - Create Course (Simple BCE)" id="uc13_simple_bce_seq">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="840" pageHeight="700" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- ==================== TITLE ==================== -->
+        <mxCell id="title" value="&lt;b&gt;Sequence Diagram: UC13 - Create Course (Tạo khóa học mới) [Simple BCE with DAO &amp; DB]&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="150" y="5" width="550" height="30" as="geometry"/>
+        </mxCell>
+
+        <!-- ==================== LIFELINES ==================== -->
+
+        <!-- Instructor (Actor) -->
+        <mxCell id="instructor" value="Instructor" style="shape=umlLifeline;participant=umlActor;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="60" y="40" width="100" height="520" as="geometry"/>
+        </mxCell>
+
+        <!-- :CourseBoundary (Boundary) -->
+        <mxCell id="boundary" value="&lt;b&gt;:CourseBoundary&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="200" y="40" width="130" height="520" as="geometry"/>
+        </mxCell>
+
+        <!-- :CourseController (Control) -->
+        <mxCell id="control" value="&lt;b&gt;:CourseController&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="370" y="40" width="140" height="520" as="geometry"/>
+        </mxCell>
+
+        <!-- :CourseDAO (Entity/DAO) -->
+        <mxCell id="courseDAO" value="&lt;b&gt;:CourseDAO&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="550" y="40" width="110" height="520" as="geometry"/>
+        </mxCell>
+
+        <!-- Database (DBMS) -->
+        <mxCell id="db" value="&lt;b&gt;Database&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="690" y="40" width="100" height="520" as="geometry"/>
+        </mxCell>
+
+        <!-- ==================== FLOW MESSAGES ==================== -->
+
+        <!-- 1. Instructor -> :CourseBoundary: Click Create button -->
+        <mxCell id="msg1" value="click &quot;Tạo khóa học mới&quot;" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="110" y="110" as="sourcePoint"/>
+            <mxPoint x="265" y="110" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 2. :CourseBoundary -> Instructor: Displays form -->
+        <mxCell id="msg2" value="display creation form" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="265" y="140" as="sourcePoint"/>
+            <mxPoint x="110" y="140" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 3. Instructor -> :CourseBoundary: enter details & submit -->
+        <mxCell id="msg3" value="enter details and submit form" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="110" y="170" as="sourcePoint"/>
+            <mxPoint x="265" y="170" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 4. :CourseBoundary -> :CourseController: createCourse(userId, courseData) -->
+        <mxCell id="msg4" value="createCourse(userId, courseData)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="265" y="200" as="sourcePoint"/>
+            <mxPoint x="440" y="200" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 5. :CourseController -> :CourseController: validate(courseData) -->
+        <mxCell id="msg5" value="validate(courseData)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="440" y="225" as="sourcePoint"/>
+            <mxPoint x="440" y="255" as="targetPoint"/>
+            <Array as="points">
+              <mxPoint x="490" y="225"/>
+              <mxPoint x="490" y="255"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ALT Frame [validate] -->
+        <mxCell id="alt_validate" value="alt" style="shape=umlFrame;whiteSpace=wrap;html=1;width=40;height=20;boundedLbl=1;verticalAlign=top;align=left;spacingLeft=5;dashed=0;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="45" y="270" width="790" height="270" as="geometry"/>
+        </mxCell>
+
+        <!-- Guard [validation failed (Exception 5.1)] -->
+        <mxCell id="guard_invalid" value="[invalid (Exception 5.1)]" style="text;html=1;align=left;verticalAlign=top;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontStyle=3;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="55" y="280" width="140" height="25" as="geometry"/>
+        </mxCell>
+
+        <!-- 6. Controller -> Boundary: showError(message) -->
+        <mxCell id="msg6_err" value="showError(message)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="440" y="310" as="sourcePoint"/>
+            <mxPoint x="265" y="310" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 7. Boundary -> Instructor: display errors -->
+        <mxCell id="msg7_err" value="display validation error messages on form" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="265" y="340" as="sourcePoint"/>
+            <mxPoint x="110" y="340" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Separator -->
+        <mxCell id="sep_validate" value="" style="endArrow=none;dashed=1;html=1;strokeWidth=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="45" y="370" as="sourcePoint"/>
+            <mxPoint x="830" y="370" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Guard [validation success] -->
+        <mxCell id="guard_valid" value="[valid]" style="text;html=1;align=left;verticalAlign=top;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontStyle=3;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="55" y="380" width="70" height="25" as="geometry"/>
+        </mxCell>
+
+        <!-- 8. Controller -> CourseDAO: create(userId, courseData) -->
+        <mxCell id="msg8_ok" value="create(userId, courseData)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="440" y="405" as="sourcePoint"/>
+            <mxPoint x="605" y="405" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 8_db: CourseDAO -> Database: execute insert query -->
+        <mxCell id="msg8_ok_db" value="execute insert query" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="605" y="430" as="sourcePoint"/>
+            <mxPoint x="740" y="430" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 8_db_ret: Database -> CourseDAO: return success -->
+        <mxCell id="msg8_ok_db_ret" value="return success" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="740" y="455" as="sourcePoint"/>
+            <mxPoint x="605" y="455" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 9. CourseDAO -> Controller: return success (status: &quot;Incomplete&quot;) -->
+        <mxCell id="msg9_ok" value="return success (status: &quot;Incomplete&quot;)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="605" y="480" as="sourcePoint"/>
+            <mxPoint x="440" y="480" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 10. Controller -> Boundary: renderSuccess() -->
+        <mxCell id="msg10_ok" value="renderSuccess()" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="440" y="505" as="sourcePoint"/>
+            <mxPoint x="265" y="505" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 11. Boundary -> Instructor: redirect -->
+        <mxCell id="msg11_ok" value="redirect to Manage Courses page" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="265" y="530" as="sourcePoint"/>
+            <mxPoint x="110" y="530" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

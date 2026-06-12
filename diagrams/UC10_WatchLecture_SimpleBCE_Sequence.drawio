@@ -1,0 +1,287 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="UC10 - Watch Lecture (Simple BCE)" id="uc10_simple_bce_seq">
+    <mxGraphModel dx="1200" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1050" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- ==================== TITLE ==================== -->
+        <mxCell id="title" value="&lt;b&gt;Sequence Diagram: UC10 - Watch Lecture (Xem bài giảng) [Simple BCE with DAO &amp; DB]&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="250" y="5" width="550" height="30" as="geometry"/>
+        </mxCell>
+
+        <!-- ==================== LIFELINES ==================== -->
+
+        <!-- Student (Actor) -->
+        <mxCell id="student" value="Student" style="shape=umlLifeline;participant=umlActor;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="60" y="40" width="100" height="880" as="geometry"/>
+        </mxCell>
+
+        <!-- :LectureBoundary (Boundary) -->
+        <mxCell id="boundary" value="&lt;b&gt;:LectureBoundary&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="200" y="40" width="130" height="880" as="geometry"/>
+        </mxCell>
+
+        <!-- :LectureController (Control) -->
+        <mxCell id="control" value="&lt;b&gt;:LectureController&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="370" y="40" width="140" height="880" as="geometry"/>
+        </mxCell>
+
+        <!-- :LectureDAO (Entity/DAO) -->
+        <mxCell id="lectureDAO" value="&lt;b&gt;:LectureDAO&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="550" y="40" width="110" height="880" as="geometry"/>
+        </mxCell>
+
+        <!-- :LectureProgressDAO (Entity/DAO) -->
+        <mxCell id="lectureProgressDAO" value="&lt;b&gt;:LectureProgressDAO&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="700" y="40" width="140" height="880" as="geometry"/>
+        </mxCell>
+
+        <!-- Database (DBMS) -->
+        <mxCell id="db" value="&lt;b&gt;Database&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="880" y="40" width="100" height="880" as="geometry"/>
+        </mxCell>
+
+        <!-- ==================== FLOW MESSAGES ==================== -->
+
+        <!-- 1. Student -> :LectureBoundary: select lecture -->
+        <mxCell id="msg1" value="select a lecture in outline list" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="110" y="110" as="sourcePoint"/>
+            <mxPoint x="265" y="110" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 2. :LectureBoundary -> :LectureController: getLecture(userId, courseId, lectureId) -->
+        <mxCell id="msg2" value="getLecture(userId, courseId, lectureId)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="265" y="140" as="sourcePoint"/>
+            <mxPoint x="440" y="140" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 3. :LectureController -> :LectureDAO: findByCourse(courseId) -->
+        <mxCell id="msg3" value="findByCourse(courseId)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="440" y="170" as="sourcePoint"/>
+            <mxPoint x="605" y="170" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 4. :LectureDAO -> Database: execute select query -->
+        <mxCell id="msg4" value="execute select query" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="605" y="195" as="sourcePoint"/>
+            <mxPoint x="930" y="195" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 5. Database -> :LectureDAO: return lectures rows -->
+        <mxCell id="msg5" value="return lectures rows" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="930" y="220" as="sourcePoint"/>
+            <mxPoint x="605" y="220" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 6. :LectureDAO -> :LectureController: return lectures list -->
+        <mxCell id="msg6" value="return lectures list" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="605" y="245" as="sourcePoint"/>
+            <mxPoint x="440" y="245" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ALT Frame [lecture availability check] -->
+        <mxCell id="alt_lecture_check" value="alt" style="shape=umlFrame;whiteSpace=wrap;html=1;width=40;height=20;boundedLbl=1;verticalAlign=top;align=left;spacingLeft=5;dashed=0;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="45" y="270" width="940" height="590" as="geometry"/>
+        </mxCell>
+
+        <!-- Guard [no lectures (Exception 2.1)] -->
+        <mxCell id="guard_no_lectures" value="[course has no available lectures (Exception 2.1)]" style="text;html=1;align=left;verticalAlign=top;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontStyle=3;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="55" y="280" width="270" height="25" as="geometry"/>
+        </mxCell>
+
+        <!-- 7. :LectureController -> :LectureBoundary: return error -->
+        <mxCell id="msg7_err" value="return error (no lectures)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="440" y="310" as="sourcePoint"/>
+            <mxPoint x="265" y="310" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 8. :LectureBoundary -> Student: show warning -->
+        <mxCell id="msg8_err" value="show message &quot;Khóa học chưa có bài giảng.&quot; and &quot;Quay lại&quot; button" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="265" y="335" as="sourcePoint"/>
+            <mxPoint x="110" y="335" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Separator -->
+        <mxCell id="sep_lecture" value="" style="endArrow=none;dashed=1;html=1;strokeWidth=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="45" y="365" as="sourcePoint"/>
+            <mxPoint x="985" y="365" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Guard [lectures exist] -->
+        <mxCell id="guard_lectures_exist" value="[lectures exist]" style="text;html=1;align=left;verticalAlign=top;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontStyle=3;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="55" y="375" width="100" height="25" as="geometry"/>
+        </mxCell>
+
+        <!-- 9. :LectureController -> :LectureDAO: findById(lectureId) -->
+        <mxCell id="msg9" value="findById(lectureId)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="440" y="400" as="sourcePoint"/>
+            <mxPoint x="605" y="400" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 10. :LectureDAO -> Database: execute select query -->
+        <mxCell id="msg10" value="execute select query" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="605" y="425" as="sourcePoint"/>
+            <mxPoint x="930" y="425" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 11. Database -> :LectureDAO: return video URL & metadata rows -->
+        <mxCell id="msg11" value="return video URL &amp; metadata rows" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="930" y="450" as="sourcePoint"/>
+            <mxPoint x="605" y="450" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 12. :LectureDAO -> :LectureController: return lecture details -->
+        <mxCell id="msg12" value="return lecture details" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="605" y="475" as="sourcePoint"/>
+            <mxPoint x="440" y="475" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 13. :LectureController -> :LectureProgressDAO: find(userId, lectureId) -->
+        <mxCell id="msg13" value="find(userId, lectureId)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="440" y="505" as="sourcePoint"/>
+            <mxPoint x="770" y="505" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 14. :LectureProgressDAO -> Database: execute select query -->
+        <mxCell id="msg14" value="execute select query" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="770" y="530" as="sourcePoint"/>
+            <mxPoint x="930" y="530" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 15. Database -> :LectureProgressDAO: return progress row -->
+        <mxCell id="msg15" value="return progress row" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="930" y="555" as="sourcePoint"/>
+            <mxPoint x="770" y="555" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 16. :LectureProgressDAO -> :LectureController: return progress details -->
+        <mxCell id="msg16" value="return progress details" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="770" y="580" as="sourcePoint"/>
+            <mxPoint x="440" y="580" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 17. :LectureController -> :LectureBoundary: renderLearnPage(lectureData, progress) -->
+        <mxCell id="msg17" value="renderLearnPage(lectureData, progress)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="440" y="610" as="sourcePoint"/>
+            <mxPoint x="265" y="610" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 18. :LectureBoundary -> Student: play video & show resources -->
+        <mxCell id="msg18" value="play video lecture and display resources" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="265" y="635" as="sourcePoint"/>
+            <mxPoint x="110" y="635" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 19. Student -> :LectureBoundary: finishes watching / clicks complete -->
+        <mxCell id="msg19" value="finishes watching / clicks &quot;Đánh dấu hoàn thành&quot;" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="110" y="665" as="sourcePoint"/>
+            <mxPoint x="265" y="665" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 20. :LectureBoundary -> :LectureController: saveProgress(userId, lectureId, last_second, duration_sec) -->
+        <mxCell id="msg20" value="saveProgress(userId, lectureId, last_second, duration_sec)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="265" y="690" as="sourcePoint"/>
+            <mxPoint x="440" y="690" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 21. :LectureController -> :LectureProgressDAO: upsert(userId, lectureId, progress) -->
+        <mxCell id="msg21" value="upsert(userId, lectureId, progress)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="440" y="720" as="sourcePoint"/>
+            <mxPoint x="770" y="720" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 22. :LectureProgressDAO -> Database: execute upsert query -->
+        <mxCell id="msg22" value="execute upsert query" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="770" y="745" as="sourcePoint"/>
+            <mxPoint x="930" y="745" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 23. Database -> :LectureProgressDAO: return success -->
+        <mxCell id="msg23" value="return success" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="930" y="770" as="sourcePoint"/>
+            <mxPoint x="770" y="770" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 24. :LectureProgressDAO -> :LectureController: return success -->
+        <mxCell id="msg24" value="return success (ok: true)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="770" y="795" as="sourcePoint"/>
+            <mxPoint x="440" y="795" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 25. :LectureController -> :LectureBoundary: updateStatusIcon() -->
+        <mxCell id="msg25" value="updateStatusIcon()" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="440" y="820" as="sourcePoint"/>
+            <mxPoint x="265" y="820" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 26. :LectureBoundary -> Student: status completed -->
+        <mxCell id="msg26" value="update status of lecture to &quot;Đã hoàn thành&quot;" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="265" y="845" as="sourcePoint"/>
+            <mxPoint x="110" y="845" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ==================== NOTES ==================== -->
+        <!-- Note: Exception details -->
+        <mxCell id="note_exc" value="&lt;b&gt;Exception Flow:&lt;/b&gt;&#xa;2.1: Khóa học không có bài giảng nào khả dụng.&#xa;→ Hiện &quot;Khóa học chưa có bài giảng.&quot; và nút &quot;Quay lại&quot;.&#xa;→ Nhấn quay lại để chọn khóa học khác." style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;size=15;align=left;spacingLeft=5;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="45" y="880" width="400" height="80" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

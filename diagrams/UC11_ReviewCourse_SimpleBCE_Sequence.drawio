@@ -1,0 +1,315 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="UC11 - Review Course (Simple BCE)" id="uc11_simple_bce_seq">
+    <mxGraphModel dx="1200" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="980" pageHeight="1150" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- ==================== TITLE ==================== -->
+        <mxCell id="title" value="&lt;b&gt;Sequence Diagram: UC11 - Review Course (Đánh giá khóa học) [Simple BCE with DAO &amp; DB]&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="220" y="5" width="550" height="30" as="geometry"/>
+        </mxCell>
+
+        <!-- ==================== LIFELINES ==================== -->
+
+        <!-- Student (Actor) -->
+        <mxCell id="student" value="Student" style="shape=umlLifeline;participant=umlActor;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="60" y="40" width="100" height="1030" as="geometry"/>
+        </mxCell>
+
+        <!-- :ReviewBoundary (Boundary) -->
+        <mxCell id="boundary" value="&lt;b&gt;:ReviewBoundary&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="200" y="40" width="130" height="1030" as="geometry"/>
+        </mxCell>
+
+        <!-- :ReviewController (Control) -->
+        <mxCell id="control" value="&lt;b&gt;:ReviewController&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="370" y="40" width="140" height="1030" as="geometry"/>
+        </mxCell>
+
+        <!-- :ReviewDAO (Entity/DAO) -->
+        <mxCell id="reviewDAO" value="&lt;b&gt;:ReviewDAO&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="550" y="40" width="110" height="1030" as="geometry"/>
+        </mxCell>
+
+        <!-- :CourseDAO (Entity/DAO) -->
+        <mxCell id="courseDAO" value="&lt;b&gt;:CourseDAO&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="690" y="40" width="110" height="1030" as="geometry"/>
+        </mxCell>
+
+        <!-- Database (DBMS) -->
+        <mxCell id="db" value="&lt;b&gt;Database&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="830" y="40" width="100" height="1030" as="geometry"/>
+        </mxCell>
+
+        <!-- ==================== FLOW MESSAGES ==================== -->
+
+        <!-- 1. Student -> :ReviewBoundary: click review -->
+        <mxCell id="msg1" value="click &quot;Đánh giá khóa học&quot;" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="110" y="110" as="sourcePoint"/>
+            <mxPoint x="265" y="110" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 2. :ReviewBoundary -> :ReviewController: checkReviewStatus(userId, courseId) -->
+        <mxCell id="msg2" value="checkReviewStatus(userId, courseId)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="265" y="140" as="sourcePoint"/>
+            <mxPoint x="440" y="140" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 3. :ReviewController -> :ReviewDAO: findByUserAndCourse(userId, courseId) -->
+        <mxCell id="msg3" value="findByUserAndCourse(userId, courseId)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="440" y="170" as="sourcePoint"/>
+            <mxPoint x="605" y="170" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 4. :ReviewDAO -> Database: execute select query -->
+        <mxCell id="msg4" value="execute select query" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="605" y="195" as="sourcePoint"/>
+            <mxPoint x="880" y="195" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 5. Database -> :ReviewDAO: return review row -->
+        <mxCell id="msg5" value="return review row" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="880" y="220" as="sourcePoint"/>
+            <mxPoint x="605" y="220" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 6. :ReviewDAO -> :ReviewController: return review details (or null) -->
+        <mxCell id="msg6" value="return review details (or null)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="605" y="245" as="sourcePoint"/>
+            <mxPoint x="440" y="245" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ALT Frame [review status] -->
+        <mxCell id="alt_review_status" value="alt" style="shape=umlFrame;whiteSpace=wrap;html=1;width=40;height=20;boundedLbl=1;verticalAlign=top;align=left;spacingLeft=5;dashed=0;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="45" y="270" width="910" height="530" as="geometry"/>
+        </mxCell>
+
+        <!-- Guard [đã đánh giá (Exception 3.1)] -->
+        <mxCell id="guard_existed" value="[review exists (Exception 3.1)]" style="text;html=1;align=left;verticalAlign=top;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontStyle=3;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="55" y="280" width="170" height="25" as="geometry"/>
+        </mxCell>
+
+        <!-- 7. :ReviewController -> :ReviewBoundary: showExistingReview(review) -->
+        <mxCell id="msg7_ext" value="showExistingReview(review)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="440" y="305" as="sourcePoint"/>
+            <mxPoint x="265" y="305" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 8. Student edits & submits -->
+        <mxCell id="msg8_ext" value="edit rating &amp; comment and click &quot;Gửi đánh giá&quot;" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="110" y="335" as="sourcePoint"/>
+            <mxPoint x="265" y="335" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 9. :ReviewBoundary -> :ReviewController: updateReview(reviewId, stars, comment) -->
+        <mxCell id="msg9_ext" value="updateReview(reviewId, stars, comment)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="265" y="360" as="sourcePoint"/>
+            <mxPoint x="440" y="360" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 10. :ReviewController -> :ReviewDAO: update(stars, comment) -->
+        <mxCell id="msg10_ext" value="update(stars, comment)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="440" y="385" as="sourcePoint"/>
+            <mxPoint x="605" y="385" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 11. :ReviewDAO -> Database: execute update query -->
+        <mxCell id="msg11_ext" value="execute update query" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="605" y="410" as="sourcePoint"/>
+            <mxPoint x="880" y="410" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 12. Database -> :ReviewDAO: return success -->
+        <mxCell id="msg12_ext" value="return success" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="880" y="435" as="sourcePoint"/>
+            <mxPoint x="605" y="435" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 13. :ReviewDAO -> :ReviewController: return success -->
+        <mxCell id="msg13_ext" value="return success" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="605" y="460" as="sourcePoint"/>
+            <mxPoint x="440" y="460" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Separator -->
+        <mxCell id="sep_review" value="" style="endArrow=none;dashed=1;html=1;strokeWidth=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="45" y="490" as="sourcePoint"/>
+            <mxPoint x="955" y="490" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Guard [chưa đánh giá] -->
+        <mxCell id="guard_not_existed" value="[review does not exist]" style="text;html=1;align=left;verticalAlign=top;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontStyle=3;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="55" y="500" width="140" height="25" as="geometry"/>
+        </mxCell>
+
+        <!-- 14. :ReviewController -> :ReviewBoundary: showEmptyForm() -->
+        <mxCell id="msg14_new" value="showEmptyForm()" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="440" y="525" as="sourcePoint"/>
+            <mxPoint x="265" y="525" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 15. Student inputs & submits -->
+        <mxCell id="msg15_new" value="select stars, enter comment and click &quot;Gửi đánh giá&quot;" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="110" y="550" as="sourcePoint"/>
+            <mxPoint x="265" y="550" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 16. :ReviewBoundary -> :ReviewController: submitReview(userId, courseId, stars, comment) -->
+        <mxCell id="msg16_new" value="submitReview(userId, courseId, stars, comment)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="265" y="575" as="sourcePoint"/>
+            <mxPoint x="440" y="575" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 17. :ReviewController -> :ReviewDAO: create(userId, courseId, stars, comment) -->
+        <mxCell id="msg17_new" value="create(userId, courseId, stars, comment)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="440" y="600" as="sourcePoint"/>
+            <mxPoint x="605" y="600" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 18. :ReviewDAO -> Database: execute insert query -->
+        <mxCell id="msg18_new" value="execute insert query" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="605" y="625" as="sourcePoint"/>
+            <mxPoint x="880" y="625" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 19. Database -> :ReviewDAO: return success -->
+        <mxCell id="msg19_new" value="return success" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="880" y="650" as="sourcePoint"/>
+            <mxPoint x="605" y="650" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 20. :ReviewDAO -> :ReviewController: return success -->
+        <mxCell id="msg20_new" value="return success" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="605" y="675" as="sourcePoint"/>
+            <mxPoint x="440" y="675" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ==================== RECALCULATION & RETURN ==================== -->
+
+        <!-- 21. :ReviewController -> :CourseDAO: recalculateAverageRating(courseId) -->
+        <mxCell id="msg21" value="recalculateAverageRating(courseId)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="440" y="820" as="sourcePoint"/>
+            <mxPoint x="740" y="820" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 22. :CourseDAO -> :ReviewDAO: getAverageRating(courseId) -->
+        <mxCell id="msg22" value="getAverageRating(courseId)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="740" y="845" as="sourcePoint"/>
+            <mxPoint x="605" y="845" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 23. :ReviewDAO -> Database: execute avg query -->
+        <mxCell id="msg23" value="execute avg query" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="605" y="870" as="sourcePoint"/>
+            <mxPoint x="880" y="870" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 24. Database -> :ReviewDAO: return average value -->
+        <mxCell id="msg24" value="return average value" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="880" y="895" as="sourcePoint"/>
+            <mxPoint x="605" y="895" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 25. :ReviewDAO -> :CourseDAO: return average rating -->
+        <mxCell id="msg25" value="return average rating" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="605" y="920" as="sourcePoint"/>
+            <mxPoint x="740" y="920" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 26. :CourseDAO -> Database: execute update query (average) -->
+        <mxCell id="msg26" value="execute update query (average)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="740" y="945" as="sourcePoint"/>
+            <mxPoint x="880" y="945" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 27. Database -> :CourseDAO: return success -->
+        <mxCell id="msg27" value="return success" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="880" y="970" as="sourcePoint"/>
+            <mxPoint x="740" y="970" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 28. :CourseDAO -> :ReviewController: return success -->
+        <mxCell id="msg28" value="return success" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="740" y="995" as="sourcePoint"/>
+            <mxPoint x="440" y="995" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 29. :ReviewController -> :ReviewBoundary: renderSuccess() -->
+        <mxCell id="msg29" value="renderSuccess()" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="440" y="1020" as="sourcePoint"/>
+            <mxPoint x="265" y="1020" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 30. :ReviewBoundary -> Student: show confirmation -->
+        <mxCell id="msg30" value="show message &quot;Cảm ơn bạn đã đánh giá&quot;" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="265" y="1045" as="sourcePoint"/>
+            <mxPoint x="110" y="1045" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,245 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="UC06 - Checkout" id="uc06_seq">
+    <mxGraphModel dx="1422" dy="920" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1300" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- ==================== TITLE ==================== -->
+        <mxCell id="title" value="&lt;b&gt;Sequence Diagram: UC06 - Checkout (Thanh toán) [Layered Architecture]&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="400" y="5" width="450" height="30" as="geometry"/>
+        </mxCell>
+
+        <!-- ==================== LIFELINES ==================== -->
+
+        <!-- Student (Actor) -->
+        <mxCell id="student" value="Student" style="shape=umlLifeline;participant=umlActor;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="60" y="40" width="100" height="800" as="geometry"/>
+        </mxCell>
+
+        <!-- CheckoutView (Boundary) -->
+        <mxCell id="view" value="&lt;b&gt;CheckoutView&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="200" y="40" width="120" height="800" as="geometry"/>
+        </mxCell>
+
+        <!-- CheckoutAPI (Controller) -->
+        <mxCell id="api" value="&lt;b&gt;CheckoutAPI&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="350" y="40" width="130" height="800" as="geometry"/>
+        </mxCell>
+
+        <!-- SessionService (Service) -->
+        <mxCell id="sessionService" value="&lt;b&gt;SessionService&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="510" y="40" width="140" height="800" as="geometry"/>
+        </mxCell>
+
+        <!-- CheckoutService (Service) -->
+        <mxCell id="checkoutService" value="&lt;b&gt;CheckoutService&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="680" y="40" width="140" height="800" as="geometry"/>
+        </mxCell>
+
+        <!-- CartService (Service) -->
+        <mxCell id="cartService" value="&lt;b&gt;CartService&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="850" y="40" width="120" height="800" as="geometry"/>
+        </mxCell>
+
+        <!-- PurchasedDAO (DAO) -->
+        <mxCell id="purchasedDAO" value="&lt;b&gt;PurchasedDAO&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="1000" y="40" width="110" height="800" as="geometry"/>
+        </mxCell>
+
+        <!-- Database (Entity/DBMS) -->
+        <mxCell id="db" value="&lt;b&gt;Database&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="1140" y="40" width="100" height="800" as="geometry"/>
+        </mxCell>
+
+        <!-- ==================== FLOW MESSAGES ==================== -->
+
+        <!-- 1. Actor -> CheckoutView: Click checkout -->
+        <mxCell id="msg1" value="click &quot;Thanh toán&quot; on Cart page" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="110" y="110" as="sourcePoint"/>
+            <mxPoint x="260" y="110" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 2. CheckoutView -> CheckoutAPI: checkoutCart(cartId) -->
+        <mxCell id="msg2" value="checkoutCart(cartId)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="260" y="140" as="sourcePoint"/>
+            <mxPoint x="415" y="140" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 3. CheckoutAPI -> SessionService: getCurrentUser() -->
+        <mxCell id="msg3" value="getCurrentUser()" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="415" y="170" as="sourcePoint"/>
+            <mxPoint x="580" y="170" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 4. SessionService -> CheckoutAPI: return user record -->
+        <mxCell id="msg4" value="return currentUser (or null)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="580" y="200" as="sourcePoint"/>
+            <mxPoint x="415" y="200" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ALT Frame [auth check] -->
+        <mxCell id="alt_auth_check" value="alt" style="shape=umlFrame;whiteSpace=wrap;html=1;width=40;height=20;boundedLbl=1;verticalAlign=top;align=left;spacingLeft=5;dashed=0;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="45" y="225" width="1200" height="540" as="geometry"/>
+        </mxCell>
+
+        <!-- Guard [Guest (Exception 1.1)] -->
+        <mxCell id="guard_guest" value="[currentUser is null (Guest) (Exception 1.1)]" style="text;html=1;align=left;verticalAlign=top;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontStyle=3;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="55" y="235" width="240" height="25" as="geometry"/>
+        </mxCell>
+
+        <!-- 5. CheckoutAPI -> CheckoutView: return error -->
+        <mxCell id="msg5" value="return error &quot;Login Required&quot;" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="415" y="265" as="sourcePoint"/>
+            <mxPoint x="260" y="265" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 6. CheckoutView -> Actor: redirect to login -->
+        <mxCell id="msg6" value="redirect to Login page «include UC02 Login»" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="260" y="295" as="sourcePoint"/>
+            <mxPoint x="110" y="295" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Separator -->
+        <mxCell id="sep_auth" value="" style="endArrow=none;dashed=1;html=1;strokeWidth=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="45" y="325" as="sourcePoint"/>
+            <mxPoint x="1245" y="325" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Guard [Student] -->
+        <mxCell id="guard_student" value="[currentUser is Student]" style="text;html=1;align=left;verticalAlign=top;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontStyle=3;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="55" y="335" width="140" height="25" as="geometry"/>
+        </mxCell>
+
+        <!-- 7. CheckoutAPI -> CheckoutService: processCheckout(userId, cartItems) -->
+        <mxCell id="msg7" value="processCheckout(userId, cartItems)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="415" y="360" as="sourcePoint"/>
+            <mxPoint x="750" y="360" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 8. CheckoutService -> CheckoutService: processPayment(cartItems) -->
+        <mxCell id="msg8" value="processPayment(cartItems)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="750" y="385" as="sourcePoint"/>
+            <mxPoint x="750" y="415" as="targetPoint"/>
+            <Array as="points">
+              <mxPoint x="800" y="385"/>
+              <mxPoint x="800" y="415"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 9. CheckoutService -> PurchasedDAO: savePurchases(userId, courseIds) -->
+        <mxCell id="msg9" value="savePurchases(userId, courseIds)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="750" y="445" as="sourcePoint"/>
+            <mxPoint x="1055" y="445" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 10. PurchasedDAO -> Database: execute query -->
+        <mxCell id="msg10" value="execute query" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1055" y="470" as="sourcePoint"/>
+            <mxPoint x="1190" y="470" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 11. Database -> PurchasedDAO: return success -->
+        <mxCell id="msg11" value="return success" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1190" y="500" as="sourcePoint"/>
+            <mxPoint x="1055" y="500" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 12. PurchasedDAO -> CheckoutService: return success -->
+        <mxCell id="msg12" value="return success" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1055" y="525" as="sourcePoint"/>
+            <mxPoint x="750" y="525" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 13. CheckoutService -> CartService: clearCart(userId) -->
+        <mxCell id="msg13" value="clearCart(userId)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="750" y="555" as="sourcePoint"/>
+            <mxPoint x="910" y="555" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 14. CartService -> Database: clear cart in database -->
+        <mxCell id="msg14" value="execute clear query" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="910" y="580" as="sourcePoint"/>
+            <mxPoint x="1190" y="580" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 15. Database -> CartService: return success -->
+        <mxCell id="msg15" value="return success" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1190" y="610" as="sourcePoint"/>
+            <mxPoint x="910" y="610" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 16. CartService -> CheckoutService: return success -->
+        <mxCell id="msg16" value="return success" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="910" y="635" as="sourcePoint"/>
+            <mxPoint x="750" y="635" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 17. CheckoutService -> CheckoutAPI: return success -->
+        <mxCell id="msg17" value="return success" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="750" y="665" as="sourcePoint"/>
+            <mxPoint x="415" y="665" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 18. CheckoutAPI -> CheckoutView: redirect to My Courses -->
+        <mxCell id="msg18" value="redirect to My Courses dashboard" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="415" y="695" as="sourcePoint"/>
+            <mxPoint x="260" y="695" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 19. CheckoutView -> Actor: display success & redirect -->
+        <mxCell id="msg19" value="display success message &amp; reload user dashboard" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="260" y="735" as="sourcePoint"/>
+            <mxPoint x="110" y="735" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ==================== NOTES ==================== -->
+        <!-- Note: Pre-conditions and post-conditions -->
+        <mxCell id="note_checkout" value="&lt;b&gt;Pre-conditions:&lt;/b&gt;&#xa;Giỏ hàng có ít nhất 1 khóa học.&#xa;&lt;b&gt;Post-conditions:&lt;/b&gt;&#xa;Cấp quyền truy cập khóa học, khóa học được thêm vào danh sách đã mua.&#xa;Giỏ hàng được làm trống.&#xa;Chuyển hướng trang My Courses." style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;size=15;align=left;spacingLeft=5;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="45" y="820" width="380" height="90" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
