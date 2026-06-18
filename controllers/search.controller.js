@@ -1,6 +1,16 @@
+/**
+ * ╔══════════════════════════════════════════════════════════════╗
+ * ║  Search Controller                                          ║
+ * ║  Class Diagram Mapping:                                      ║
+ * ║    Student.searchCourse(query)  → search()                   ║
+ * ║                                                              ║
+ * ║  UC liên quan:                                               ║
+ * ║    [04] Search Course, [08] Filter Courses                   ║
+ * ╚══════════════════════════════════════════════════════════════╝
+ */
 // controllers/search.controller.js
 
-import * as courseModel from '../models/course.model.js';
+import Course from '../models/course.model.js';
 
 const COURSES_PER_PAGE = 8;
 
@@ -13,8 +23,8 @@ export async function search(req, res, next) {
     const offset = (page - 1) * limit;
 
     const [courses, totalCourses] = await Promise.all([
-      courseModel.findPageByFTS(query, sortOption, limit, offset),
-      courseModel.countByFTS(query)
+      Course.findPageByFTS(query, sortOption, limit, offset),
+      Course.countByFTS(query)
     ]);
 
     const totalPages = Math.ceil(totalCourses / limit);

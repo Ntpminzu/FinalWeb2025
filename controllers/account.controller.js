@@ -1,18 +1,53 @@
-// controllers/account.controller.js
+/**
+ * ╔══════════════════════════════════════════════════════════════╗
+ * ║  «entity» User — Account Controller                         ║
+ * ║  Class Diagram Methods → Controller Mapping:                 ║
+ * ║                                                              ║
+ * ║    + register(): bool                ✅ doSignup()           ║
+ * ║    + login(): bool                   ✅ doSignin()           ║
+ * ║    + logout(): void                  ✅ doLogout()           ║
+ * ║    + updateProfile(): bool           ✅ updateProfile()      ║
+ * ║    + changePassword(): bool          ✅ doChangePwd()        ║
+ * ║                                                              ║
+ * ║  UC liên quan:                                               ║
+ * ║    [01] Register, [02] Login,                                ║
+ * ║    [21] Manage Profile, [22] Change Password                 ║
+ * ╚══════════════════════════════════════════════════════════════╝
+ */
 
 import bcrypt from 'bcryptjs';
 import nodemailer from 'nodemailer';
 
 import db from '../utils/db.js';
-import * as userModel from '../models/user.model.js';
+import User from '../models/user.model.js';
+import Permission from '../enums/Permission.js';
 
-/* =========================
- * 1) SIGN UP (SEND OTP)
- * ======================= */
+// ══════════════════════════════════════════
+// UC [01] Register
+// Class Diagram: User.register()
+// ══════════════════════════════════════════
+
+/**
+ * Hiển thị form đăng ký.
+ * UC [01] Main Flow Step 2.
+ */
 export function showSignup(req, res) {
   res.render('vwAccount/signup');
 }
 
+/**
+ * Xử lý đăng ký tài khoản → gửi OTP.
+ * UC [01] Main Flow Step 3-5:
+ *   3. Actor nhập thông tin
+ *   4. Hệ thống kiểm tra tính hợp lệ
+ *   5. Gửi OTP qua email
+ *
+ * Exception Flow:
+ *   4.1. Thiếu trường bắt buộc
+ *   4.2. Mật khẩu quá ngắn (<6 ký tự)
+ *   4.3. Mật khẩu xác thực không khớp
+ *   4.4. Email không hợp lệ / đã tồn tại
+ */
 export async function doSignup(req, res) {
   try {
     // chấp nhận cả username hoặc name từ form
@@ -80,9 +115,10 @@ export async function doSignup(req, res) {
   }
 }
 
-/* =========================
- * 2) VERIFY OTP
- * ======================= */
+/**
+ * Xác thực OTP và tạo tài khoản.
+ * UC [01] — Bước cuối: Xác nhận OTP → tạo user (permission = STUDENT).
+ */
 export async function verifyOtp(req, res) {
   try {
     const username = (req.body.username || req.body.name || '').trim();
@@ -107,14 +143,14 @@ export async function verifyOtp(req, res) {
 
     const hashed = bcrypt.hashSync(password, 10);
 
-    // tạo user: mặc định student
-    await db('users').insert({
-      username,            // nếu schema không có cột username, đổi thành name
-      name,                // giữ thêm tên hiển thị
+    // Class Diagram: User.register() — tạo user mới (permission = STUDENT)
+    await User.register({
+      username,
+      name,
       password: hashed,
       email,
       dob,
-      permission: 1,       // 1: student, 2: instructor, 3: admin
+      permission: Permission.STUDENT,
       role: 'student',
     });
 
@@ -128,45 +164,64 @@ export async function verifyOtp(req, res) {
   }
 }
 
-/* =========================
- * 3) CHECK USERNAME AVAILABLE
- * ======================= */
+// ══════════════════════════════════════════
+// Check Username Available
+// ══════════════════════════════════════════
+
 export async function checkAvailable(req, res) {
   const u = (req.query.u || '').trim();
   if (!u) return res.json(false);
 
-  // tương thích cả 2 kiểu hàm của userModel
   const user =
-    (await userModel.findByUsername?.(u)) ||
-    (await userModel.findByName?.(u)) ||
+    (await User.findByUsername(u)) ||
+    (await User.findByName(u)) ||
     null;
 
   return res.json(!user);
 }
 
-/* =========================
- * 4) SIGN IN
- * ======================= */
+// ══════════════════════════════════════════
+// UC [02] Login
+// Class Diagram: User.login()
+// ══════════════════════════════════════════
+
+/**
+ * Hiển thị form đăng nhập.
+ * UC [02] Main Flow Step 1.
+ */
 export function showSignin(req, res) {
   res.render('vwAccount/signin', { error: false });
 }
 
+/**
+ * Xử lý đăng nhập.
+ * UC [02] Main Flow:
+ *   2. Actor nhập Username + Mật khẩu
+ *   3. Hệ thống xác thực → đối chiếu CSDL
+ *   4. Khởi tạo session + phân quyền (Permission enum)
+ *   5. Chuyển hướng theo role
+ *
+ * Exception Flow:
+ *   3.1. Thiếu username hoặc mật khẩu
+ *   3.2. Sai thông tin đăng nhập
+ *   3.3. Tài khoản bị khóa (is_disabled)
+ */
 export async function doSignin(req, res) {
   try {
     const username = (req.body.username || req.body.name || '').trim();
     const password = req.body.password || '';
 
     const user =
-      (await userModel.findByUsername?.(username)) ||
-      (await userModel.findByName?.(username)) ||
+      (await User.findByUsername(username)) ||
+      (await User.findByName(username)) ||
       null;
 
-    // Không tồn tại user
+    // Exception 3.2: Không tồn tại user
     if (!user) {
       return res.render('vwAccount/signin', { error: true });
     }
 
-    // 🔒 Bị vô hiệu hóa -> chặn đăng nhập
+    // Exception 3.3: Bị vô hiệu hóa
     if (user.is_disabled === true || user.is_disabled === 'TRUE' || user.is_disabled === 1) {
       return res.render('vwAccount/signin', {
         error: true,
@@ -180,14 +235,14 @@ export async function doSignin(req, res) {
       return res.render('vwAccount/signin', { error: true });
     }
 
-    // Lưu session & điều hướng theo permission
+    // Lưu session & điều hướng theo permission (Permission enum)
     req.session.isAuthenticated = true;
     req.session.authUser = user;
 
     switch (Number(user.permission)) {
-      case 1: return res.redirect('/student');
-      case 2: return res.redirect('/instructor');
-      case 3: return res.redirect('/admin');
+      case Permission.STUDENT: return res.redirect('/student');
+      case Permission.INSTRUCTOR: return res.redirect('/instructor');
+      case Permission.ADMIN: return res.redirect('/admin');
       default: {
         const retUrl = req.session.retUrl || '/';
         delete req.session.retUrl;
@@ -200,9 +255,13 @@ export async function doSignin(req, res) {
   }
 }
 
-/* =========================
- * 5) SIGN OUT
- * ======================= */
+// ══════════════════════════════════════════
+// Class Diagram: User.logout()
+// ══════════════════════════════════════════
+
+/**
+ * Đăng xuất — xóa session.
+ */
 export function doLogout(req, res) {
   req.session.isAuthenticated = false;
   req.session.authUser = null;
@@ -216,9 +275,11 @@ export function doSignout(req, res) {
   res.redirect(req.headers.referer || '/');
 }
 
-/* =========================
- * 6) PROFILE
- * ======================= */
+// ══════════════════════════════════════════
+// UC [21] Manage Profile
+// Class Diagram: User.updateProfile()
+// ══════════════════════════════════════════
+
 export function showProfile(req, res) {
   res.render('vwAccount/profile', { user: req.session.authUser });
 }
@@ -229,15 +290,17 @@ export async function updateProfile(req, res) {
     name: (req.body.name || '').trim(),
     email: (req.body.email || '').trim(),
   };
-  await userModel.patch(id, userPatch);
+  await User.updateProfile(id, userPatch);
   req.session.authUser = { ...req.session.authUser, ...userPatch };
 
   res.render('vwAccount/profile', { user: req.session.authUser });
 }
 
-/* =========================
- * 7) CHANGE PASSWORD
- * ======================= */
+// ══════════════════════════════════════════
+// UC [22] Change Password
+// Class Diagram: User.changePassword()
+// ══════════════════════════════════════════
+
 export function showChangePwd(req, res) {
   res.render('vwAccount/change-pwd', { user: req.session.authUser });
 }
@@ -256,7 +319,7 @@ export async function doChangePwd(req, res) {
   }
 
   const hashed = bcrypt.hashSync(newPwd, 10);
-  await userModel.patch(id, { password: hashed });
+  await User.changePassword(id, hashed);
   req.session.authUser.password = hashed;
 
   res.redirect('/account/profile');

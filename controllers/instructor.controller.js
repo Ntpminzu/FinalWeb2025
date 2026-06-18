@@ -1,10 +1,43 @@
-// controllers/instructor.controller.js
+/**
+ * ╔══════════════════════════════════════════════════════════════╗
+ * ║  «entity» Instructor — Controller                           ║
+ * ║  Class Diagram Methods → Controller Mapping:                 ║
+ * ║                                                              ║
+ * ║    + viewCourseDetail(id): Course                            ║
+ * ║        → see controllers/course.controller.js                ║
+ * ║          (UC [03] View Course Details)                       ║
+ * ║    + searchCourse(query): List                               ║
+ * ║        → see controllers/search.controller.js                ║
+ * ║          (UC [04] Search Course)                             ║
+ * ║    + register(): void                                        ║
+ * ║        → see controllers/account.controller.js               ║
+ * ║          (UC [01] Register)                                  ║
+ * ║    + login(): void                                           ║
+ * ║        → see controllers/account.controller.js               ║
+ * ║          (UC [02] Login)                                     ║
+ * ║    + browseCourses(page): List                               ║
+ * ║        → see controllers/course.controller.js                ║
+ * ║                                                              ║
+ * ║    + viewDashboard(): List           ✅ dashboard()          ║
+ * ║    + createCourse(data): Course      ✅ createCourse()       ║
+ * ║    + editCourse(id,data): bool       ✅ updateCourse()       ║
+ * ║    + addLecture(cId,title,url)       ✅ addLecture()         ║
+ * ║    + deleteLecture(id): bool         ✅ deleteLecture()      ║
+ * ║    + toggleCourseStatus(id): bool    ✅ toggleCourseStatus() ║
+ * ║    + updateProfile(bio,spec): bool   ✅ updateProfile()      ║
+ * ║                                                              ║
+ * ║  UC liên quan:                                               ║
+ * ║    [13] Create Course, [14] Manage Lecture,                  ║
+ * ║    [15] Manage Course, [16] Toggle Course Status,            ║
+ * ║    [18] Edit Course, [21] Manage Profile                     ║
+ * ╚══════════════════════════════════════════════════════════════╝
+ */
 
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
 import db from '../utils/db.js';
-import * as instructorModel from '../models/instructor.model.js';
+import Instructor from '../models/instructor.model.js';
 
 // --- Multer config ---
 const ensureDir = (dir) => fs.mkdirSync(dir, { recursive: true });
@@ -25,16 +58,23 @@ const storage = multer.diskStorage({
 
 export const upload = multer({ storage });
 
-// --- Controllers ---
+// ══════════════════════════════════════════
+// Class Diagram: Instructor.viewDashboard()
+// UC [15] Manage Course — Dashboard
+// ══════════════════════════════════════════
 
 export function redirectToDashboard(req, res) {
   res.redirect('/instructor/dashboard');
 }
 
+/**
+ * Dashboard giảng viên.
+ * UC [15]: Hiển thị danh sách khóa học của Instructor.
+ */
 export async function dashboard(req, res) {
   try {
     const instructorId = req.session.authUser.id;
-    const courses = await instructorModel.getCoursesByInstructor(instructorId);
+    const courses = await Instructor.getCoursesByInstructor(instructorId);
     res.render('vwInstructor/dashboard', { courses });
   } catch (err) {
     console.error('❌ Lỗi khi tải Dashboard:', err);
@@ -42,10 +82,18 @@ export async function dashboard(req, res) {
   }
 }
 
-// Form tạo khóa học mới
+// ══════════════════════════════════════════
+// UC [13] Create Course
+// Class Diagram: Instructor.createCourse(data)
+// ══════════════════════════════════════════
+
+/**
+ * Form tạo khóa học mới.
+ * UC [13] Main Flow Step 2: Hiển thị form tạo khóa học.
+ */
 export async function showNewForm(req, res) {
   try {
-    const categories = await instructorModel.getAllCategories();
+    const categories = await Instructor.getAllCategories();
     res.render('vwInstructor/new', {
       categories,
       authUser: req.session?.authUser || null,
@@ -56,13 +104,17 @@ export async function showNewForm(req, res) {
   }
 }
 
-// Xử lý tạo khóa học mới
+/**
+ * Xử lý tạo khóa học mới.
+ * UC [13] Main Flow Step 3-7: Instructor nhập thông tin → hệ thống tạo khóa học.
+ * Exception 5.1: Thiếu thông tin hoặc sai định dạng ảnh.
+ */
 export async function createCourse(req, res) {
   try {
     const { title, category_id, short_desc, full_desc, price, sale_price } = req.body;
     const thumbnail = req.file ? `/uploads/thumbnails/${req.file.filename}` : null;
 
-    await instructorModel.addCourse({
+    await Instructor.addCourse({
       instructor_id: req.session.authUser.id,
       title,
       category_id,
@@ -81,14 +133,22 @@ export async function createCourse(req, res) {
   }
 }
 
-// Trang chỉnh sửa khóa học
+// ══════════════════════════════════════════
+// UC [18] Edit Course
+// Class Diagram: Instructor.editCourse(id, data)
+// ══════════════════════════════════════════
+
+/**
+ * Trang chỉnh sửa khóa học.
+ * UC [18] Main Flow Step 3: Hiển thị thông tin hiện tại của khóa học.
+ */
 export async function showEditCourse(req, res) {
   try {
     const courseId = req.params.id;
-    const course = await instructorModel.getCourseById(courseId);
-    const lectures = await instructorModel.getLecturesByCourse(courseId);
+    const course = await Instructor.getCourseById(courseId);
+    const lectures = await Instructor.getLecturesByCourse(courseId);
 
-    const categories = await instructorModel.getAllCategories();
+    const categories = await Instructor.getAllCategories();
     res.render('vwInstructor/edit-course', {
       course,
       lectures,
@@ -101,13 +161,18 @@ export async function showEditCourse(req, res) {
   }
 }
 
-// Cập nhật thông tin khóa học
+/**
+ * Cập nhật thông tin khóa học.
+ * UC [18] Main Flow Step 5-9: Instructor nhấn "Lưu" → validate → cập nhật DB.
+ * Exception E1: Trường bắt buộc bỏ trống.
+ * Exception E2: Lỗi DB/upload.
+ */
 export async function updateCourse(req, res) {
   try {
     const { title, short_desc, full_desc, category_id, price, sale_price } = req.body;
     const thumbnail = req.file ? `/uploads/thumbnails/${req.file.filename}` : null;
 
-    await instructorModel.updateCourse(req.params.id, {
+    await Instructor.updateCourse(req.params.id, {
       title,
       short_desc,
       full_desc,
@@ -124,12 +189,20 @@ export async function updateCourse(req, res) {
   }
 }
 
-// Trang quản lý bài giảng
+// ══════════════════════════════════════════
+// UC [14] Manage Lecture
+// Class Diagram: Instructor.addLecture(), deleteLecture()
+// ══════════════════════════════════════════
+
+/**
+ * Trang quản lý bài giảng.
+ * UC [14] Main Flow Step 2: Hiển thị danh sách bài giảng + form thêm mới.
+ */
 export async function showEditLectures(req, res) {
   try {
     const courseId = req.params.id;
-    const course = await instructorModel.getCourseById(courseId);
-    const lectures = await instructorModel.getLecturesByCourse(courseId);
+    const course = await Instructor.getCourseById(courseId);
+    const lectures = await Instructor.getLecturesByCourse(courseId);
 
     res.render('vwInstructor/edit-lectures', { course, lectures });
   } catch (err) {
@@ -138,7 +211,12 @@ export async function showEditLectures(req, res) {
   }
 }
 
-// Thêm bài giảng (chỉ nhập link video)
+/**
+ * Thêm bài giảng (chỉ nhập link video).
+ * UC [14] Main Flow a: Instructor nhập tên + link video → hệ thống lưu.
+ * Exception 4.a.3.1: Thiếu tên hoặc URL.
+ * Exception 4.a.3.2: URL sai định dạng.
+ */
 export async function addLecture(req, res) {
   try {
     const { courseId } = req.params;
@@ -148,7 +226,7 @@ export async function addLecture(req, res) {
       return res.status(400).send('Thiếu tiêu đề hoặc link video.');
     }
 
-    await instructorModel.addLecture(courseId, title, video_url);
+    await Instructor.addLecture(courseId, title, video_url);
 
     res.redirect(`/instructor/edit/lectures/${courseId}`);
   } catch (err) {
@@ -157,11 +235,14 @@ export async function addLecture(req, res) {
   }
 }
 
-// Xóa bài giảng
+/**
+ * Xóa bài giảng.
+ * UC [14] Main Flow b: Instructor nhấn "Xóa" → hệ thống xóa.
+ */
 export async function deleteLecture(req, res) {
   try {
     const { lectureId } = req.params;
-    await instructorModel.deleteLecture(lectureId);
+    await Instructor.deleteLecture(lectureId);
     res.redirect('back');
   } catch (err) {
     console.error('❌ Lỗi xóa bài giảng:', err);
@@ -169,12 +250,20 @@ export async function deleteLecture(req, res) {
   }
 }
 
-// Trang hồ sơ giảng viên
+// ══════════════════════════════════════════
+// UC [21] Manage Profile — Instructor
+// Class Diagram: Instructor.updateProfile(bio, spec)
+// ══════════════════════════════════════════
+
+/**
+ * Trang hồ sơ giảng viên.
+ * UC [21]: Hiển thị thông tin cá nhân + danh sách khóa học.
+ */
 export async function showProfile(req, res) {
   try {
     const instructorId = req.session.authUser.id;
-    const instructor = await instructorModel.findById(instructorId);
-    const courses = await instructorModel.getCoursesByInstructor(instructorId);
+    const instructor = await Instructor.findById(instructorId);
+    const courses = await Instructor.getCoursesByInstructor(instructorId);
 
     res.render('vwInstructor/profile', {
       instructor,
@@ -187,10 +276,10 @@ export async function showProfile(req, res) {
   }
 }
 
-// Trang chỉnh sửa hồ sơ
+/** Trang chỉnh sửa hồ sơ */
 export async function showEditProfile(req, res) {
   try {
-    const instructor = await instructorModel.findById(req.session.authUser.id);
+    const instructor = await Instructor.findById(req.session.authUser.id);
     res.render('vwInstructor/edit-profile', { instructor });
   } catch (err) {
     console.error('❌ Lỗi khi tải trang chỉnh sửa hồ sơ:', err);
@@ -198,11 +287,14 @@ export async function showEditProfile(req, res) {
   }
 }
 
-// Cập nhật thông tin hồ sơ
+/**
+ * Cập nhật thông tin hồ sơ (bio, specialization).
+ * Class Diagram: Instructor.updateProfile(bio, spec)
+ */
 export async function updateProfile(req, res) {
   try {
     const { bio, specialization } = req.body;
-    await instructorModel.update(req.session.authUser.id, { bio, specialization });
+    await Instructor.update(req.session.authUser.id, { bio, specialization });
     res.redirect('/instructor/profile');
   } catch (err) {
     console.error('❌ Lỗi khi cập nhật hồ sơ:', err);
@@ -210,7 +302,16 @@ export async function updateProfile(req, res) {
   }
 }
 
-// Toggle trạng thái khóa học
+// ══════════════════════════════════════════
+// UC [16] Toggle Course Status
+// Class Diagram: Instructor.toggleCourseStatus(id)
+// ══════════════════════════════════════════
+
+/**
+ * Toggle trạng thái khóa học (Hoàn thành ↔ Chưa hoàn thành).
+ * UC [16] Main Flow: Instructor nhấn "Xuất bản/Ẩn" → hệ thống cập nhật.
+ * Exception 3.a: Khóa học chưa có bài giảng → không cho xuất bản.
+ */
 export async function toggleCourseStatus(req, res) {
   try {
     const { id } = req.params;

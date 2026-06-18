@@ -1,15 +1,48 @@
-// controllers/student.controller.js
+/**
+ * ╔══════════════════════════════════════════════════════════════╗
+ * ║  «role» Student — Class Diagram (permission=1)              ║
+ * ║  Kế thừa: User                                              ║
+ * ║                                                              ║
+ * ║  Methods (Class Diagram → Code Mapping):                     ║
+ * ║    + viewCourseDetail(id): Course                            ║
+ * ║        → see controllers/course.controller.js                ║
+ * ║          (UC [03] View Course Details)                       ║
+ * ║    + searchCourse(query): List                               ║
+ * ║        → see controllers/search.controller.js                ║
+ * ║          (UC [04] Search Course)                             ║
+ * ║    + addToWatchlist(id): bool         ✅ addToWatchlist()    ║
+ * ║    + removeFromWatchlist(id): bool    ✅ removeFromWatchlist()║
+ * ║    + addToCart(id): bool                                     ║
+ * ║        → see controllers/cart.controller.js                  ║
+ * ║          (UC [05] Manage Cart)                               ║
+ * ║    + checkout(): bool                                        ║
+ * ║        → see controllers/cart.controller.js                  ║
+ * ║          (UC [06] Checkout)                                  ║
+ * ║    + watchLecture(cId,lId): void      ✅ showLearn()        ║
+ * ║    + saveProgress(lId,sec): bool      ✅ saveProgress()     ║
+ * ║    + viewCourseList(page): List       ✅ showPurchasedCourses()║
+ * ║    + submitFeedback(cId,r,txt): bool  ✅ submitFeedback()   ║
+ * ║                                                              ║
+ * ║  UC liên quan:                                               ║
+ * ║    [09] View Purchased Courses, [10] Watch Lecture,          ║
+ * ║    [11] Review Course, [12] Manage Watchlist,                ║
+ * ║    [21] Manage Profile, [22] Change Password                 ║
+ * ╚══════════════════════════════════════════════════════════════╝
+ */
 
 import bcrypt from 'bcryptjs';
-import * as userModel from '../models/user.model.js';
-import * as watchlistModel from '../models/watchlist.model.js';
-import * as purchasedModel from '../models/purchased.model.js';
-import * as courseModel from '../models/course.model.js';
-import * as lectureModel from '../models/lecture.model.js';
-import * as progressModel from '../models/progress.model.js';
-import * as feedbackModel from '../models/feedback.model.js';
+import db from '../utils/db.js';
+import User from '../models/user.model.js';
+import Wishlist from '../models/watchlist.model.js';
+import Course from '../models/course.model.js';
+import Lecture from '../models/lecture.model.js';
+import Progress from '../models/progress.model.js';
+import Feedback from '../models/feedback.model.js';
 
-/** Student Home */
+// ══════════════════════════════════════════
+// Student Home
+// ══════════════════════════════════════════
+
 export function home(req, res) {
   res.render('vwStudent/home', {
     user: req.session.authUser,
@@ -17,6 +50,10 @@ export function home(req, res) {
     authUser: req.session.authUser,
   });
 }
+
+// ══════════════════════════════════════════
+// UC [21] Manage Profile — Student
+// ══════════════════════════════════════════
 
 /** Profile - Hiển thị */
 export function showProfile(req, res) {
@@ -29,7 +66,10 @@ export function showProfile(req, res) {
   });
 }
 
-/** Profile - Cập nhật tên & email */
+/**
+ * Profile - Cập nhật tên & email.
+ * Class Diagram: User.updateProfile()
+ */
 export async function updateProfile(req, res) {
   const id = req.body.id;
   const updatedUser = {
@@ -37,7 +77,7 @@ export async function updateProfile(req, res) {
     email: req.body.email?.trim(),
   };
 
-  await userModel.patch(id, updatedUser);
+  await User.updateProfile(id, updatedUser);
 
   // cập nhật lại session
   req.session.authUser.name = updatedUser.name;
@@ -52,7 +92,14 @@ export async function updateProfile(req, res) {
   });
 }
 
-/** Đổi mật khẩu */
+// ══════════════════════════════════════════
+// UC [22] Change Password — Student
+// ══════════════════════════════════════════
+
+/**
+ * Đổi mật khẩu.
+ * Class Diagram: User.changePassword()
+ */
 export async function changePwd(req, res) {
   const id = req.body.id;
   const currentPassword = req.body.currentPassword || '';
@@ -82,7 +129,7 @@ export async function changePwd(req, res) {
   }
 
   const hashed = bcrypt.hashSync(newPassword, 10);
-  await userModel.patch(id, { password: hashed });
+  await User.changePassword(id, hashed);
 
   // cập nhật session
   req.session.authUser.password = hashed;
@@ -96,12 +143,15 @@ export async function changePwd(req, res) {
   });
 }
 
-//----------------------------- Watchlist
+// ══════════════════════════════════════════
+// UC [12] Manage Watchlist
+// Class Diagram: Student.addToWatchlist(id), removeFromWatchlist(id)
+// ══════════════════════════════════════════
 
 export async function showWatchlist(req, res, next) {
   try {
     const userId = req.session.authUser.id;
-    const items = await watchlistModel.findAllByUser(userId);
+    const items = await Wishlist.findAllByUser(userId);
 
     return res.render('vwStudent/watchlist', {
       items,
@@ -116,6 +166,7 @@ export async function showWatchlist(req, res, next) {
   }
 }
 
+// ─── Class Diagram: Student.addToWatchlist(id) ── UC [12] (a. Thêm) ───
 export async function addToWatchlist(req, res, next) {
   try {
     const userId = req.session.authUser.id;
@@ -126,14 +177,14 @@ export async function addToWatchlist(req, res, next) {
     }
 
     // kiểm tra khóa học có tồn tại
-    const course = await courseModel.findById(courseId);
+    const course = await Course.findById(courseId);
     if (!course) return res.status(404).render('404');
 
     const title = (req.body.course_title ?? course.title ?? null)?.toString() ?? null;
 
-    const existed = await watchlistModel.isInWatchlist(userId, courseId);
+    const existed = await Wishlist.isInWatchlist(userId, courseId);
     if (!existed) {
-      await watchlistModel.add({ user_id: userId, course_id: courseId, course_title: title });
+      await Wishlist.add({ user_id: userId, course_id: courseId, course_title: title });
     }
 
     // về trang trước nếu có, mặc định về trang chi tiết course
@@ -144,6 +195,7 @@ export async function addToWatchlist(req, res, next) {
   }
 }
 
+// ─── Class Diagram: Student.removeFromWatchlist(id) ── UC [12] (b. Xóa) ───
 export async function removeFromWatchlist(req, res, next) {
   try {
     const userId = req.session.authUser.id;
@@ -153,7 +205,7 @@ export async function removeFromWatchlist(req, res, next) {
       return res.status(400).send('course_id không hợp lệ');
     }
 
-    await watchlistModel.remove(userId, courseId);
+    await Wishlist.remove(userId, courseId);
 
     return res.redirect('/student/watchlist?removed=1');
   } catch (err) {
@@ -161,18 +213,33 @@ export async function removeFromWatchlist(req, res, next) {
   }
 }
 
-//----------------------------- Purchased Courses
+// ══════════════════════════════════════════
+// UC [09] View Purchased Courses
+// Class Diagram: Student.viewCourseList(page)
+// ══════════════════════════════════════════
 
 export async function showPurchasedCourses(req, res) {
   const userId = req.session.authUser.id;
 
-  // danh sách khóa đã mua
-  const purchasedCourses = await purchasedModel.listByUser(userId);
+  // danh sách khóa đã mua (truy vấn trực tiếp DB — đã xoá purchased.model.js)
+  const purchasedCourses = await db('purchased as p')
+    .leftJoin('courses as c', 'p.course_id', 'c.id')
+    .where('p.user_id', userId)
+    .select(
+      'p.course_id',
+      'p.course_title',
+      'p.purchased_at',
+      'c.thumbnail',
+      'c.short_desc',
+      'c.price',
+      'c.sale_price'
+    )
+    .orderBy('p.purchased_at', 'desc');
 
   // gắn thêm % hoàn thành và cờ is_completed
   const coursesWithProgress = await Promise.all(
     purchasedCourses.map(async (c) => {
-      const { percent } = await progressModel.courseCompletion(userId, c.course_id);
+      const { percent } = await Progress.courseCompletion(userId, c.course_id);
       return {
         ...c,
         completion_percent: percent,          
@@ -184,13 +251,16 @@ export async function showPurchasedCourses(req, res) {
   res.render('vwStudent/courses', { purchasedCourses: coursesWithProgress });
 }
 
-//-----------------------------
+// ══════════════════════════════════════════
+// UC [10] Watch Lecture
+// Class Diagram: Student.watchLecture(cId, lId)
+// ══════════════════════════════════════════
 
 export async function showCourseLectures(req, res) {
   const { courseId } = req.params;
 
-  const lectures = await lectureModel.findByCourse(courseId);
-  const feedbacks = await feedbackModel.findByCourse(courseId);
+  const lectures = await Lecture.findByCourse(courseId);
+  const feedbacks = await Feedback.findByCourse(courseId);
   res.render('vwStudent/course-lectures', {
     courseId,
     lectures,
@@ -198,15 +268,19 @@ export async function showCourseLectures(req, res) {
   });
 }
 
+/**
+ * Xem bài giảng (video player).
+ * UC [10] Main Flow: Student chọn bài giảng → hệ thống tải video.
+ */
 export async function showLearn(req, res) {
   const user = req.session.authUser;
   const { courseId, lectureId } = req.params;
 
-  const lectures = await lectureModel.findByCourse(courseId);
-  const current = await lectureModel.findById(lectureId);
+  const lectures = await Lecture.findByCourse(courseId);
+  const current = await Lecture.findById(lectureId);
   if (!current) return res.status(404).render('404');
 
-  const prog = await progressModel.find(user.id, current.id);
+  const prog = await Progress.find(user.id, current.id);
 
   res.render('vwStudent/learn', {
     courseId,
@@ -216,7 +290,14 @@ export async function showLearn(req, res) {
   });
 }
 
-/* API lưu tiến trình */
+// ══════════════════════════════════════════
+// Class Diagram: Student.saveProgress(lId, sec)
+// ══════════════════════════════════════════
+
+/**
+ * API lưu tiến trình học.
+ * UC [10] Main Flow Step 5: Hệ thống tự động lưu khi Actor xem xong.
+ */
 export async function saveProgress(req, res) {
   const user = req.session.authUser;
   const { lecture_id, last_second, duration_sec } = req.body;
@@ -226,7 +307,7 @@ export async function saveProgress(req, res) {
   const watched_percent = Math.min(100, (last / duration) * 100);
   const is_completed = watched_percent >= 90;
 
-  await progressModel.upsert(user.id, lecture_id, { last_second: last, watched_percent, is_completed });
+  await Progress.upsert(user.id, lecture_id, { last_second: last, watched_percent, is_completed });
   res.json({ ok: true });
 }
 
@@ -234,28 +315,37 @@ export async function saveLectureDuration(req, res) {
   const { lecture_id, duration_sec } = req.body;
   if (!lecture_id || !duration_sec) return res.json({ ok: false });
 
-  await lectureModel.updateDuration(lecture_id, Math.max(1, Number(duration_sec)));
+  await Lecture.updateDuration(lecture_id, Math.max(1, Number(duration_sec)));
   return res.json({ ok: true });
 }
 
-//-----------------------------
-// Đánh giá khoá học
+// ══════════════════════════════════════════
+// UC [11] Review Course
+// Class Diagram: Student.submitFeedback(cId, r, txt)
+// ══════════════════════════════════════════
 
+/**
+ * Hiển thị form đánh giá.
+ * UC [11] Main Flow: Kiểm tra quyền → hiển thị form.
+ * Exception 3.1: Nếu đã đánh giá → hiển thị đánh giá cũ để chỉnh sửa.
+ */
 export async function showFeedbackForm(req, res) {
   const user = req.session.authUser;
   const { courseId } = req.params;
 
-  const course = await courseModel.findById(courseId);
+  const course = await Course.findById(courseId);
   if (!course) return res.status(404).render('404');
 
-  // phải mua khoá
-  const purchased = await purchasedModel.isPurchased(user.id, courseId);
+  // phải mua khoá (truy vấn trực tiếp DB)
+  const purchased = await db('purchased')
+    .where({ user_id: user.id, course_id: courseId })
+    .first();
 
   // % hoàn thành
-  const completion = await progressModel.courseCompletion(user.id, courseId);
+  const completion = await Progress.courseCompletion(user.id, courseId);
   const canReview = purchased && completion.total > 0 && completion.done >= 1;
 
-  const myFeedback = await feedbackModel.findByUserCourse(user.id, courseId);
+  const myFeedback = await Feedback.findByUserCourse(user.id, courseId);
 
   return res.render('vwStudent/feedback', {
     course,
@@ -266,30 +356,36 @@ export async function showFeedbackForm(req, res) {
   });
 }
 
+/**
+ * Gửi đánh giá khóa học.
+ * UC [11] Main Flow Step 4-7: Actor chọn sao + nhận xét → lưu → cập nhật rating.
+ */
 export async function submitFeedback(req, res) {
   const user = req.session.authUser;
   const { courseId } = req.params;
   const { rating, comment } = req.body;
 
-  // validate căn bản
+  // validate căn bản — Rate enum (1–5)
   const r = Number(rating);
   if (!Number.isInteger(r) || r < 1 || r > 5) {
     return res.status(400).render('vwStudent/feedback', {
-      course: await courseModel.findById(courseId),
+      course: await Course.findById(courseId),
       canReview: true,
       myFeedback: null,
-      completion: await progressModel.courseCompletion(user.id, courseId),
+      completion: await Progress.courseCompletion(user.id, courseId),
       error: 'Rating phải từ 1 đến 5 sao.',
     });
   }
 
   // kiểm tra quyền đánh giá (đã mua + đã học 1 bài)
-  const purchased = await purchasedModel.isPurchased(user.id, courseId);
-  const completion = await progressModel.courseCompletion(user.id, courseId);
+  const purchased = await db('purchased')
+    .where({ user_id: user.id, course_id: courseId })
+    .first();
+  const completion = await Progress.courseCompletion(user.id, courseId);
   const canReview = purchased && completion.total > 0 && completion.done >= 1;
   if (!canReview) return res.status(403).render('403');
 
-  await feedbackModel.upsert(user.id, courseId, r, (comment ?? '').trim());
+  await Feedback.upsert(user.id, courseId, r, (comment ?? '').trim());
   // Trigger DB sẽ tự cập nhật courses.rating_avg & rating_count
   return res.redirect(`/student/course/${courseId}/feedback?ok=1`);
 }
