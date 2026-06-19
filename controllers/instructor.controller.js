@@ -37,7 +37,7 @@ import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
 import db from '../utils/db.js';
-import Instructor from '../models/instructor.model.js';
+import InstructorDao from '../daos/instructor.dao.js';
 
 // --- Multer config ---
 const ensureDir = (dir) => fs.mkdirSync(dir, { recursive: true });
@@ -74,7 +74,7 @@ export function redirectToDashboard(req, res) {
 export async function dashboard(req, res) {
   try {
     const instructorId = req.session.authUser.id;
-    const courses = await Instructor.getCoursesByInstructor(instructorId);
+    const courses = await InstructorDao.getCoursesByInstructor(instructorId);
     res.render('vwInstructor/dashboard', { courses });
   } catch (err) {
     console.error('❌ Lỗi khi tải Dashboard:', err);
@@ -93,7 +93,7 @@ export async function dashboard(req, res) {
  */
 export async function showNewForm(req, res) {
   try {
-    const categories = await Instructor.getAllCategories();
+    const categories = await InstructorDao.getAllCategories();
     res.render('vwInstructor/new', {
       categories,
       authUser: req.session?.authUser || null,
@@ -114,7 +114,7 @@ export async function createCourse(req, res) {
     const { title, category_id, short_desc, full_desc, price, sale_price } = req.body;
     const thumbnail = req.file ? `/uploads/thumbnails/${req.file.filename}` : null;
 
-    await Instructor.addCourse({
+    await InstructorDao.addCourse({
       instructor_id: req.session.authUser.id,
       title,
       category_id,
@@ -145,10 +145,10 @@ export async function createCourse(req, res) {
 export async function showEditCourse(req, res) {
   try {
     const courseId = req.params.id;
-    const course = await Instructor.getCourseById(courseId);
-    const lectures = await Instructor.getLecturesByCourse(courseId);
+    const course = await InstructorDao.getCourseById(courseId);
+    const lectures = await InstructorDao.getLecturesByCourse(courseId);
 
-    const categories = await Instructor.getAllCategories();
+    const categories = await InstructorDao.getAllCategories();
     res.render('vwInstructor/edit-course', {
       course,
       lectures,
@@ -172,7 +172,7 @@ export async function updateCourse(req, res) {
     const { title, short_desc, full_desc, category_id, price, sale_price } = req.body;
     const thumbnail = req.file ? `/uploads/thumbnails/${req.file.filename}` : null;
 
-    await Instructor.updateCourse(req.params.id, {
+    await InstructorDao.updateCourse(req.params.id, {
       title,
       short_desc,
       full_desc,
@@ -201,8 +201,8 @@ export async function updateCourse(req, res) {
 export async function showEditLectures(req, res) {
   try {
     const courseId = req.params.id;
-    const course = await Instructor.getCourseById(courseId);
-    const lectures = await Instructor.getLecturesByCourse(courseId);
+    const course = await InstructorDao.getCourseById(courseId);
+    const lectures = await InstructorDao.getLecturesByCourse(courseId);
 
     res.render('vwInstructor/edit-lectures', { course, lectures });
   } catch (err) {
@@ -226,7 +226,7 @@ export async function addLecture(req, res) {
       return res.status(400).send('Thiếu tiêu đề hoặc link video.');
     }
 
-    await Instructor.addLecture(courseId, title, video_url);
+    await InstructorDao.addLecture(courseId, title, video_url);
 
     res.redirect(`/instructor/edit/lectures/${courseId}`);
   } catch (err) {
@@ -242,7 +242,7 @@ export async function addLecture(req, res) {
 export async function deleteLecture(req, res) {
   try {
     const { lectureId } = req.params;
-    await Instructor.deleteLecture(lectureId);
+    await InstructorDao.deleteLecture(lectureId);
     res.redirect('back');
   } catch (err) {
     console.error('❌ Lỗi xóa bài giảng:', err);
@@ -262,8 +262,8 @@ export async function deleteLecture(req, res) {
 export async function showProfile(req, res) {
   try {
     const instructorId = req.session.authUser.id;
-    const instructor = await Instructor.findById(instructorId);
-    const courses = await Instructor.getCoursesByInstructor(instructorId);
+    const instructor = await InstructorDao.findById(instructorId);
+    const courses = await InstructorDao.getCoursesByInstructor(instructorId);
 
     res.render('vwInstructor/profile', {
       instructor,
@@ -279,7 +279,7 @@ export async function showProfile(req, res) {
 /** Trang chỉnh sửa hồ sơ */
 export async function showEditProfile(req, res) {
   try {
-    const instructor = await Instructor.findById(req.session.authUser.id);
+    const instructor = await InstructorDao.findById(req.session.authUser.id);
     res.render('vwInstructor/edit-profile', { instructor });
   } catch (err) {
     console.error('❌ Lỗi khi tải trang chỉnh sửa hồ sơ:', err);
@@ -294,7 +294,7 @@ export async function showEditProfile(req, res) {
 export async function updateProfile(req, res) {
   try {
     const { bio, specialization } = req.body;
-    await Instructor.update(req.session.authUser.id, { bio, specialization });
+    await InstructorDao.update(req.session.authUser.id, { bio, specialization });
     res.redirect('/instructor/profile');
   } catch (err) {
     console.error('❌ Lỗi khi cập nhật hồ sơ:', err);

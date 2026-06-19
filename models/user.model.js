@@ -25,8 +25,8 @@
  * ╚══════════════════════════════════════════════════════════════╝
  */
 
-import db from '../utils/db.js';
 import Permission from '../enums/Permission.js';
+
 
 /**
  * Entity class User — tương đương @Entity trong Spring Boot.
@@ -99,147 +99,7 @@ class User {
     }
     return true;
   }
-
-  // ═══════════════════════════════════════════
-  // Static Methods — Tương đương @Repository trong Spring Boot
-  // (JpaRepository<User, Integer>)
-  // ═══════════════════════════════════════════
-
-  // ─── User.register() ── UC [01] Register ───
-  /**
-   * Tạo tài khoản mới.
-   * Tương đương: userRepository.save(user)
-   */
-  static async register(userData) {
-    const user = new User(userData);
-    const [result] = await db('users').insert({
-      username: user.username,
-      name: user.name,
-      email: user.email,
-      password: user.password,
-      dob: user.dob,
-      permission: user.permission,
-      is_disabled: user.is_disabled,
-    }).returning('*');
-    return new User(result);
-  }
-
-  // Alias cho tương thích code cũ
-  static add(userData) {
-    return User.register(userData);
-  }
-
-  // ─── User.login() ── UC [02] Login ───
-  // Logic xác thực nằm tại controllers/account.controller.js
-  // Model cung cấp hàm tìm user để controller so khớp mật khẩu.
-
-  /**
-   * Tìm user theo username.
-   * Tương đương: userRepository.findByUsername(username)
-   */
-  static async findByUsername(username) {
-    const row = await db('users').where('username', username).first();
-    return row ? new User(row) : null;
-  }
-
-  /**
-   * Tìm user theo name.
-   * Tương đương: userRepository.findByName(name)
-   */
-  static async findByName(name) {
-    const row = await db('users').where('name', name).first();
-    return row ? new User(row) : null;
-  }
-
-  /**
-   * Tìm user theo ID.
-   * Tương đương: userRepository.findById(id)
-   */
-  static async findById(id) {
-    const row = await db('users').where('id', id).first();
-    return row ? new User(row) : null;
-  }
-
-  // ─── User.updateProfile() ── UC [21] Manage Profile ───
-  /**
-   * Cập nhật thông tin hồ sơ.
-   * Tương đương: userRepository.save(user) — partial update
-   */
-  static updateProfile(id, data) {
-    return db('users').where('id', id).update(data);
-  }
-
-  // Alias cho tương thích code cũ
-  static patch(id, data) {
-    return User.updateProfile(id, data);
-  }
-
-  // ─── User.changePassword() ── UC [22] Change Password ───
-  /**
-   * Đổi mật khẩu (lưu hash mới).
-   */
-  static changePassword(id, hashedPassword) {
-    return db('users').where('id', id).update({ password: hashedPassword });
-  }
-
-  // ─── User.logout() ── UC [02] ───
-  // Thực hiện bằng cách xoá session tại controller, không cần model.
-
-  // ═══════════════════════════════════════════
-  // Các method bổ trợ cho Admin (UC [17] Manage Users)
-  // ═══════════════════════════════════════════
-
-  /**
-   * Lấy tất cả user.
-   * Tương đương: userRepository.findAll()
-   */
-  static findAll() {
-    return db('users');
-  }
-
-  /**
-   * Lấy danh sách giảng viên (permission = 2).
-   * Tương đương: userRepository.findByPermission(Permission.INSTRUCTOR)
-   */
-  static findTeachers() {
-    return db('users')
-      .where('permission', Permission.INSTRUCTOR)
-      .select('id', 'name', 'email', 'dob', 'permission');
-  }
-
-  /**
-   * Lấy danh sách học sinh (permission = 1).
-   * Tương đương: userRepository.findByPermission(Permission.STUDENT)
-   */
-  static findStudents() {
-    return db('users')
-      .where('permission', Permission.STUDENT)
-      .select('id', 'name', 'email', 'dob', 'permission');
-  }
-
-  /**
-   * Cấp quyền giảng viên.
-   * UC [17]: Admin → Promote to Instructor.
-   */
-  static promoteToTeacher(id) {
-    return db('users').where({ id }).update({ permission: Permission.INSTRUCTOR });
-  }
-
-  /**
-   * Xóa người dùng.
-   * UC [17]: Admin → Delete Account.
-   */
-  static deleteById(id) {
-    return db('users').where({ id }).del();
-  }
-
-  /**
-   * Khóa / Mở khóa tài khoản.
-   * UC [17]: Admin → Disable/Enable Account.
-   */
-  static toggleDisable(id, disable) {
-    return db('users').where('id', id).update({ is_disabled: disable });
-  }
 }
+
 
 export default User;

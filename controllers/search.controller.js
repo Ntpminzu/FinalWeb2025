@@ -10,7 +10,7 @@
  */
 // controllers/search.controller.js
 
-import Course from '../models/course.model.js';
+import CourseDao from '../daos/course.dao.js';
 
 const COURSES_PER_PAGE = 8;
 
@@ -23,8 +23,8 @@ export async function search(req, res, next) {
     const offset = (page - 1) * limit;
 
     const [courses, totalCourses] = await Promise.all([
-      Course.findPageByFTS(query, sortOption, limit, offset),
-      Course.countByFTS(query)
+      CourseDao.findPageByFTS(query, sortOption, limit, offset),
+      CourseDao.countByFTS(query)
     ]);
 
     const totalPages = Math.ceil(totalCourses / limit);

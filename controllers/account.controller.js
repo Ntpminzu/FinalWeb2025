@@ -19,7 +19,7 @@ import bcrypt from 'bcryptjs';
 import nodemailer from 'nodemailer';
 
 import db from '../utils/db.js';
-import User from '../models/user.model.js';
+import UserDao from '../daos/user.dao.js';
 import Permission from '../enums/Permission.js';
 
 // ══════════════════════════════════════════
@@ -144,7 +144,7 @@ export async function verifyOtp(req, res) {
     const hashed = bcrypt.hashSync(password, 10);
 
     // Class Diagram: User.register() — tạo user mới (permission = STUDENT)
-    await User.register({
+    await UserDao.register({
       username,
       name,
       password: hashed,
@@ -173,8 +173,8 @@ export async function checkAvailable(req, res) {
   if (!u) return res.json(false);
 
   const user =
-    (await User.findByUsername(u)) ||
-    (await User.findByName(u)) ||
+    (await UserDao.findByUsername(u)) ||
+    (await UserDao.findByName(u)) ||
     null;
 
   return res.json(!user);
@@ -212,8 +212,8 @@ export async function doSignin(req, res) {
     const password = req.body.password || '';
 
     const user =
-      (await User.findByUsername(username)) ||
-      (await User.findByName(username)) ||
+      (await UserDao.findByUsername(username)) ||
+      (await UserDao.findByName(username)) ||
       null;
 
     // Exception 3.2: Không tồn tại user
@@ -290,7 +290,7 @@ export async function updateProfile(req, res) {
     name: (req.body.name || '').trim(),
     email: (req.body.email || '').trim(),
   };
-  await User.updateProfile(id, userPatch);
+  await UserDao.updateProfile(id, userPatch);
   req.session.authUser = { ...req.session.authUser, ...userPatch };
 
   res.render('vwAccount/profile', { user: req.session.authUser });
@@ -319,7 +319,7 @@ export async function doChangePwd(req, res) {
   }
 
   const hashed = bcrypt.hashSync(newPwd, 10);
-  await User.changePassword(id, hashed);
+  await UserDao.changePassword(id, hashed);
   req.session.authUser.password = hashed;
 
   res.redirect('/account/profile');

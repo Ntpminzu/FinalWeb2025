@@ -23,7 +23,7 @@
  * ╚══════════════════════════════════════════════════════════════╝
  */
 
-import Course from '../models/course.model.js';
+import CourseDao from '../daos/course.dao.js';
 import db from '../utils/db.js';
 
 // ─── Class Diagram: Cart.addItem(course) ── UC [05] Manage Cart (a. Thêm) ───
@@ -35,7 +35,7 @@ import db from '../utils/db.js';
 export async function addToCart(req, res, next) {
   try {
     const courseId = req.body.course_id;
-    const course = await Course.findById(courseId);
+    const course = await CourseDao.findById(courseId);
 
     if (course) {
       let isCourseInCart = false;

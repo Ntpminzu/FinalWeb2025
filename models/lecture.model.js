@@ -20,7 +20,7 @@
  * ╚══════════════════════════════════════════════════════════════╝
  */
 
-import db from '../utils/db.js';
+
 
 /**
  * Entity class Lecture — tương đương @Entity trong Spring Boot.
@@ -68,47 +68,6 @@ class Lecture {
       throw new Error('Title must not be blank');
     }
     return true;
-  }
-
-  // ═══════════════════════════════════════════
-  // Static Methods — Tương đương @Repository
-  // ═══════════════════════════════════════════
-
-  // ─── Class Diagram: Lecture.findByCourse(cId) ── UC [10] Watch Lecture ───
-  /**
-   * Lấy danh sách bài giảng theo khóa học.
-   * UC [10]: Student chọn bài giảng → hệ thống hiển thị danh sách.
-   */
-  static findByCourse(courseId) {
-    return db('lectures')
-      .where('course_id', courseId)
-      .select(
-        'id',
-        'title',
-        'video_url',
-        db.raw('duration_sec as duration_sec'),
-        db.raw('order_index as ord')
-      )
-      .orderBy('order_index', 'asc');
-  }
-
-  // ─── Class Diagram: Lecture.findById(id) ───
-  /**
-   * Lấy thông tin chi tiết một bài giảng.
-   */
-  static findById(lectureId) {
-    return db('lectures')
-      .where('id', lectureId)
-      .first();
-  }
-
-  // ─── Class Diagram: Lecture.updateDuration(id, sec) ───
-  /**
-   * Cập nhật thời lượng bài giảng (giây).
-   * Được gọi tự động khi Student xem video lần đầu.
-   */
-  static updateDuration(lectureId, sec) {
-    return db('lectures').where('id', lectureId).update({ duration_sec: sec });
   }
 }
 

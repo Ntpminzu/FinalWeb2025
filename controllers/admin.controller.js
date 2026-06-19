@@ -23,10 +23,10 @@
  */
 
 import bcrypt from 'bcryptjs';
-import User from '../models/user.model.js';
-import Admin from '../models/admin.model.js';
-import Category from '../models/category.model.js';
-import Course from '../models/course.model.js';
+import UserDao from '../daos/user.dao.js';
+import AdminDao from '../daos/admin.dao.js';
+import CategoryDao from '../daos/category.dao.js';
+import CourseDao from '../daos/course.dao.js';
 import db from '../utils/db.js';
 
 // ══════════════════════════════════════════
@@ -37,9 +37,9 @@ import db from '../utils/db.js';
  * 🏠 Dashboard — Hiển thị thống kê tổng quan.
  */
 export async function dashboard(req, res) {
-  const stats = await Admin.getDashboardStats() ?? {};
-  const topCategories = await Admin.getTopCategories() ?? [];
-  const courseStatuses = await Admin.getCourseStatuses() ?? [];
+  const stats = await AdminDao.getDashboardStats() ?? {};
+  const topCategories = await AdminDao.getTopCategories() ?? [];
+  const courseStatuses = await AdminDao.getCourseStatuses() ?? [];
 
   res.render('vwAdmin/home', {
     layout: false,
@@ -62,8 +62,8 @@ export async function dashboard(req, res) {
  * UC [17] Main Flow Step 1-3: Admin xem danh sách user phân theo vai trò.
  */
 export async function listUsers(req, res) {
-  const teachers = await User.findTeachers();
-  const students = await User.findStudents();
+  const teachers = await UserDao.findTeachers();
+  const students = await UserDao.findStudents();
 
   res.render('vwAdmin/users', {
     teachers,
@@ -78,7 +78,7 @@ export async function listUsers(req, res) {
  */
 export async function makeTeacher(req, res) {
   const { id } = req.params;
-  await User.promoteToTeacher(id);
+  await UserDao.promoteToTeacher(id);
   res.redirect('/admin/users');
 }
 
@@ -92,8 +92,8 @@ export async function disableUser(req, res) {
   const disable = req.body.disable === 'true';
  
   try {
-    if (typeof User.toggleDisable === 'function') {
-      await User.toggleDisable(id, disable);
+    if (typeof UserDao.toggleDisable === 'function') {
+      await UserDao.toggleDisable(id, disable);
     } else {
       await db('users').where('id', id).update({ is_disabled: disable });
     }
@@ -112,7 +112,7 @@ export async function disableUser(req, res) {
  */
 export async function deleteUser(req, res) {
   const { id } = req.params;
-  await User.deleteById(id);
+  await UserDao.deleteById(id);
   res.redirect('/admin/users');
 }
 
@@ -128,8 +128,8 @@ export async function deleteUser(req, res) {
 export async function listCourses(req, res) {
   try {
     const [courses, categories] = await Promise.all([
-      Course.getAllWithCategoryAndTeacher(),
-      Category.getAllWithCourseCount(),
+      CourseDao.getAllWithCategoryAndTeacher(),
+      CategoryDao.getAllWithCourseCount(),
     ]);
 
     res.render('vwAdmin/courses', {
@@ -149,7 +149,7 @@ export async function listCourses(req, res) {
  */
 export async function deleteCourse(req, res) {
   const { id } = req.params;
-  await Course.deleteById(id);
+  await CourseDao.deleteById(id);
   res.redirect('/admin/courses');
 }
 
@@ -163,8 +163,8 @@ export async function disableCourse(req, res) {
   const disable = req.body.disable === 'true';
 
   try {
-    if (typeof Course.toggleDisable === 'function') {
-      await Course.toggleDisable(courseId, disable);
+    if (typeof CourseDao.toggleDisable === 'function') {
+      await CourseDao.toggleDisable(courseId, disable);
     } else {
       await db('courses').where('id', courseId).update({ is_disabled: disable });
     }
@@ -187,7 +187,7 @@ export async function disableCourse(req, res) {
  * UC [20] Main Flow Step 1-3: Admin xem cấu trúc cây danh mục.
  */
 export async function listCategories(req, res) {
-  const categories = await Category.getAllWithCourseCount();
+  const categories = await CategoryDao.getAllWithCourseCount();
   res.render('vwAdmin/categories', { categories });
 }
 
@@ -197,7 +197,7 @@ export async function listCategories(req, res) {
  */
 export async function addCategory(req, res) {
   const name = req.body.name?.trim();
-  if (name) await Category.add({ name });
+  if (name) await CategoryDao.add({ name });
   res.redirect('/admin/categories');
 }
 
@@ -208,7 +208,7 @@ export async function addCategory(req, res) {
 export async function editCategory(req, res) {
   const { id, name } = req.body;
   if (id && name?.trim()) {
-    await Category.patch(id, { name: name.trim() });
+    await CategoryDao.patch(id, { name: name.trim() });
   }
   res.redirect('/admin/categories');
 }
@@ -220,7 +220,7 @@ export async function editCategory(req, res) {
 export async function deleteCategory(req, res) {
   try {
     const { id } = req.body;
-    await Category.remove(id);
+    await CategoryDao.remove(id);
     res.redirect('/admin/categories');
   } catch (error) {
     console.error(error);
@@ -249,7 +249,7 @@ export async function updateProfile(req, res) {
     name: req.body.name?.trim(),
     email: req.body.email?.trim(),
   };
-  await User.updateProfile(id, updatedUser);
+  await UserDao.updateProfile(id, updatedUser);
   req.session.authUser.name = updatedUser.name;
   req.session.authUser.email = updatedUser.email;
 
@@ -291,7 +291,7 @@ export async function changePwd(req, res) {
   }
 
   const hashed = bcrypt.hashSync(newPassword, 10);
-  await User.changePassword(id, hashed);
+  await UserDao.changePassword(id, hashed);
   req.session.authUser.password = hashed;
 
   res.render('vwAdmin/profile', {

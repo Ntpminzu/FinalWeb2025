@@ -11,8 +11,8 @@
  */
 // controllers/course.controller.js
 
-import Course from '../models/course.model.js';
-import Feedback from '../models/feedback.model.js';
+import CourseDao from '../daos/course.dao.js';
+import FeedbackDao from '../daos/feedback.dao.js';
 
 const COURSES_PER_PAGE = 9;
 
@@ -23,8 +23,8 @@ export async function listCourses(req, res, next) {
     const offset = (page - 1) * limit;
 
     const [courses, totalCourses] = await Promise.all([
-      Course.findPageAll(limit, offset),
-      Course.countAll()
+      CourseDao.findPageAll(limit, offset),
+      CourseDao.countAll()
     ]);
 
     const totalPages = Math.ceil(totalCourses / limit);
@@ -49,11 +49,11 @@ export async function listCourses(req, res, next) {
 export async function showCourseDetail(req, res, next) {
   try {
     const courseId = req.params.id;
-    await Course.incrementViewCount(courseId);
+    await CourseDao.incrementViewCount(courseId);
 
     const [course, feedbacks] = await Promise.all([
-      Course.findById(courseId),
-      Feedback.findByCourse(courseId)
+      CourseDao.findById(courseId),
+      FeedbackDao.findByCourse(courseId)
     ]);
 
     if (!course) {

@@ -32,12 +32,12 @@
 
 import bcrypt from 'bcryptjs';
 import db from '../utils/db.js';
-import User from '../models/user.model.js';
-import Wishlist from '../models/watchlist.model.js';
-import Course from '../models/course.model.js';
-import Lecture from '../models/lecture.model.js';
-import Progress from '../models/progress.model.js';
-import Feedback from '../models/feedback.model.js';
+import UserDao from '../daos/user.dao.js';
+import WatchlistDao from '../daos/watchlist.dao.js';
+import CourseDao from '../daos/course.dao.js';
+import LectureDao from '../daos/lecture.dao.js';
+import ProgressDao from '../daos/progress.dao.js';
+import FeedbackDao from '../daos/feedback.dao.js';
 
 // ══════════════════════════════════════════
 // Student Home
@@ -77,7 +77,7 @@ export async function updateProfile(req, res) {
     email: req.body.email?.trim(),
   };
 
-  await User.updateProfile(id, updatedUser);
+  await UserDao.updateProfile(id, updatedUser);
 
   // cập nhật lại session
   req.session.authUser.name = updatedUser.name;
@@ -129,7 +129,7 @@ export async function changePwd(req, res) {
   }
 
   const hashed = bcrypt.hashSync(newPassword, 10);
-  await User.changePassword(id, hashed);
+  await UserDao.changePassword(id, hashed);
 
   // cập nhật session
   req.session.authUser.password = hashed;
@@ -151,7 +151,7 @@ export async function changePwd(req, res) {
 export async function showWatchlist(req, res, next) {
   try {
     const userId = req.session.authUser.id;
-    const items = await Wishlist.findAllByUser(userId);
+    const items = await WatchlistDao.findAllByUser(userId);
 
     return res.render('vwStudent/watchlist', {
       items,
@@ -177,14 +177,14 @@ export async function addToWatchlist(req, res, next) {
     }
 
     // kiểm tra khóa học có tồn tại
-    const course = await Course.findById(courseId);
+    const course = await CourseDao.findById(courseId);
     if (!course) return res.status(404).render('404');
 
     const title = (req.body.course_title ?? course.title ?? null)?.toString() ?? null;
 
-    const existed = await Wishlist.isInWatchlist(userId, courseId);
+    const existed = await WatchlistDao.isInWatchlist(userId, courseId);
     if (!existed) {
-      await Wishlist.add({ user_id: userId, course_id: courseId, course_title: title });
+      await WatchlistDao.add({ user_id: userId, course_id: courseId, course_title: title });
     }
 
     // về trang trước nếu có, mặc định về trang chi tiết course
@@ -205,7 +205,7 @@ export async function removeFromWatchlist(req, res, next) {
       return res.status(400).send('course_id không hợp lệ');
     }
 
-    await Wishlist.remove(userId, courseId);
+    await WatchlistDao.remove(userId, courseId);
 
     return res.redirect('/student/watchlist?removed=1');
   } catch (err) {
@@ -239,7 +239,7 @@ export async function showPurchasedCourses(req, res) {
   // gắn thêm % hoàn thành và cờ is_completed
   const coursesWithProgress = await Promise.all(
     purchasedCourses.map(async (c) => {
-      const { percent } = await Progress.courseCompletion(userId, c.course_id);
+      const { percent } = await ProgressDao.courseCompletion(userId, c.course_id);
       return {
         ...c,
         completion_percent: percent,          
@@ -259,8 +259,8 @@ export async function showPurchasedCourses(req, res) {
 export async function showCourseLectures(req, res) {
   const { courseId } = req.params;
 
-  const lectures = await Lecture.findByCourse(courseId);
-  const feedbacks = await Feedback.findByCourse(courseId);
+  const lectures = await LectureDao.findByCourse(courseId);
+  const feedbacks = await FeedbackDao.findByCourse(courseId);
   res.render('vwStudent/course-lectures', {
     courseId,
     lectures,
@@ -276,11 +276,11 @@ export async function showLearn(req, res) {
   const user = req.session.authUser;
   const { courseId, lectureId } = req.params;
 
-  const lectures = await Lecture.findByCourse(courseId);
-  const current = await Lecture.findById(lectureId);
+  const lectures = await LectureDao.findByCourse(courseId);
+  const current = await LectureDao.findById(lectureId);
   if (!current) return res.status(404).render('404');
 
-  const prog = await Progress.find(user.id, current.id);
+  const prog = await ProgressDao.find(user.id, current.id);
 
   res.render('vwStudent/learn', {
     courseId,
@@ -307,7 +307,7 @@ export async function saveProgress(req, res) {
   const watched_percent = Math.min(100, (last / duration) * 100);
   const is_completed = watched_percent >= 90;
 
-  await Progress.upsert(user.id, lecture_id, { last_second: last, watched_percent, is_completed });
+  await ProgressDao.upsert(user.id, lecture_id, { last_second: last, watched_percent, is_completed });
   res.json({ ok: true });
 }
 
@@ -315,7 +315,7 @@ export async function saveLectureDuration(req, res) {
   const { lecture_id, duration_sec } = req.body;
   if (!lecture_id || !duration_sec) return res.json({ ok: false });
 
-  await Lecture.updateDuration(lecture_id, Math.max(1, Number(duration_sec)));
+  await LectureDao.updateDuration(lecture_id, Math.max(1, Number(duration_sec)));
   return res.json({ ok: true });
 }
 
@@ -333,7 +333,7 @@ export async function showFeedbackForm(req, res) {
   const user = req.session.authUser;
   const { courseId } = req.params;
 
-  const course = await Course.findById(courseId);
+  const course = await CourseDao.findById(courseId);
   if (!course) return res.status(404).render('404');
 
   // phải mua khoá (truy vấn trực tiếp DB)
@@ -342,10 +342,10 @@ export async function showFeedbackForm(req, res) {
     .first();
 
   // % hoàn thành
-  const completion = await Progress.courseCompletion(user.id, courseId);
+  const completion = await ProgressDao.courseCompletion(user.id, courseId);
   const canReview = purchased && completion.total > 0 && completion.done >= 1;
 
-  const myFeedback = await Feedback.findByUserCourse(user.id, courseId);
+  const myFeedback = await FeedbackDao.findByUserCourse(user.id, courseId);
 
   return res.render('vwStudent/feedback', {
     course,
@@ -369,10 +369,10 @@ export async function submitFeedback(req, res) {
   const r = Number(rating);
   if (!Number.isInteger(r) || r < 1 || r > 5) {
     return res.status(400).render('vwStudent/feedback', {
-      course: await Course.findById(courseId),
+      course: await CourseDao.findById(courseId),
       canReview: true,
       myFeedback: null,
-      completion: await Progress.courseCompletion(user.id, courseId),
+      completion: await ProgressDao.courseCompletion(user.id, courseId),
       error: 'Rating phải từ 1 đến 5 sao.',
     });
   }
@@ -381,11 +381,11 @@ export async function submitFeedback(req, res) {
   const purchased = await db('purchased')
     .where({ user_id: user.id, course_id: courseId })
     .first();
-  const completion = await Progress.courseCompletion(user.id, courseId);
+  const completion = await ProgressDao.courseCompletion(user.id, courseId);
   const canReview = purchased && completion.total > 0 && completion.done >= 1;
   if (!canReview) return res.status(403).render('403');
 
-  await Feedback.upsert(user.id, courseId, r, (comment ?? '').trim());
+  await FeedbackDao.upsert(user.id, courseId, r, (comment ?? '').trim());
   // Trigger DB sẽ tự cập nhật courses.rating_avg & rating_count
   return res.redirect(`/student/course/${courseId}/feedback?ok=1`);
 }

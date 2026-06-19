@@ -10,9 +10,9 @@ import { fileURLToPath } from 'url';
 // Auth
 import { restrict, restrictAdmin } from './middlewares/auth.mdw.js';
 
-// Models
-import Category from './models/category.model.js';
-import Course from './models/course.model.js';
+// DAOs
+import CategoryDao from './daos/category.dao.js';
+import CourseDao from './daos/course.dao.js';
 import db from './utils/db.js';
 
 // Routers
@@ -172,7 +172,7 @@ app.use(async (req, res, next) => {
 // Categories for header
 app.use(async (req, res, next) => {
   try {
-    const categories = await Category.all();
+    const categories = await CategoryDao.all();
     res.locals.categories = categories;
   } catch (err) {
     console.error('Không thể tải categories:', err);
@@ -193,10 +193,10 @@ app.get('/', async (req, res, next) => {
   try {
     const [outstandingCourses, mostViewedCourses, newestCourses, topCategories] =
       await Promise.all([
-        Course.findOutstandingPastWeek(),     // TODO: có thể đổi sang purchased
-        Course.findMostViewed(10),
-        Course.findNewest(10),
-        Category.findMostEnrolledPastWeek(5), // TODO: có findMostPurchasedPastWeek thì đổi
+        CourseDao.findOutstandingPastWeek(),     // TODO: có thể đổi sang purchased
+        CourseDao.findMostViewed(10),
+        CourseDao.findNewest(10),
+        CategoryDao.findMostEnrolledPastWeek(5), // TODO: có findMostPurchasedPastWeek thì đổi
       ]);
     res.render('home', { outstandingCourses, mostViewedCourses, newestCourses, topCategories });
   } catch (err) {
