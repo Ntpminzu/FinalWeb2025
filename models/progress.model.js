@@ -47,6 +47,15 @@ class Progress {
     this.watched_percent = data.watched_percent || 0;
     this.is_completed = data.is_completed || false;
   }
+
+  calculateProgress(lastSecond, durationSec) {
+    const duration = Math.max(1, Number(durationSec) || 1);
+    const last = Math.max(0, Number(lastSecond) || 0);
+    this.last_second = last;
+    this.watched_percent = Math.min(100, (last / duration) * 100);
+    this.is_completed = this.watched_percent >= 90;
+  }
 }
 
 export default Progress;
+

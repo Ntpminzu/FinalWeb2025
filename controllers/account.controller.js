@@ -18,8 +18,8 @@
 import bcrypt from 'bcryptjs';
 import nodemailer from 'nodemailer';
 
-import db from '../utils/db.js';
 import UserDao from '../daos/user.dao.js';
+import OtpTokenDao from '../daos/otp-token.dao.js';
 import Permission from '../enums/Permission.js';
 
 // ══════════════════════════════════════════
@@ -65,21 +65,16 @@ export async function doSignup(req, res) {
     }
 
     // kiểm tra email tồn tại
-    const existsEmail = await db('users').where('email', email);
-    if (existsEmail.length > 0) {
+    const existsEmail = await UserDao.findByEmail(email);
+    if (existsEmail) {
       return res.render('vwAccount/signup', { emailExist: true });
     }
 
     // tạo & lưu OTP
     const otp = Math.floor(100000 + Math.random() * 900000);
-    const expires = new Date(Date.now() + 5 * 60 * 1000);
 
-    await db('otp_tokens').insert({
-      email,
-      otp_code: otp.toString(),
-      expires_at: expires,
-      created_at: new Date(),
-    });
+    await OtpTokenDao.add(email, otp.toString(), 5);
+
 
     // gửi mail OTP (Mailtrap sandbox)
     const transporter = nodemailer.createTransport({
@@ -132,14 +127,11 @@ export async function verifyOtp(req, res) {
       return res.status(400).send('❌ Thiếu thông tin. Vui lòng đăng ký lại.');
     }
 
-    const [record] = await db('otp_tokens')
-      .where({ email })
-      .orderBy('created_at', 'desc')
-      .limit(1);
+    const record = await OtpTokenDao.findLatestByEmail(email);
 
     if (!record) return res.send('❌ Không tìm thấy mã OTP.');
     if (record.otp_code !== otp) return res.send('❌ Mã OTP không đúng.');
-    if (new Date() > record.expires_at) return res.send('❌ Mã OTP đã hết hạn.');
+    if (record.isExpired()) return res.send('❌ Mã OTP đã hết hạn.');
 
     const hashed = bcrypt.hashSync(password, 10);
 
@@ -155,7 +147,8 @@ export async function verifyOtp(req, res) {
     });
 
     // xoá otp đã dùng
-    await db('otp_tokens').where('email', email).del();
+    await OtpTokenDao.deleteByEmail(email);
+
 
     return res.render('vwAccount/signin', { success: true });
   } catch (err) {

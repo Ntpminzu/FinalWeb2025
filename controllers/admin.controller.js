@@ -27,7 +27,6 @@ import UserDao from '../daos/user.dao.js';
 import AdminDao from '../daos/admin.dao.js';
 import CategoryDao from '../daos/category.dao.js';
 import CourseDao from '../daos/course.dao.js';
-import db from '../utils/db.js';
 
 // ══════════════════════════════════════════
 // Class Diagram: Admin.viewDashboard()
@@ -92,12 +91,7 @@ export async function disableUser(req, res) {
   const disable = req.body.disable === 'true';
  
   try {
-    if (typeof UserDao.toggleDisable === 'function') {
-      await UserDao.toggleDisable(id, disable);
-    } else {
-      await db('users').where('id', id).update({ is_disabled: disable });
-    }
-
+    await UserDao.toggleDisable(id, disable);
     res.redirect('/admin/users');
   } catch (err) {
     console.error('❌ Lỗi khi khóa/mở khóa user:', err);
@@ -163,12 +157,7 @@ export async function disableCourse(req, res) {
   const disable = req.body.disable === 'true';
 
   try {
-    if (typeof CourseDao.toggleDisable === 'function') {
-      await CourseDao.toggleDisable(courseId, disable);
-    } else {
-      await db('courses').where('id', courseId).update({ is_disabled: disable });
-    }
-
+    await CourseDao.toggleDisable(courseId, disable);
     return res.redirect('/admin/courses');
   } catch (err) {
     console.error('❌ Lỗi khi disable khóa học:', err);

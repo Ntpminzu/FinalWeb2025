@@ -255,6 +255,14 @@ class CourseDao {
 
     return query;
   }
+
+  static toggleStatus(id, status) {
+    return db('courses').where({ id }).update({
+      Status: status,
+      updated_at: new Date(),
+    });
+  }
 }
 
 export default CourseDao;
+

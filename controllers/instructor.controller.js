@@ -34,10 +34,11 @@
  */
 
 import multer from 'multer';
+
 import fs from 'fs';
 import path from 'path';
-import db from '../utils/db.js';
 import InstructorDao from '../daos/instructor.dao.js';
+import CourseDao from '../daos/course.dao.js';
 
 // --- Multer config ---
 const ensureDir = (dir) => fs.mkdirSync(dir, { recursive: true });
@@ -315,17 +316,13 @@ export async function updateProfile(req, res) {
 export async function toggleCourseStatus(req, res) {
   try {
     const { id } = req.params;
-    const course = await db('courses').where('id', id).first();
+    const course = await CourseDao.findById(id);
     if (!course) return res.status(404).send('Không tìm thấy khóa học');
 
     const newStatus = !course.Status;
 
-    await db('courses')
-      .where('id', id)
-      .update({
-        Status: newStatus,
-        updated_at: new Date(),
-      });
+    await CourseDao.toggleStatus(id, newStatus);
+
 
     res.redirect('/instructor/dashboard');
   } catch (err) {

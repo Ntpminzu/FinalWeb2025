@@ -75,6 +75,12 @@ class UserDao {
   static toggleDisable(id, disable) {
     return db('users').where('id', id).update({ is_disabled: disable });
   }
+
+  static async findByEmail(email) {
+    const row = await db('users').where('email', email).first();
+    return row ? new User(row) : null;
+  }
 }
 
 export default UserDao;
+

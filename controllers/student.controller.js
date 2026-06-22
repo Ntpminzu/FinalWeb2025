@@ -31,13 +31,14 @@
  */
 
 import bcrypt from 'bcryptjs';
-import db from '../utils/db.js';
 import UserDao from '../daos/user.dao.js';
 import WatchlistDao from '../daos/watchlist.dao.js';
 import CourseDao from '../daos/course.dao.js';
 import LectureDao from '../daos/lecture.dao.js';
 import ProgressDao from '../daos/progress.dao.js';
 import FeedbackDao from '../daos/feedback.dao.js';
+import PurchasedDao from '../daos/purchased.dao.js';
+import Progress from '../models/progress.model.js';
 
 // ══════════════════════════════════════════
 // Student Home
@@ -221,20 +222,8 @@ export async function removeFromWatchlist(req, res, next) {
 export async function showPurchasedCourses(req, res) {
   const userId = req.session.authUser.id;
 
-  // danh sách khóa đã mua (truy vấn trực tiếp DB — đã xoá purchased.model.js)
-  const purchasedCourses = await db('purchased as p')
-    .leftJoin('courses as c', 'p.course_id', 'c.id')
-    .where('p.user_id', userId)
-    .select(
-      'p.course_id',
-      'p.course_title',
-      'p.purchased_at',
-      'c.thumbnail',
-      'c.short_desc',
-      'c.price',
-      'c.sale_price'
-    )
-    .orderBy('p.purchased_at', 'desc');
+  // danh sách khóa đã mua (sử dụng PurchasedDao)
+  const purchasedCourses = await PurchasedDao.findAllByUser(userId);
 
   // gắn thêm % hoàn thành và cờ is_completed
   const coursesWithProgress = await Promise.all(
@@ -250,6 +239,7 @@ export async function showPurchasedCourses(req, res) {
 
   res.render('vwStudent/courses', { purchasedCourses: coursesWithProgress });
 }
+
 
 // ══════════════════════════════════════════
 // UC [10] Watch Lecture
@@ -302,14 +292,18 @@ export async function saveProgress(req, res) {
   const user = req.session.authUser;
   const { lecture_id, last_second, duration_sec } = req.body;
 
-  const duration = Math.max(1, Number(duration_sec) || 1);
-  const last = Math.max(0, Number(last_second) || 0);
-  const watched_percent = Math.min(100, (last / duration) * 100);
-  const is_completed = watched_percent >= 90;
+  // Sử dụng domain model Progress để tính toán tiến trình học
+  const progress = new Progress({ user_id: user.id, lecture_id });
+  progress.calculateProgress(last_second, duration_sec);
 
-  await ProgressDao.upsert(user.id, lecture_id, { last_second: last, watched_percent, is_completed });
+  await ProgressDao.upsert(user.id, lecture_id, {
+    last_second: progress.last_second,
+    watched_percent: progress.watched_percent,
+    is_completed: progress.is_completed
+  });
   res.json({ ok: true });
 }
+
 
 export async function saveLectureDuration(req, res) {
   const { lecture_id, duration_sec } = req.body;
@@ -336,10 +330,9 @@ export async function showFeedbackForm(req, res) {
   const course = await CourseDao.findById(courseId);
   if (!course) return res.status(404).render('404');
 
-  // phải mua khoá (truy vấn trực tiếp DB)
-  const purchased = await db('purchased')
-    .where({ user_id: user.id, course_id: courseId })
-    .first();
+  // phải mua khoá (sử dụng PurchasedDao)
+  const purchased = await PurchasedDao.findByUserAndCourse(user.id, courseId);
+
 
   // % hoàn thành
   const completion = await ProgressDao.courseCompletion(user.id, courseId);
@@ -378,9 +371,8 @@ export async function submitFeedback(req, res) {
   }
 
   // kiểm tra quyền đánh giá (đã mua + đã học 1 bài)
-  const purchased = await db('purchased')
-    .where({ user_id: user.id, course_id: courseId })
-    .first();
+  const purchased = await PurchasedDao.findByUserAndCourse(user.id, courseId);
+
   const completion = await ProgressDao.courseCompletion(user.id, courseId);
   const canReview = purchased && completion.total > 0 && completion.done >= 1;
   if (!canReview) return res.status(403).render('403');

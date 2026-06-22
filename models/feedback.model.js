@@ -25,7 +25,7 @@
  * ╚══════════════════════════════════════════════════════════════╝
  */
 
-import Rate from '../enums/Rate.js';
+import Rate, { isValidRate } from '../enums/Rate.js';
 
 
 /**
@@ -81,7 +81,7 @@ class Feedback {
     if (!this.course_id) {
       throw new Error('Course ID must not be empty');
     }
-    if (this.rating !== null && !Rate.isValidRate(this.rating)) {
+    if (this.rating !== null && !isValidRate(this.rating)) {
       throw new Error('Invalid rating value');
     }
     return true;
