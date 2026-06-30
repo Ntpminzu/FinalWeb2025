@@ -18,7 +18,7 @@
  * ║    + checkout(): bool                                        ║
  * ║        → see controllers/cart.controller.js                  ║
  * ║          (UC [06] Checkout)                                  ║
- * ║    + watchLecture(cId,lId): void      ✅ showLearn()        ║
+ * ║    + watchLecture(cId,lId): void      ✅ getLecture()       ║
  * ║    + saveProgress(lId,sec): bool      ✅ saveProgress()     ║
  * ║    + viewCourseList(page): List       ✅ showPurchasedCourses()║
  * ║    + submitFeedback(cId,r,txt): bool  ✅ submitFeedback()   ║
@@ -34,11 +34,8 @@ import bcrypt from 'bcryptjs';
 import UserDao from '../daos/user.dao.js';
 import WatchlistDao from '../daos/watchlist.dao.js';
 import CourseDao from '../daos/course.dao.js';
-import LectureDao from '../daos/lecture.dao.js';
 import ProgressDao from '../daos/progress.dao.js';
-import FeedbackDao from '../daos/feedback.dao.js';
 import PurchasedDao from '../daos/purchased.dao.js';
-import Progress from '../models/progress.model.js';
 
 // ══════════════════════════════════════════
 // Student Home
@@ -241,143 +238,6 @@ export async function showPurchasedCourses(req, res) {
 }
 
 
-// ══════════════════════════════════════════
-// UC [10] Watch Lecture
-// Class Diagram: Student.watchLecture(cId, lId)
-// ══════════════════════════════════════════
-
-export async function showCourseLectures(req, res) {
-  const { courseId } = req.params;
-
-  const lectures = await LectureDao.findByCourse(courseId);
-  const feedbacks = await FeedbackDao.findByCourse(courseId);
-  res.render('vwStudent/course-lectures', {
-    courseId,
-    lectures,
-    feedbacks
-  });
-}
-
-/**
- * Xem bài giảng (video player).
- * UC [10] Main Flow: Student chọn bài giảng → hệ thống tải video.
- */
-export async function showLearn(req, res) {
-  const user = req.session.authUser;
-  const { courseId, lectureId } = req.params;
-
-  const lectures = await LectureDao.findByCourse(courseId);
-  const current = await LectureDao.findById(lectureId);
-  if (!current) return res.status(404).render('404');
-
-  const prog = await ProgressDao.find(user.id, current.id);
-
-  res.render('vwStudent/learn', {
-    courseId,
-    lectures,
-    current,
-    progress: prog || { last_second: 0, watched_percent: 0, is_completed: false }
-  });
-}
-
-// ══════════════════════════════════════════
-// Class Diagram: Student.saveProgress(lId, sec)
-// ══════════════════════════════════════════
-
-/**
- * API lưu tiến trình học.
- * UC [10] Main Flow Step 5: Hệ thống tự động lưu khi Actor xem xong.
- */
-export async function saveProgress(req, res) {
-  const user = req.session.authUser;
-  const { lecture_id, last_second, duration_sec } = req.body;
-
-  // Sử dụng domain model Progress để tính toán tiến trình học
-  const progress = new Progress({ user_id: user.id, lecture_id });
-  progress.calculateProgress(last_second, duration_sec);
-
-  await ProgressDao.upsert(user.id, lecture_id, {
-    last_second: progress.last_second,
-    watched_percent: progress.watched_percent,
-    is_completed: progress.is_completed
-  });
-  res.json({ ok: true });
-}
 
 
-export async function saveLectureDuration(req, res) {
-  const { lecture_id, duration_sec } = req.body;
-  if (!lecture_id || !duration_sec) return res.json({ ok: false });
 
-  await LectureDao.updateDuration(lecture_id, Math.max(1, Number(duration_sec)));
-  return res.json({ ok: true });
-}
-
-// ══════════════════════════════════════════
-// UC [11] Review Course
-// Class Diagram: Student.submitFeedback(cId, r, txt)
-// ══════════════════════════════════════════
-
-/**
- * Hiển thị form đánh giá.
- * UC [11] Main Flow: Kiểm tra quyền → hiển thị form.
- * Exception 3.1: Nếu đã đánh giá → hiển thị đánh giá cũ để chỉnh sửa.
- */
-export async function showFeedbackForm(req, res) {
-  const user = req.session.authUser;
-  const { courseId } = req.params;
-
-  const course = await CourseDao.findById(courseId);
-  if (!course) return res.status(404).render('404');
-
-  // phải mua khoá (sử dụng PurchasedDao)
-  const purchased = await PurchasedDao.findByUserAndCourse(user.id, courseId);
-
-
-  // % hoàn thành
-  const completion = await ProgressDao.courseCompletion(user.id, courseId);
-  const canReview = purchased && completion.total > 0 && completion.done >= 1;
-
-  const myFeedback = await FeedbackDao.findByUserCourse(user.id, courseId);
-
-  return res.render('vwStudent/feedback', {
-    course,
-    completion,              
-    canReview,
-    myFeedback,             
-    ok: req.query.ok === '1' 
-  });
-}
-
-/**
- * Gửi đánh giá khóa học.
- * UC [11] Main Flow Step 4-7: Actor chọn sao + nhận xét → lưu → cập nhật rating.
- */
-export async function submitFeedback(req, res) {
-  const user = req.session.authUser;
-  const { courseId } = req.params;
-  const { rating, comment } = req.body;
-
-  // validate căn bản — Rate enum (1–5)
-  const r = Number(rating);
-  if (!Number.isInteger(r) || r < 1 || r > 5) {
-    return res.status(400).render('vwStudent/feedback', {
-      course: await CourseDao.findById(courseId),
-      canReview: true,
-      myFeedback: null,
-      completion: await ProgressDao.courseCompletion(user.id, courseId),
-      error: 'Rating phải từ 1 đến 5 sao.',
-    });
-  }
-
-  // kiểm tra quyền đánh giá (đã mua + đã học 1 bài)
-  const purchased = await PurchasedDao.findByUserAndCourse(user.id, courseId);
-
-  const completion = await ProgressDao.courseCompletion(user.id, courseId);
-  const canReview = purchased && completion.total > 0 && completion.done >= 1;
-  if (!canReview) return res.status(403).render('403');
-
-  await FeedbackDao.upsert(user.id, courseId, r, (comment ?? '').trim());
-  // Trigger DB sẽ tự cập nhật courses.rating_avg & rating_count
-  return res.redirect(`/student/course/${courseId}/feedback?ok=1`);
-}
