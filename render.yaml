@@ -1,0 +1,11 @@
+# Render Blueprint cho FinalWeb2025
+# Docs: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: finalweb2025
+    runtime: node
+    plan: free
+    branch: KhanhTest
+    buildCommand: npm install
+    startCommand: node app.js
+    autoDeploy: true
