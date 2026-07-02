@@ -104,13 +104,6 @@ class Enrollment {
   +datetime enrolled_at
 }
 
-class OtpToken {
-  +string email
-  +string otp_code
-  +datetime expires_at
-  +datetime created_at
-}
-
 %% =====================
 %% Session-scoped (not persisted)
 %% =====================
@@ -161,8 +154,6 @@ Lecture "1" <-- "0..*" LectureProgress : lecture
 %% Enrollment (legacy/statistics; used for trending)
 User "1" <-- "0..*" Enrollment : student
 Course "1" <-- "0..*" Enrollment : course
-
-%% OTP token is email-scoped (verify before creating User)
 
 %% Session cart (code stores list of Course objects, no duplicates)
 Session "1" o-- "0..1" Cart : cart

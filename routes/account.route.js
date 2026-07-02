@@ -10,9 +10,6 @@ const router = express.Router();
 router.get('/signup', accountController.showSignup);
 router.post('/signup', accountController.doSignup);
 
-// Verify OTP
-router.post('/verify-otp', accountController.verifyOtp);
-
 // Check username available
 router.get('/is-available', accountController.checkAvailable);
 

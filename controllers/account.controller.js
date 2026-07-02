@@ -16,10 +16,8 @@
  */
 
 import bcrypt from 'bcryptjs';
-import nodemailer from 'nodemailer';
 
 import UserDao from '../daos/user.dao.js';
-import OtpTokenDao from '../daos/otp-token.dao.js';
 import Permission from '../enums/Permission.js';
 
 // ══════════════════════════════════════════
@@ -36,17 +34,18 @@ export function showSignup(req, res) {
 }
 
 /**
- * Xử lý đăng ký tài khoản → gửi OTP.
- * UC [01] Main Flow Step 3-5:
+ * Xử lý đăng ký tài khoản → tạo tài khoản ngay (không dùng OTP).
+ * UC [01] Main Flow:
  *   3. Actor nhập thông tin
- *   4. Hệ thống kiểm tra tính hợp lệ
- *   5. Gửi OTP qua email
+ *   4. Hệ thống kiểm tra tính hợp lệ (thiếu trường, email đã tồn tại)
+ *   5. Băm mật khẩu, tạo user (permission = STUDENT) và chuyển tới trang đăng nhập
  *
  * Exception Flow:
  *   4.1. Thiếu trường bắt buộc
- *   4.2. Mật khẩu quá ngắn (<6 ký tự)
- *   4.3. Mật khẩu xác thực không khớp
- *   4.4. Email không hợp lệ / đã tồn tại
+ *   4.2. Mật khẩu quá ngắn (<6 ký tự) — kiểm tra phía client
+ *   4.3. Mật khẩu xác thực không khớp — kiểm tra phía client
+ *   4.4. Email không hợp lệ — kiểm tra phía client
+ *   4.6. Email đã tồn tại
  */
 export async function doSignup(req, res) {
   try {
@@ -70,69 +69,7 @@ export async function doSignup(req, res) {
       return res.render('vwAccount/signup', { emailExist: true });
     }
 
-    // tạo & lưu OTP
-    const otp = Math.floor(100000 + Math.random() * 900000);
-
-    await OtpTokenDao.add(email, otp.toString(), 5);
-
-
-    // gửi mail OTP (Mailtrap sandbox)
-    const transporter = nodemailer.createTransport({
-      host: "sandbox.smtp.mailtrap.io",
-      port: 2525,
-      auth: {
-        user: "325d3a4b14039a",
-        pass: "17b0afcd916ef6"
-      }
-    });
-
-    await transporter.sendMail({
-      from: '"FinalWeb System" <noreply@finalweb.com>',
-      to: email,
-      subject: 'Mã xác nhận OTP',
-      text: `Xin chào ${name}, mã OTP của bạn là ${otp}. Mã có hiệu lực trong 5 phút.`,
-    });
-
-    // chuyển sang trang nhập OTP (pass data ẩn)
-    return res.render('vwAccount/verify-otp', {
-      username,
-      password,
-      name,
-      email,
-      dob,
-    });
-  } catch (err) {
-    console.error('❌ Lỗi tại signup:', err);
-    return res.status(500).render('vwAccount/signup', {
-      systemError: true,
-      message: 'Đăng ký thất bại, vui lòng thử lại sau.',
-    });
-  }
-}
-
-/**
- * Xác thực OTP và tạo tài khoản.
- * UC [01] — Bước cuối: Xác nhận OTP → tạo user (permission = STUDENT).
- */
-export async function verifyOtp(req, res) {
-  try {
-    const username = (req.body.username || req.body.name || '').trim();
-    const password = req.body.password || '';
-    const name = (req.body.name || username || '').trim();
-    const email = (req.body.email || '').trim();
-    const dob = req.body.dob || null;
-    const otp = (req.body.otp || '').trim();
-
-    if (!email || !username || !password) {
-      return res.status(400).send('❌ Thiếu thông tin. Vui lòng đăng ký lại.');
-    }
-
-    const record = await OtpTokenDao.findLatestByEmail(email);
-
-    if (!record) return res.send('❌ Không tìm thấy mã OTP.');
-    if (record.otp_code !== otp) return res.send('❌ Mã OTP không đúng.');
-    if (record.isExpired()) return res.send('❌ Mã OTP đã hết hạn.');
-
+    // băm mật khẩu & tạo tài khoản mới (permission = STUDENT)
     const hashed = bcrypt.hashSync(password, 10);
 
     // Class Diagram: User.register() — tạo user mới (permission = STUDENT)
@@ -146,14 +83,14 @@ export async function verifyOtp(req, res) {
       role: 'student',
     });
 
-    // xoá otp đã dùng
-    await OtpTokenDao.deleteByEmail(email);
-
-
+    // tạo tài khoản xong → chuyển sang trang đăng nhập
     return res.render('vwAccount/signin', { success: true });
   } catch (err) {
-    console.error('❌ Lỗi tại verify-otp:', err);
-    return res.status(500).send(`Lỗi xác nhận OTP: ${err.message}`);
+    console.error('❌ Lỗi tại signup:', err);
+    return res.status(500).render('vwAccount/signup', {
+      systemError: true,
+      message: 'Đăng ký thất bại, vui lòng thử lại sau.',
+    });
   }
 }
 
