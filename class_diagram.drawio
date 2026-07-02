@@ -199,33 +199,6 @@
         <mxCell id="m_Ad12" parent="c_Admin" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" value="+ deleteCategory(id): bool" vertex="1">
           <mxGeometry height="22" width="230" y="290" as="geometry" />
         </mxCell>
-        <mxCell id="c_Otp" parent="1" style="swimlane;fontStyle=0;align=center;startSize=40;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;rounded=1;arcSize=5;html=1;" value="&lt;font style=&quot;font-size:9px;&quot;&gt;«entity»&lt;/font&gt;&lt;br&gt;&lt;b&gt;OtpToken&lt;/b&gt;" vertex="1">
-          <mxGeometry height="202" width="210" x="1120" y="30" as="geometry" />
-        </mxCell>
-        <mxCell id="a_OTP1" parent="c_Otp" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" value="+ id: int {PK}" vertex="1">
-          <mxGeometry height="22" width="210" y="40" as="geometry" />
-        </mxCell>
-        <mxCell id="a_OTP2" parent="c_Otp" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" value="+ email: string" vertex="1">
-          <mxGeometry height="22" width="210" y="62" as="geometry" />
-        </mxCell>
-        <mxCell id="a_OTP3" parent="c_Otp" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" value="+ otp_code: string {6 chữ số}" vertex="1">
-          <mxGeometry height="22" width="210" y="84" as="geometry" />
-        </mxCell>
-        <mxCell id="a_OTP4" parent="c_Otp" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" value="+ expires_at: timestamp {5 phút}" vertex="1">
-          <mxGeometry height="22" width="210" y="106" as="geometry" />
-        </mxCell>
-        <mxCell id="s_OTP" parent="c_Otp" style="line;strokeColor=#666;fillColor=none;" value="" vertex="1">
-          <mxGeometry height="8" width="210" y="128" as="geometry" />
-        </mxCell>
-        <mxCell id="m_OTP1" parent="c_Otp" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" value="+ insert(email,otp,exp): void" vertex="1">
-          <mxGeometry height="22" width="210" y="136" as="geometry" />
-        </mxCell>
-        <mxCell id="m_OTP2" parent="c_Otp" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" value="+ verify(email,otp): bool" vertex="1">
-          <mxGeometry height="22" width="210" y="158" as="geometry" />
-        </mxCell>
-        <mxCell id="m_OTP3" parent="c_Otp" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" value="+ deleteByEmail(email): void" vertex="1">
-          <mxGeometry height="22" width="210" y="180" as="geometry" />
-        </mxCell>
         <mxCell id="c_Course" parent="1" style="swimlane;fontStyle=0;align=center;startSize=40;fillColor=#d5e8d4;strokeColor=#82b366;rounded=1;arcSize=5;html=1;" value="&lt;font style=&quot;font-size:9px;&quot;&gt;«entity»&lt;/font&gt;&lt;br&gt;&lt;b&gt;Course&lt;/b&gt;" vertex="1">
           <mxGeometry height="510" width="240" x="280" y="448" as="geometry" />
         </mxCell>
@@ -715,9 +688,6 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="e20" edge="1" parent="1" source="c_LP" style="endArrow=open;endSize=8;edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=1;fontSize=10;" target="c_Lec" value="lecture_id FK">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e21" edge="1" parent="1" source="c_Guest" style="endArrow=open;endSize=8;edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=1;fontSize=10;" target="c_Otp" value="«uses»">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="e22" edge="1" parent="1" source="c_LP" style="endArrow=open;endSize=8;edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=1;fontSize=10;" target="c_PR" value="«returns»">

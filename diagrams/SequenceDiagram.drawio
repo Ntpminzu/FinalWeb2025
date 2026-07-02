@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" pages="1">
+<mxfile host="app.diagrams.net" pages="2">
   <diagram id="reg_dosignup" name="UC01 Register (doSignup)">
     <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="980" pageHeight="800" math="0" shadow="0">
       <root>
@@ -102,6 +102,105 @@
         </mxCell>
         <mxCell id="rg_m17" value="17. hiển thị trang Sign In (vwAccount/signin — tạo tài khoản thành công)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry"><mxPoint x="285" y="688" as="sourcePoint"/><mxPoint x="95" y="688" as="targetPoint"/></mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="login_dosignin" name="UC02 Login (doSignin)">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="960" pageHeight="760" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="lg_title" value="&lt;b&gt;Sequence Diagram — UC02 Login • Đăng nhập (doSignin)&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="240" y="5" width="470" height="30" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="lg_guest" value="Guest" style="shape=umlLifeline;participant=umlActor;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="110" height="640" as="geometry"/>
+        </mxCell>
+        <mxCell id="lg_boundary" value="&lt;b&gt;:LoginView&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;" vertex="1" parent="1">
+          <mxGeometry x="210" y="40" width="150" height="640" as="geometry"/>
+        </mxCell>
+        <mxCell id="lg_control" value="&lt;b&gt;:AccountController&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;" vertex="1" parent="1">
+          <mxGeometry x="420" y="40" width="160" height="640" as="geometry"/>
+        </mxCell>
+        <mxCell id="lg_userDAO" value="&lt;b&gt;:UserDAO&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;" vertex="1" parent="1">
+          <mxGeometry x="630" y="40" width="120" height="640" as="geometry"/>
+        </mxCell>
+        <mxCell id="lg_db" value="&lt;b&gt;Database&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;" vertex="1" parent="1">
+          <mxGeometry x="800" y="40" width="100" height="640" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="lg_alt" value="alt" style="shape=umlFrame;whiteSpace=wrap;html=1;width=40;height=20;boundedLbl=1;verticalAlign=top;align=left;spacingLeft=5;dashed=0;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="45" y="272" width="850" height="378" as="geometry"/>
+        </mxCell>
+        <mxCell id="lg_g1" value="[user == null (Exception 3.2)]" style="text;html=1;align=left;verticalAlign=top;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontStyle=3;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="65" y="280" width="240" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="lg_g2" value="[user.is_disabled == true (Exception 3.3)]" style="text;html=1;align=left;verticalAlign=top;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontStyle=3;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="65" y="362" width="280" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="lg_g3" value="[!bcrypt.compareSync(password, user.password) (Exception 3.2)]" style="text;html=1;align=left;verticalAlign=top;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontStyle=3;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="65" y="442" width="400" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="lg_g4" value="[ngược lại — xác thực thành công]" style="text;html=1;align=left;verticalAlign=top;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontStyle=3;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="65" y="522" width="260" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="lg_sep1" value="" style="endArrow=none;dashed=1;html=1;strokeWidth=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="45" y="354" as="sourcePoint"/><mxPoint x="895" y="354" as="targetPoint"/></mxGeometry>
+        </mxCell>
+        <mxCell id="lg_sep2" value="" style="endArrow=none;dashed=1;html=1;strokeWidth=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="45" y="434" as="sourcePoint"/><mxPoint x="895" y="434" as="targetPoint"/></mxGeometry>
+        </mxCell>
+        <mxCell id="lg_sep3" value="" style="endArrow=none;dashed=1;html=1;strokeWidth=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="45" y="514" as="sourcePoint"/><mxPoint x="895" y="514" as="targetPoint"/></mxGeometry>
+        </mxCell>
+
+        <mxCell id="lg_m1" value="1. nhập Username và Password, nhấn Đăng nhập (required — Exception 3.1)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="95" y="110" as="sourcePoint"/><mxPoint x="285" y="110" as="targetPoint"/></mxGeometry>
+        </mxCell>
+        <mxCell id="lg_m2" value="2. doSignin(username, password) «POST /account/signin»" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="285" y="140" as="sourcePoint"/><mxPoint x="500" y="140" as="targetPoint"/></mxGeometry>
+        </mxCell>
+        <mxCell id="lg_m3" value="3. findByUsername(username) / findByName(username)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="500" y="170" as="sourcePoint"/><mxPoint x="690" y="170" as="targetPoint"/></mxGeometry>
+        </mxCell>
+        <mxCell id="lg_m4" value="4. execute select query" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="690" y="200" as="sourcePoint"/><mxPoint x="850" y="200" as="targetPoint"/></mxGeometry>
+        </mxCell>
+        <mxCell id="lg_m5" value="5. return user record" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="850" y="224" as="sourcePoint"/><mxPoint x="690" y="224" as="targetPoint"/></mxGeometry>
+        </mxCell>
+        <mxCell id="lg_m6" value="6. return user" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="690" y="248" as="sourcePoint"/><mxPoint x="500" y="248" as="targetPoint"/></mxGeometry>
+        </mxCell>
+        <mxCell id="lg_m7" value="7. renderSignin(error: true)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="500" y="306" as="sourcePoint"/><mxPoint x="285" y="306" as="targetPoint"/></mxGeometry>
+        </mxCell>
+        <mxCell id="lg_m8" value="8. show &quot;Invalid username or password&quot;" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="285" y="330" as="sourcePoint"/><mxPoint x="95" y="330" as="targetPoint"/></mxGeometry>
+        </mxCell>
+        <mxCell id="lg_m9" value="9. renderSignin(error: true, disabled: true)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="500" y="386" as="sourcePoint"/><mxPoint x="285" y="386" as="targetPoint"/></mxGeometry>
+        </mxCell>
+        <mxCell id="lg_m10" value="10. show &quot;Tài khoản đã bị vô hiệu hóa, vui lòng liên hệ admin&quot;" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="285" y="410" as="sourcePoint"/><mxPoint x="95" y="410" as="targetPoint"/></mxGeometry>
+        </mxCell>
+        <mxCell id="lg_m11" value="11. renderSignin(error: true)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="500" y="466" as="sourcePoint"/><mxPoint x="285" y="466" as="targetPoint"/></mxGeometry>
+        </mxCell>
+        <mxCell id="lg_m12" value="12. show &quot;Invalid username or password&quot;" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="285" y="490" as="sourcePoint"/><mxPoint x="95" y="490" as="targetPoint"/></mxGeometry>
+        </mxCell>
+        <mxCell id="lg_m13" value="13. setSession(isAuthenticated = true, authUser = user)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="500" y="546" as="sourcePoint"/><mxPoint x="500" y="574" as="targetPoint"/><Array as="points"><mxPoint x="575" y="546"/><mxPoint x="575" y="574"/></Array></mxGeometry>
+        </mxCell>
+        <mxCell id="lg_m14" value="14. redirect theo permission (1→/student, 2→/instructor, 3→/admin)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="500" y="596" as="sourcePoint"/><mxPoint x="285" y="596" as="targetPoint"/></mxGeometry>
+        </mxCell>
+        <mxCell id="lg_m15" value="15. chuyển hướng tới trang chủ / dashboard tương ứng" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="285" y="620" as="sourcePoint"/><mxPoint x="95" y="620" as="targetPoint"/></mxGeometry>
         </mxCell>
       </root>
     </mxGraphModel>
