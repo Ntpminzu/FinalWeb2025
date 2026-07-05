@@ -1,0 +1,179 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="UC07 - View Courses by Category (Simple BCE)" id="uc07_simple_bce_seq">
+    <mxGraphModel dx="1200" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1050" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="title" value="&lt;b&gt;Sequence Diagram: UC07 - View Courses by Category (Xem khóa học qua danh mục) [Simple BCE with DAO &amp; DB]&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="210" y="5" width="650" height="30" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="guest" value="Guest" style="shape=umlLifeline;participant=umlActor;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="50" y="40" width="100" height="790" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="boundary" value="&lt;b&gt;:CategoryBoundary&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="190" y="40" width="140" height="790" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="control" value="&lt;b&gt;:CategoryController&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="370" y="40" width="150" height="790" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="categoryDAO" value="&lt;b&gt;:CategoryDAO&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="570" y="40" width="120" height="790" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="courseDAO" value="&lt;b&gt;:CourseDAO&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="740" y="40" width="115" height="790" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="db" value="&lt;b&gt;Database&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="910" y="40" width="100" height="790" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="msg1" value="click &quot;Khám phá&quot;" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="100" y="110" as="sourcePoint"/>
+            <mxPoint x="260" y="110" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="msg2" value="show category dropdown" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="260" y="145" as="sourcePoint"/>
+            <mxPoint x="100" y="145" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="msg3" value="select category(categoryId)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="100" y="190" as="sourcePoint"/>
+            <mxPoint x="260" y="190" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="msg4" value="GET /categories/:id" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="260" y="225" as="sourcePoint"/>
+            <mxPoint x="445" y="225" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="msg5" value="showByCategory(categoryId)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="445" y="260" as="sourcePoint"/>
+            <mxPoint x="445" y="285" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="msg6" value="findById(categoryId)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="445" y="315" as="sourcePoint"/>
+            <mxPoint x="630" y="315" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="msg7" value="select category by id" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="630" y="350" as="sourcePoint"/>
+            <mxPoint x="960" y="350" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="msg8" value="return category" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="960" y="385" as="sourcePoint"/>
+            <mxPoint x="445" y="385" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="msg9" value="findChildIds(categoryId)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="445" y="430" as="sourcePoint"/>
+            <mxPoint x="630" y="430" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="msg10" value="select child category ids" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="630" y="465" as="sourcePoint"/>
+            <mxPoint x="960" y="465" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="msg11" value="return childIds" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="960" y="500" as="sourcePoint"/>
+            <mxPoint x="445" y="500" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="msg12" value="allCategoryIds = [categoryId, ...childIds]" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="445" y="540" as="sourcePoint"/>
+            <mxPoint x="445" y="565" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="msg13" value="findPageByCategoryIds(allCategoryIds, limit, offset)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="445" y="600" as="sourcePoint"/>
+            <mxPoint x="798" y="600" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="msg14" value="select courses where category_id in (...)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="798" y="635" as="sourcePoint"/>
+            <mxPoint x="960" y="635" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="msg15" value="return course rows" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="960" y="670" as="sourcePoint"/>
+            <mxPoint x="798" y="670" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="msg16" value="return courses" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="798" y="705" as="sourcePoint"/>
+            <mxPoint x="445" y="705" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="msg17" value="countByCategoryIds(allCategoryIds)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="445" y="745" as="sourcePoint"/>
+            <mxPoint x="798" y="745" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="msg18" value="return totalCourses" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="798" y="780" as="sourcePoint"/>
+            <mxPoint x="445" y="780" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="msg19" value="render byCategory(category, courses, pagination)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="445" y="820" as="sourcePoint"/>
+            <mxPoint x="260" y="820" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="msg20" value="display courses by selected category" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="260" y="855" as="sourcePoint"/>
+            <mxPoint x="100" y="855" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

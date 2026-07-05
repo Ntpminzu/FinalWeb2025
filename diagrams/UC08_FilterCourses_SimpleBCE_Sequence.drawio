@@ -1,0 +1,148 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="UC08 - Filter Courses (Simple BCE)" id="uc08_simple_bce_seq">
+    <mxGraphModel dx="1200" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1000" pageHeight="820" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="title" value="&lt;b&gt;Sequence Diagram: UC08 - Filter Courses (Lọc khóa học) [Simple BCE with DAO &amp; DB]&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="230" y="5" width="560" height="30" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="guest" value="Guest" style="shape=umlLifeline;participant=umlActor;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="60" y="40" width="100" height="720" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="boundary" value="&lt;b&gt;:SearchBoundary&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="210" y="40" width="135" height="720" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="control" value="&lt;b&gt;:SearchController&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="405" y="40" width="145" height="720" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="courseDAO" value="&lt;b&gt;:CourseDAO&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="630" y="40" width="120" height="720" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="db" value="&lt;b&gt;Database&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="850" y="40" width="100" height="720" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="note_precondition" value="Pre-condition: Guest đã sử dụng thanh search, trang /search?q=... đang hiển thị." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="35" y="75" width="910" height="35" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="msg1" value="click dropdown &quot;Liên quan nhất (Mặc định)&quot;" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="110" y="145" as="sourcePoint"/>
+            <mxPoint x="278" y="145" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="msg2" value="show filter menu" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="278" y="180" as="sourcePoint"/>
+            <mxPoint x="110" y="180" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="msg3" value="select filter(sortOption)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="110" y="225" as="sourcePoint"/>
+            <mxPoint x="278" y="225" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="msg4" value="auto submit form with q and sort" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="278" y="260" as="sourcePoint"/>
+            <mxPoint x="278" y="290" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="msg5" value="GET /search?q=query&amp;sort=sortOption" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="278" y="325" as="sourcePoint"/>
+            <mxPoint x="478" y="325" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="msg6" value="search(req.query.q, req.query.sort)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="478" y="360" as="sourcePoint"/>
+            <mxPoint x="478" y="390" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="msg7" value="findPageByFTS(query, sortOption, limit, offset)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="478" y="425" as="sourcePoint"/>
+            <mxPoint x="690" y="425" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="msg8" value="sanitizeFTS(query)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="690" y="460" as="sourcePoint"/>
+            <mxPoint x="690" y="490" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="msg9" value="select matching courses with ORDER BY sortOption" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="690" y="525" as="sourcePoint"/>
+            <mxPoint x="900" y="525" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="msg10" value="return sorted course rows" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="900" y="560" as="sourcePoint"/>
+            <mxPoint x="690" y="560" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="msg11" value="return courses" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="690" y="595" as="sourcePoint"/>
+            <mxPoint x="478" y="595" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="msg12" value="countByFTS(query)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="478" y="635" as="sourcePoint"/>
+            <mxPoint x="690" y="635" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="msg13" value="return totalCourses" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;endFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="690" y="670" as="sourcePoint"/>
+            <mxPoint x="478" y="670" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="msg14" value="render search(query, sort, courses, pagination)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="478" y="710" as="sourcePoint"/>
+            <mxPoint x="278" y="710" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="msg15" value="display filtered courses" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="278" y="745" as="sourcePoint"/>
+            <mxPoint x="110" y="745" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="alt" value="sortOption: default = rank desc | rating_desc = rating_avg desc | price_asc = price asc" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="525" y="305" width="405" height="55" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,190 +1,324 @@
-# Hướng dẫn Báo cáo Đồ án OOSE: UC10 & UC11
+# Hướng dẫn Báo cáo Đồ án OOSE: UC07 & UC08
 
 Tài liệu này là kịch bản báo cáo từng bước liên kết giữa **Đặc tả Use Case** $\rightarrow$ **Sơ đồ tuần tự (Sequence Diagram)** $\rightarrow$ **Mã nguồn thực tế (Code)** $\rightarrow$ **Thao tác Demo trình duyệt** cho cả hai Use Case:
-1. **UC10 - Watch Lecture (Xem bài giảng)**
-2. **UC11 - Review Course (Đánh giá khóa học)**
+1. **UC07 - View Courses by Category (Xem khóa học qua danh mục)**
+2. **UC08 - Filter Courses (Lọc khóa học)**
 
 ---
 
-## ──────────────────────────────────────────
-## PHẦN A: BÁO CÁO UC10 - WATCH LECTURE (XEM BÀI GIẢNG)
-## ──────────────────────────────────────────
+## PHẦN A: BÁO CÁO UC07 - VIEW COURSES BY CATEGORY
 
-### I. ĐẶC TẢ USE CASE UC10 CHÍNH THỨC
+### I. ĐẶC TẢ USE CASE UC07 CHÍNH THỨC
+
 | Mục | Chi tiết đặc tả Use Case |
 | :--- | :--- |
-| **[10]** | **Watch Lecture (Xem bài giảng)** |
-| **Actor** | Student |
-| **Trigger** | Khi Actor nhấn vào một khóa học đã mua để bắt đầu học. |
-| **Description** | Use case cho phép Actor xem video bài giảng và tài liệu học tập của một khóa học. |
-| **Pre-Conditions** | Actor đã đăng nhập và đã sở hữu khóa học đó. |
-| **Post-Conditions** | Bài giảng được phát, tiến độ học tập được lưu lại. |
-| **Main Flow** | 1. Actor chọn một khóa học trong danh sách khóa học đã mua.<br>2. Hệ thống truy cập vào CSDL của khóa học đó.<br>3. Học viên lựa chọn bài học muốn học trong danh sách bài học của khóa học.<br>4. Hệ thống tải video và tài liệu đính kèm.<br>5. Actor xem video bài giảng.<br>6. Hệ thống tự động kích hoạt Use case **Save Progress** khi Actor xem xong hoặc đánh dấu hoàn thành.<br>7. Giao diện cập nhật trạng thái bài giảng thành "Đã hoàn thành". |
+| **[07]** | **View Courses by Category (Xem khóa học qua danh mục)** |
+| **Actor** | Guest |
+| **Trigger** | Khi Actor nhấn vào bất kỳ danh mục nào tại cửa sổ danh mục. |
+| **Description** | Use case cho phép Actor xem danh sách các khóa học theo đúng loại danh mục đã chọn. |
+| **Pre-Conditions** | Không có. |
+| **Post-Conditions** | Danh sách các khóa học phù hợp với danh mục được hiển thị. |
+| **Main Flow** | 1. Actor nhấn chọn tại cửa sổ danh mục “Khám phá”.<br>2. Hệ thống hiện bảng danh mục hiện có theo dạng danh sách sổ xuống.<br>3. Actor nhấn chọn vào một trong các danh mục.<br>4. Hệ thống truy xuất lấy dữ liệu các khóa học liên quan.<br>5. Hệ thống đưa Actor đến trang danh sách các khóa học liên quan đến danh mục đã chọn. |
 | **Alternate Flow** | Không có. |
-| **Exception Flow** | **2.1.** Nếu khóa học mà Actor truy cập vào không có bài giảng khả dụng: Hệ thống hiển thị "Khóa học chưa có bài giảng." và nút "quay lại".<br>**2.1.** Actor nhấn vào nút quay lại và thực hiện bước 1. |
+| **Exception Flow** | Không có. |
 
----
+### II. KỊCH BẢN BÁO CÁO UC07 (DIAGRAM $\rightarrow$ CODE $\rightarrow$ DEMO)
 
-### II. KỊCH BẢN BÁO CÁO UC10 (DIAGRAM $\rightarrow$ CODE $\rightarrow$ DEMO)
+#### Bước A.1: Mở menu “Khám phá” và hiển thị danh mục
 
-#### Bước A.1: Truy cập trang danh sách bài học & Kiểm tra bài giảng (Exception 2.1)
-* **Demo trên Web:** Học viên vào mục **"Khóa học đã mua"** $\rightarrow$ Click vào nút **"Vào học"** của một khóa học.
-  - *Nếu khóa học trống:* Giao diện hiển thị thông báo *"Khóa học chưa có bài giảng."* và nút *"Quay lại"*.
-* **Tương ứng trên Sequence Diagram:**
-  - Tin nhắn 1 & 2: `Student` click chọn khóa học $\rightarrow$ `:LectureBoundary` gửi yêu cầu `showCourseLectures(courseId)` tới `:LectureController`.
-  - Tin nhắn 3 & 6: `:LectureController` gọi `:LectureDAO: findByCourse(courseId)`.
-  - `:LectureDAO` truy vấn `Database` và trả về danh sách rỗng (Tin nhắn 4 & 5).
-  - Tin nhắn 7 & 8: `:LectureController` trả về trang danh sách bài học rỗng $\rightarrow$ `:LectureBoundary` kích hoạt Exception 2.1 bằng cách hiển thị thông báo *"Khóa học chưa có bài giảng."* và nút *"Quay lại"*.
+* **Demo trên Web:** Tại thanh điều hướng, Guest nhấn vào menu **“Khám phá”**. Hệ thống xổ xuống danh sách danh mục cha và danh mục con.
+* **Tương ứng trên Sequence Diagram:** [UC07_ViewCoursesByCategory_SimpleBCE_Sequence.drawio](diagrams/UC07_ViewCoursesByCategory_SimpleBCE_Sequence.drawio)
+  - Tin nhắn 1: `Guest` click **"Khám phá"** vào `:CategoryBoundary`.
+  - Tin nhắn 2: `:CategoryBoundary` hiển thị danh sách danh mục dạng dropdown.
 * **Vị trí Code tương ứng:**
-  - **Route tiếp nhận:** [student.route.js:L37](file:///c:/Users/GameLap/Desktop/zoo_git/FinalWeb2025/routes/student.route.js#L37) định nghĩa route `/student/courses/:courseId` trỏ tới `lectureController.showCourseLectures`.
-  - **Xử lý Controller:** [lecture.controller.js:L11-L21](file:///c:/Users/GameLap/Desktop/zoo_git/FinalWeb2025/controllers/lecture.controller.js#L11-L21) (`showCourseLectures`) gọi `LectureDao.findByCourse(courseId)`.
-  - **Truy vấn DAO:** [lecture.dao.js:L5-L16](file:///c:/Users/GameLap/Desktop/zoo_git/FinalWeb2025/daos/lecture.dao.js#L5-L16) thực hiện câu lệnh SELECT từ bảng `lectures`.
-  - **Vẽ giao diện (Boundary):** [course-lectures.handlebars:L72-L78](file:///c:/Users/GameLap/Desktop/zoo_git/FinalWeb2025/views/vwStudent/course-lectures.handlebars#L72-L78):
-    ```handlebars
-    {{else}}
-      <div class="text-muted">Khóa học chưa có bài giảng.</div>
-    {{/if}}
+  - **Middleware nạp danh mục cho header:** [app.js](app.js) gọi `CategoryDao.all()` và gán vào `res.locals.categories`:
+    ```javascript
+    const categories = await CategoryDao.all();
+    res.locals.categories = categories;
+    ```
+  - **DAO lấy danh mục cha - con:** [category.dao.js](daos/category.dao.js) có hàm `CategoryDao.all()` đọc bảng `categories` và gom cây danh mục.
+  - **Boundary hiển thị dropdown:** [main.handlebars](views/layouts/main.handlebars) duyệt `{{#each categories}}` và tạo link `/categories/{{this.id}}`.
+
+#### Bước A.2: Guest chọn một danh mục
+
+* **Demo trên Web:** Guest chọn một danh mục bất kỳ trong menu **“Khám phá”**, ví dụ một danh mục con. Trình duyệt chuyển đến URL dạng:
+  ```text
+  /categories/:id
+  ```
+* **Tương ứng trên Sequence Diagram:**
+  - Tin nhắn 3: `Guest` chọn `category(categoryId)`.
+  - Tin nhắn 4: `:CategoryBoundary` gửi request `GET /categories/:id` đến `:CategoryController`.
+  - Tin nhắn 5: `:CategoryController` thực thi `showByCategory(categoryId)`.
+* **Vị trí Code tương ứng:**
+  - **Gắn router:** [app.js](app.js)
+    ```javascript
+    app.use('/categories', categoryRoute);
+    ```
+  - **Route tiếp nhận:** [category.route.js](routes/category.route.js)
+    ```javascript
+    router.get('/:id', categoryController.showByCategory);
+    ```
+  - **Controller xử lý:** [category.controller.js](controllers/category.controller.js) có hàm `showByCategory(req, res, next)`.
+
+#### Bước A.3: Hệ thống truy xuất dữ liệu khóa học theo danh mục
+
+* **Demo trên Web:** Sau khi chọn danh mục, hệ thống lấy các khóa học thuộc danh mục đó. Nếu danh mục được chọn là danh mục cha, hệ thống lấy thêm khóa học thuộc các danh mục con.
+* **Tương ứng trên Sequence Diagram:**
+  - Tin nhắn 6-8: `:CategoryController` gọi `:CategoryDAO.findById(categoryId)` để kiểm tra danh mục tồn tại.
+  - Tin nhắn 9-11: `:CategoryController` gọi `:CategoryDAO.findChildIds(categoryId)` để lấy các danh mục con.
+  - Tin nhắn 12: Controller tạo `allCategoryIds = [categoryId, ...childIds]`.
+  - Tin nhắn 13-16: `:CategoryController` gọi `:CourseDAO.findPageByCategoryIds(allCategoryIds, limit, offset)` để lấy danh sách khóa học.
+  - Tin nhắn 17-18: `:CategoryController` gọi `:CourseDAO.countByCategoryIds(allCategoryIds)` để tính tổng số khóa học phục vụ phân trang.
+* **Vị trí Code tương ứng:**
+  - **Tạo danh sách id danh mục:** [category.controller.js](controllers/category.controller.js)
+    ```javascript
+    const category = await CategoryDao.findById(parentCategoryId);
+    const childIds = await CategoryDao.findChildIds(parentCategoryId);
+    const allCategoryIds = [parentCategoryId, ...childIds];
+    ```
+  - **Lấy khóa học và tổng số khóa học:** [category.controller.js](controllers/category.controller.js)
+    ```javascript
+    const [courses, totalCourses] = await Promise.all([
+      CourseDao.findPageByCategoryIds(allCategoryIds, limit, offset),
+      CourseDao.countByCategoryIds(allCategoryIds)
+    ]);
+    ```
+  - **DAO tìm danh mục con:** [category.dao.js](daos/category.dao.js)
+    ```javascript
+    static async findChildIds(parentId) {
+      const children = await db('categories')
+        .where('parent_id', parentId)
+        .select('id');
+      return children.map(child => child.id);
+    }
+    ```
+  - **DAO lấy khóa học theo danh mục:** [course.dao.js](daos/course.dao.js)
+    ```javascript
+    static findPageByCategoryIds(idArray, limit, offset) {
+      return db('courses as c')
+        .where('c.is_disabled', false)
+        .whereIn('c.category_id', idArray)
+        .orderBy('c.id', 'desc')
+        .limit(limit)
+        .offset(offset);
+    }
     ```
 
-#### Bước A.2: Chọn bài giảng, tải video & khôi phục tiến trình (Basic Flow: 3 -> 5)
-* **Demo trên Web:** Học viên nhìn thấy danh sách bài học của khóa học $\rightarrow$ Click vào nút **"Vào học"** ở một bài học $\rightarrow$ Giao diện video player tải thành công bài học, tự động nhảy tới giây trước đó đang học dở.
+#### Bước A.4: Hiển thị trang danh sách khóa học theo danh mục
+
+* **Demo trên Web:** Trang hiển thị tiêu đề **“Các khóa học thuộc lĩnh vực: ...”** và danh sách khóa học dạng card. Mỗi card có ảnh, tên khóa học, rating, giá, nút thêm vào giỏ và nút xem chi tiết.
 * **Tương ứng trên Sequence Diagram:**
-  - Tin nhắn 9a & 9b: `:LectureController` trả về danh sách bài học `renderCourseLectures(lectures)` $\rightarrow$ `:LectureBoundary` hiển thị danh sách bài học.
-  - Tin nhắn 9c & 9d: `Student` chọn một bài cụ thể $\rightarrow$ `:LectureBoundary` gửi yêu cầu `getLecture(userId, courseId, lectureId)` về `:LectureController`.
-  - Tin nhắn 9 & 12: `:LectureController` gọi `:LectureDAO: findById(lectureId)` để lấy metadata bài giảng.
-  - Tin nhắn 13 & 16: `:LectureController` gọi `:LectureProgressDAO: find(userId, lectureId)` lấy giây xem cũ.
-  - Tin nhắn 17 & 18: `:LectureController` trả về `renderLearnPage` $\rightarrow$ `:LectureBoundary` phát video và hiển thị Outline bài giảng.
+  - Tin nhắn 19: `:CategoryController` trả dữ liệu `render byCategory(category, courses, pagination)` về `:CategoryBoundary`.
+  - Tin nhắn 20: `:CategoryBoundary` hiển thị danh sách khóa học cho `Guest`.
 * **Vị trí Code tương ứng:**
-  - **Route tiếp nhận:** [student.route.js:L38](file:///c:/Users/GameLap/Desktop/zoo_git/FinalWeb2025/routes/student.route.js#L38) định nghĩa route GET `/courses/:courseId/:lectureId` trỏ tới `lectureController.getLecture`.
-  - **Xử lý Controller:** [lecture.controller.js:L28-L44](file:///c:/Users/GameLap/Desktop/zoo_git/FinalWeb2025/controllers/lecture.controller.js#L28-L44) (hàm `getLecture`):
+  - **Render view:** [category.controller.js](controllers/category.controller.js)
     ```javascript
-    const lectures = await LectureDao.findByCourse(courseId);
-    const current = await LectureDao.findById(lectureId);
-    const prog = await ProgressDao.find(user.id, current.id);
-    res.render('vwStudent/learn', { ... });
-    ```
-  - **Khôi phục ở Client (Boundary):** [learn.handlebars:L52-L58](file:///c:/Users/GameLap/Desktop/zoo_git/FinalWeb2025/views/vwStudent/learn.handlebars#L52-L58):
-    ```javascript
-    const lastSecond = Number('{{progress.last_second}}') || 0;
-    player.on('loadedmetadata', () => {
-      if (lastSecond > 0 && lastSecond < player.duration) {
-        player.currentTime = lastSecond;
+    res.render('vwCourse/byCategory', {
+      layout: 'main',
+      category: category,
+      courses: courses,
+      empty: courses.length === 0,
+      pagination: {
+        totalPages: totalPages,
+        currentPage: page,
+        queryString: null
       }
     });
     ```
+  - **Boundary hiển thị danh sách khóa học:** [byCategory.handlebars](views/vwCourse/byCategory.handlebars)
+    ```handlebars
+    <h2>
+        Các khóa học thuộc lĩnh vực:
+        <span class="text-primary">{{category.catname}}</span>
+    </h2>
 
-#### Bước A.3: Tự động lưu tiến độ học tập (Basic Flow: 6 -> 7)
-* **Demo trên Web:** Học viên mở video lên xem, bấm tua hoặc bấm **Pause (Tạm dừng)** hoặc đóng tab. F12 Network sẽ hiển thị API gửi ngầm request POST `progress`.
-* **Tương ứng trên Sequence Diagram:**
-  - Tin nhắn 19 & 20: `Student` kết thúc/tạm dừng xem $\rightarrow$ `:LectureBoundary` gọi `saveProgress(...)` về `:LectureController`.
-  - Tin nhắn 21 & 24: `:LectureController` gọi `:LectureProgressDAO: upsert(userId, lectureId, progress)`.
-  - Tin nhắn 25 & 26: Trả về thành công và giao diện cập nhật lại icon/trạng thái thành "Đã hoàn thành" (nếu xem $\ge 90\%$).
-* **Vị trí Code tương ứng:**
-  - **Phát hiện dừng/xem xong (Boundary):** [learn.handlebars:L98-L108](file:///c:/Users/GameLap/Desktop/zoo_git/FinalWeb2025/views/vwStudent/learn.handlebars#L98-L108):
-    ```javascript
-    player.on('ended', () => sendProgress(true));
-    player.on('pause', () => sendProgress(true));
-    ```
-  - **Route & Controller:** [student.route.js:L41](file:///c:/Users/GameLap/Desktop/zoo_git/FinalWeb2025/routes/student.route.js#L41) trỏ tới `lectureController.saveProgress` $\rightarrow$ xử lý tại [lecture.controller.js:L54-L68](file:///c:/Users/GameLap/Desktop/zoo_git/FinalWeb2025/controllers/lecture.controller.js#L54-L68):
-    ```javascript
-    const progress = new Progress({ user_id: user.id, lecture_id });
-    progress.calculateProgress(last_second, duration_sec); // Logic >= 90% tại progress.model.js:L51-L57
-    await ProgressDao.upsert(user.id, lecture_id, { ... }); // SQL UPDATE/INSERT tại progress.dao.js:L12-L24
-    res.json({ ok: true });
+    {{#each courses}}
+      <div class="card h-100 shadow-sm">
+        <img src="{{this.thumbnail}}" class="card-img-top" alt="{{this.title}}">
+        <h5 class="card-title text-truncate">{{this.title}}</h5>
+      </div>
+    {{/each}}
     ```
 
 ---
 
-## ──────────────────────────────────────────
-## PHẦN B: BÁO CÁO UC11 - REVIEW COURSE (ĐÁNH GIÁ KHÓA HỌC)
-## ──────────────────────────────────────────
+## PHẦN B: BÁO CÁO UC08 - FILTER COURSES
 
-### I. ĐẶC TẢ USE CASE UC11 CHÍNH THỨC
+### I. ĐẶC TẢ USE CASE UC08 CHÍNH THỨC
+
 | Mục | Chi tiết đặc tả Use Case |
 | :--- | :--- |
-| **[11]** | **Review Course (Đánh giá khóa học)** |
-| **Actor** | Student |
-| **Trigger** | Khi Actor nhấn vào nút "Đánh giá khóa học" trong trang danh sách bài học của khóa học đã mua. |
-| **Description** | Use case cho phép Actor đánh giá mức độ hài lòng (sao) và bình luận (comment) cho khóa học đã mua và đã bắt đầu học. |
-| **Pre-Conditions** | Actor đã đăng nhập, đã sở hữu khóa học đó và đã xem ít nhất 1 bài học của khóa học. |
-| **Post-Conditions** | Đánh giá được lưu lại thành công, điểm trung bình và số lượt đánh giá của khóa học được cập nhật. |
-| **Main Flow** | 1. Actor nhấn vào nút "Đánh giá khóa học".<br>2. Hệ thống truy cập vào CSDL để kiểm tra trạng thái đánh giá cũ của học viên.<br>3. Hệ thống hiển thị form đánh giá trống (showEmptyForm) [Nhánh chưa đánh giá].<br>4. Actor chọn số sao (rating), nhập nhận xét (comment) và click "Gửi đánh giá".<br>5. Hệ thống lưu đánh giá mới vào CSDL.<br>6. Hệ thống tự động tính toán lại điểm đánh giá trung bình của khóa học đó.<br>7. Giao diện hiển thị thông báo cảm ơn và cập nhật hiển thị. |
+| **[08]** | **Filter Courses (Lọc khóa học)** |
+| **Actor** | Guest |
+| **Trigger** | Khi Actor truy cập vào mục “Liên quan nhất (Mặc định)”. |
+| **Description** | Use case hiển thị danh sách các khóa học theo bộ lọc mà Actor đã chọn. |
+| **Pre-Conditions** | Actor đã sử dụng công cụ tìm kiếm (thanh search). |
+| **Post-Conditions** | Danh sách khóa học đã được sắp xếp theo bộ lọc được hiển thị. |
+| **Main Flow** | 1. Actor nhấn vào bộ lọc trình đơn thả xuống có chữ “Liên quan nhất (Mặc định)”.<br>2. Hệ thống hiển thị menu các bộ lọc.<br>3. Hệ thống thực hiện sắp xếp các khóa học theo bộ lọc.<br>4. Hệ thống hiển thị danh sách khóa học đã được sắp xếp lên màn hình. |
 | **Alternate Flow** | Không có. |
-| **Exception Flow** | **3.1. Nếu học viên đã đánh giá khóa học này trước đó:**<br>1. Hệ thống hiển thị form điền sẵn nội dung đánh giá trước đó (showExistingReview).<br>2. Actor chỉnh sửa số sao, bình luận và click "Gửi đánh giá".<br>3. Hệ thống cập nhật đánh giá cũ.<br>4. Đi tiếp bước 6 của Main Flow. |
+| **Exception Flow** | Không có. |
 
----
+### II. KỊCH BẢN BÁO CÁO UC08 (DIAGRAM $\rightarrow$ CODE $\rightarrow$ DEMO)
 
-### II. KỊCH BẢN BÁO CÁO UC11 (DIAGRAM $\rightarrow$ CODE $\rightarrow$ DEMO)
+#### Bước B.1: Guest tìm kiếm khóa học trước khi lọc
 
-#### Bước B.1: Click "Đánh giá" & Kiểm tra trạng thái cũ (Main Flow 1-3 & Exception 3.1: 1)
-* **Demo trên Web:** Học viên vào trang bài học của khóa học $\rightarrow$ Click vào nút **"Đánh giá khóa học"**. 
-  - *Nếu chưa từng đánh giá:* Trang hiện lên một form đánh giá trống trơn (5 sao chưa chọn, ô nhận xét trống).
-  - *Nếu đã đánh giá trước đó (Exception 3.1):* Form tự động điền sẵn số sao và lời bình luận cũ đã viết.
-* **Tương ứng trên Sequence Diagram:**
-  - Tin nhắn 1 & 2: `Student` click đánh giá $\rightarrow$ `:ReviewBoundary` gửi yêu cầu `checkReviewStatus(userId, courseId)` về `:ReviewController`.
-  - Tin nhắn 3 & 6: `:ReviewController` gọi `:ReviewDAO: findByUserAndCourse(userId, courseId)` để tìm đánh giá cũ.
-  - Tin nhắn 7 (Exception 3.1) hoặc 14 (Main Flow): `:ReviewController` trả về form chứa thông tin đánh giá cũ (`showExistingReview`) hoặc form trống (`showEmptyForm`).
+* **Demo trên Web:** Guest nhập từ khóa vào thanh search, ví dụ `node`, rồi nhấn biểu tượng tìm kiếm. Hệ thống chuyển đến:
+  ```text
+  /search?q=node
+  ```
+* **Tương ứng trên Sequence Diagram:** [UC08_FilterCourses_SimpleBCE_Sequence.drawio](diagrams/UC08_FilterCourses_SimpleBCE_Sequence.drawio)
+  - Ghi chú pre-condition: `Guest` đã sử dụng thanh search và đang ở trang `/search?q=...`.
+  - Đây là điều kiện trước của UC08, vì bộ lọc chỉ xuất hiện sau khi đã có kết quả tìm kiếm.
 * **Vị trí Code tương ứng:**
-  - **Route tiếp nhận:** [student.route.js:L45](file:///c:/Users/GameLap/Desktop/zoo_git/FinalWeb2025/routes/student.route.js#L45) định nghĩa route GET `/course/:courseId/feedback` trỏ tới `reviewController.checkReviewStatus`.
-  - **Xử lý Controller:** [review.controller.js:L17-L40](file:///c:/Users/GameLap/Desktop/zoo_git/FinalWeb2025/controllers/review.controller.js#L17-L40) (hàm `checkReviewStatus`):
-    ```javascript
-    const myFeedback = await FeedbackDao.findByUserCourse(user.id, courseId); // Tìm đánh giá cũ của học viên
-    return res.render('vwStudent/feedback', { ..., myFeedback, ... });       // Render kèm thông tin đánh giá cũ (nếu có)
+  - **Form search trong layout:** [main.handlebars](views/layouts/main.handlebars)
+    ```handlebars
+    <form class="d-flex flex-grow-1 mx-3 navbar-search" role="search" action="/search" method="get">
+      <input class="form-control" type="search" name="q" placeholder="Tìm kiếm khóa học">
+    </form>
     ```
-  - **Truy vấn DAO:** [feedback.dao.js:L5-L10](file:///c:/Users/GameLap/Desktop/zoo_git/FinalWeb2025/daos/feedback.dao.js#L5-L10) thực hiện SELECT từ bảng `feedback`.
+  - **Gắn router search:** [app.js](app.js)
+    ```javascript
+    app.use('/search', searchRouter);
+    ```
+  - **Route tiếp nhận:** [search.route.js](routes/search.route.js)
+    ```javascript
+    router.get('/', searchController.search);
+    ```
 
-#### Bước B.2: Điền thông tin & Click gửi (Main Flow 4-5 & Exception 3.1: 2-3)
-* **Demo trên Web:** Học viên chọn lại số sao (ví dụ 4 sao), viết nội dung bình luận, rồi click vào nút **"Gửi đánh giá"**.
+#### Bước B.2: Mở dropdown “Liên quan nhất (Mặc định)”
+
+* **Demo trên Web:** Tại trang kết quả tìm kiếm, Guest nhấn dropdown **“Liên quan nhất (Mặc định)”**. Hệ thống hiển thị các lựa chọn:
+  ```text
+  Liên quan nhất (Mặc định)
+  Điểm đánh giá giảm dần
+  Giá tăng dần
+  ```
 * **Tương ứng trên Sequence Diagram:**
-  - Tin nhắn 8 & 9 (hoặc 15 & 16): `Student` gửi rating & comment $\rightarrow$ `:ReviewBoundary` truyền yêu cầu `submitReview(...)` hoặc `updateReview(...)` về `:ReviewController`.
-  - Tin nhắn 10 & 13 (hoặc 17 & 20): `:ReviewController` gọi `:ReviewDAO` thực hiện tạo mới (`create`) hoặc cập nhật (`update`).
+  - Tin nhắn 1: `Guest` click dropdown **"Liên quan nhất (Mặc định)"** vào `:SearchBoundary`.
+  - Tin nhắn 2: `:SearchBoundary` hiển thị menu bộ lọc.
 * **Vị trí Code tương ứng:**
-  - **Route tiếp nhận:** [student.route.js:L46](file:///c:/Users/GameLap/Desktop/zoo_git/FinalWeb2025/routes/student.route.js#L46) định nghĩa POST `/course/:courseId/feedback` trỏ tới `reviewController.submitReview`.
-  - **Xử lý Controller:** [review.controller.js:L47-L74](file:///c:/Users/GameLap/Desktop/zoo_git/FinalWeb2025/controllers/review.controller.js#L47-L74) (hàm `submitReview`):
-    ```javascript
-    // Kiểm tra tính hợp lệ và quyền đánh giá, sau đó gọi DAO thực hiện Upsert:
-    await FeedbackDao.upsert(user.id, courseId, r, comment.trim());
+  - **Boundary dropdown filter:** [search.handlebars](views/vwCourse/search.handlebars)
+    ```handlebars
+    <select class="form-select" name="sort" id="sortSelect" onchange="this.form.submit()">
+      <option value="default">Liên quan nhất (Mặc định)</option>
+      <option value="rating_desc">Điểm đánh giá giảm dần</option>
+      <option value="price_asc">Giá tăng dần</option>
+    </select>
     ```
-  - **DAO xử lý cập nhật/lưu mới (Upsert):** [feedback.dao.js:L12-L29](file:///c:/Users/GameLap/Desktop/zoo_git/FinalWeb2025/daos/feedback.dao.js#L12-L29):
+
+#### Bước B.3: Guest chọn một bộ lọc và form tự gửi request
+
+* **Demo trên Web:** Guest chọn **“Điểm đánh giá giảm dần”** hoặc **“Giá tăng dần”**. Form tự submit, URL trở thành:
+  ```text
+  /search?q=node&sort=rating_desc
+  ```
+  hoặc:
+  ```text
+  /search?q=node&sort=price_asc
+  ```
+* **Tương ứng trên Sequence Diagram:**
+  - Tin nhắn 3: `Guest` chọn `filter(sortOption)`.
+  - Tin nhắn 4: `:SearchBoundary` tự submit form với `q` và `sort`.
+  - Tin nhắn 5: `:SearchBoundary` gửi `GET /search?q=query&sort=sortOption` đến `:SearchController`.
+  - Tin nhắn 6: `:SearchController` chạy `search(req.query.q, req.query.sort)`.
+* **Vị trí Code tương ứng:**
+  - **Giữ lại từ khóa khi lọc:** [search.handlebars](views/vwCourse/search.handlebars)
+    ```handlebars
+    <input type="hidden" name="q" value="{{query}}">
+    ```
+  - **Tự submit khi đổi filter:** [search.handlebars](views/vwCourse/search.handlebars)
+    ```handlebars
+    <select class="form-select" name="sort" id="sortSelect" onchange="this.form.submit()">
+    ```
+  - **Controller đọc query và sort:** [search.controller.js](controllers/search.controller.js)
     ```javascript
-    const existed = await FeedbackDao.findByUserCourse(userId, courseId);
-    if (existed) {
-      return db('feedback').where(...).update(payload); // Tương ứng update query
+    const query = req.query.q || '';
+    const sortOption = req.query.sort || 'default';
+    ```
+
+#### Bước B.4: Hệ thống sắp xếp danh sách khóa học theo bộ lọc
+
+* **Demo trên Web:** Khi chọn **“Điểm đánh giá giảm dần”**, các khóa học có `rating_avg` cao hơn được đưa lên trước. Khi chọn **“Giá tăng dần”**, khóa học có giá thấp hơn được đưa lên trước. Nếu để mặc định, hệ thống sắp xếp theo độ liên quan với từ khóa.
+* **Tương ứng trên Sequence Diagram:**
+  - Tin nhắn 7: `:SearchController` gọi `:CourseDAO.findPageByFTS(query, sortOption, limit, offset)`.
+  - Tin nhắn 8: `:CourseDAO` làm sạch từ khóa bằng `sanitizeFTS(query)`.
+  - Tin nhắn 9-11: `:CourseDAO` truy vấn `Database`, áp dụng `ORDER BY` theo `sortOption`, rồi trả về danh sách khóa học đã sắp xếp.
+  - Tin nhắn 12-13: `:SearchController` gọi `:CourseDAO.countByFTS(query)` để tính tổng kết quả cho phân trang.
+* **Vị trí Code tương ứng:**
+  - **Controller gọi DAO:** [search.controller.js](controllers/search.controller.js)
+    ```javascript
+    const [courses, totalCourses] = await Promise.all([
+      CourseDao.findPageByFTS(query, sortOption, limit, offset),
+      CourseDao.countByFTS(query)
+    ]);
+    ```
+  - **DAO tìm kiếm và sắp xếp:** [course.dao.js](daos/course.dao.js)
+    ```javascript
+    switch (sortOption) {
+      case 'price_asc':
+        query.orderBy('c.price', 'asc');
+        break;
+      case 'rating_desc':
+        query.orderBy('c.rating_avg', 'desc');
+        break;
+      default:
+        query.orderBy('rank', 'desc');
+        break;
     }
-    return db('feedback').insert({ ... });              // Tương ứng insert query
     ```
 
-#### Bước B.3: Tính lại Rating trung bình của khóa học & Phản hồi (Flow 21-30)
-* **Demo trên Web:** Sau khi nhấn nút gửi, trang web tải lại và hiển thị thông báo màu xanh *"Cảm ơn bạn đã đánh giá"*. Điểm rating trung bình và lượt đánh giá của khóa học trên giao diện chính được tự động thay đổi.
+#### Bước B.5: Hiển thị danh sách khóa học đã lọc
+
+* **Demo trên Web:** Trang kết quả tìm kiếm tải lại và hiển thị danh sách khóa học theo đúng bộ lọc vừa chọn. Dropdown vẫn giữ trạng thái filter hiện tại.
 * **Tương ứng trên Sequence Diagram:**
-  - Tin nhắn 21 đến 28: `:ReviewController` gọi `:CourseDAO: recalculateAverageRating(courseId)` $\rightarrow$ `:CourseDAO` liên hệ `:ReviewDAO` lấy điểm trung bình $\rightarrow$ update ngược lại điểm đánh giá trung bình của khóa học.
-  - Tin nhắn 29 & 30: Trả về thành công và hiển thị thông báo.
-* **Vị trí Code thực tế (Giải thích tối ưu hóa của nhóm):**
-  - **Database Trigger tự động tính toán (Tối ưu hóa so với thiết kế):** Trong cơ sở dữ liệu thực tế, nhóm đã cài đặt một **Database Trigger** tự động trên bảng `feedback`. Bất cứ khi nào có hành động `INSERT` hoặc `UPDATE` thành công, Trigger này sẽ tự tính toán lại trung bình điểm đánh giá (`AVG(rating)`) và cập nhật thẳng vào cột `rating_avg` và `rating_count` của bảng `courses`.
-  - **Chuyển hướng thông báo:** Nhờ trigger tự xử lý nên Controller chỉ cần chuyển hướng kèm cờ thành công `?ok=1` về Boundary ([review.controller.js:L73](file:///c:/Users/GameLap/Desktop/zoo_git/FinalWeb2025/controllers/review.controller.js#L73)):
+  - Tin nhắn 14: `:SearchController` trả về `render search(query, sort, courses, pagination)` cho `:SearchBoundary`.
+  - Tin nhắn 15: `:SearchBoundary` hiển thị danh sách khóa học đã lọc cho `Guest`.
+* **Vị trí Code tương ứng:**
+  - **Render trang search:** [search.controller.js](controllers/search.controller.js)
     ```javascript
-    return res.redirect(`/student/course/${courseId}/feedback?ok=1`);
+    res.render('vwCourse/search', {
+      layout: 'main',
+      query: query,
+      sort: sortOption,
+      courses: courses,
+      empty: courses.length === 0,
+      pagination: {
+        totalPages: totalPages,
+        currentPage: page,
+        queryString: queryString
+      }
+    });
     ```
-  - **Hiển thị thông báo (Boundary):** Giao diện [feedback.handlebars:L6-L8](file:///c:/Users/GameLap/Desktop/zoo_git/FinalWeb2025/views/vwStudent/feedback.handlebars#L6-L8) phát hiện `?ok=1` và hiển thị thông báo thành công cho học viên.
+  - **Boundary hiển thị khóa học:** [search.handlebars](views/vwCourse/search.handlebars)
+    ```handlebars
+    {{#each courses}}
+      <div class="card shadow-sm h-100 border-0">
+        <img src="{{this.thumbnail}}" class="card-img-top" alt="{{this.title}}">
+        <h5 class="card-title text-truncate">{{this.title}}</h5>
+        <p class="card-text text-muted small">{{this.category}}</p>
+      </div>
+    {{/each}}
+    ```
 
 ---
 
-## ──────────────────────────────────────────
-## PHẦN C: BỘ CÂU HỎI PHẢN BIỆN PHỔ BIẾN (OOSE DEFENSE Q&A)
-## ──────────────────────────────────────────
+## PHẦN C: GỢI Ý LỜI NÓI KHI BÁO CÁO
 
-### Câu hỏi 1: Tại sao trong Sequence Diagram vẽ là `:ReviewController` nhưng trong Code trước đó nằm ở `student.controller.js`, và tại sao bạn lại tách nó ra?
-* **Trả lời:**  
-  * *"Thưa thầy/cô, ban đầu nhóm thiết kế các bộ điều khiển dựa trên **Vai trò người dùng (Role-based Controller)** nên tất cả chức năng của học viên bao gồm đánh giá nằm chung trong `student.controller.js`.*
-  * *Tuy nhiên, theo đúng nguyên lý thiết kế OOSE và biểu đồ phân rã BCE (Boundary Control Entity), các tác vụ liên quan đến thực thể **Review** nên được quản lý bởi một Controller độc lập là `:ReviewController`.*
-  * *Vì vậy, nhóm đã tiến hành tái cấu trúc (refactor), tách toàn bộ mã xử lý đánh giá sang tệp [review.controller.js](file:///c:/Users/GameLap/Desktop/zoo_git/FinalWeb2025/controllers/review.controller.js) riêng. Việc này giúp code modular hơn, dễ bảo trì và khớp 100% với Sơ đồ lớp cũng như Sơ đồ tuần tự UC11."*
+### Câu nói chuyển từ Use Case sang Sequence Diagram
 
-### Câu hỏi 2: Tại sao trong sơ đồ tuần tự UC11 vẽ các bước 21-28 để tính toán Rating trung bình thủ công qua DAO, nhưng trong Code Controller của bạn lại không gọi các phương thức này?
-* **Trả lời:**  
-  * *"Thưa thầy/cô, trong thiết kế sơ đồ tuần tự lý thuyết, nhóm mô tả việc tính toán thủ công để thể hiện rõ thuật toán nghiệp vụ.*
-  * *Tuy nhiên khi chuyển sang cài đặt thực tế, để tối ưu hóa hiệu năng hệ thống (tránh việc Server Node.js phải thực hiện nhiều truy vấn mạng liên tục làm chậm hệ thống), nhóm đã áp dụng giải pháp **Database Trigger** ở tầng Cơ sở dữ liệu.*
-  * *Mỗi khi có bản ghi đánh giá được thêm hoặc cập nhật, Trigger của DB sẽ tự động tính toán lại điểm trung bình (`AVG(rating)`) và tổng lượt đánh giá, sau đó cập nhật trực tiếp vào bảng `courses`. Giải pháp này tối ưu hơn, đảm bảo tính toàn vẹn dữ liệu và giúp ứng dụng tải nhanh hơn rất nhiều."*
+* **UC07:** “Từ đặc tả UC07, Actor chỉ cần chọn danh mục ở menu Khám phá. Vì vậy trong sequence diagram, em dùng `:CategoryBoundary` để đại diện cho giao diện menu và trang danh mục, `:CategoryController` để xử lý request, còn `:CategoryDAO` và `:CourseDAO` là tầng truy xuất dữ liệu.”
+* **UC08:** “UC08 có pre-condition là người dùng đã tìm kiếm trước. Vì vậy sequence diagram bắt đầu tại trang `/search?q=...`, sau đó Actor chọn dropdown filter, Boundary tự submit form và Controller truyền `sortOption` xuống DAO để thay đổi cách `ORDER BY`.”
 
-### Câu hỏi 3: Sự tương quan giữa `:ReviewDAO` trên sơ đồ và `FeedbackDao` trong code là gì?
-* **Trả lời:**  
-  * *"Dạ thưa thầy/cô, thực thể 'Review' (đánh giá) và 'Feedback' (phản hồi) trong bài toán này là một. Nhóm đặt tên bảng cơ sở dữ liệu là `feedback` và lớp truy cập dữ liệu là `FeedbackDao` để nhất quán với cách gọi của cơ sở dữ liệu gốc, nhưng về mặt thiết kế OOSE, nó đóng vai trò chính xác là `:ReviewDAO` để lưu trữ dữ liệu đánh giá của học viên."*
+### Câu hỏi phản biện thường gặp
+
+#### Câu hỏi 1: Tại sao UC07 có cả `CategoryDAO` và `CourseDAO`?
+
+* **Trả lời:** “Vì hệ thống cần xử lý hai loại dữ liệu khác nhau. `CategoryDAO` dùng để kiểm tra danh mục được chọn và lấy danh mục con. Sau đó `CourseDAO` mới dùng danh sách id danh mục để lấy các khóa học tương ứng.”
+
+#### Câu hỏi 2: Tại sao UC08 không có `FilterController` riêng?
+
+* **Trả lời:** “Filter là một phần của chức năng Search Course. Trong code thực tế, bộ lọc chỉ thay đổi tham số `sort` của trang `/search`, nên nhóm xử lý trong `SearchController` để tránh tách controller không cần thiết.”
+
+#### Câu hỏi 3: Bộ lọc trong UC08 được xử lý ở frontend hay backend?
+
+* **Trả lời:** “Frontend chỉ hiển thị dropdown và submit form. Việc sắp xếp thật sự nằm ở backend, cụ thể là trong `CourseDao.findPageByFTS()`, nơi hệ thống chọn `ORDER BY rank`, `ORDER BY rating_avg desc`, hoặc `ORDER BY price asc`.”
