@@ -171,6 +171,12 @@ export async function showEditCourse(req, res) {
 export async function updateCourse(req, res) {
   try {
     const { title, short_desc, full_desc, category_id, price, sale_price } = req.body;
+
+    // UC [18] Exception E1: Trường bắt buộc bỏ trống
+    if (!title || title.trim() === '') {
+      return res.status(400).send('Tiêu đề khóa học không được để trống.');
+    }
+
     const thumbnail = req.file ? `/uploads/thumbnails/${req.file.filename}` : null;
 
     await InstructorDao.updateCourse(req.params.id, {
@@ -225,6 +231,13 @@ export async function addLecture(req, res) {
 
     if (!title || !video_url) {
       return res.status(400).send('Thiếu tiêu đề hoặc link video.');
+    }
+
+    // UC [14] Exception 4.a.3.2: URL sai định dạng
+    try {
+      new URL(video_url);
+    } catch {
+      return res.status(400).send('Link video không đúng định dạng URL.');
     }
 
     await InstructorDao.addLecture(courseId, title, video_url);
@@ -321,6 +334,14 @@ export async function toggleCourseStatus(req, res) {
 
     const newStatus = !course.Status;
 
+    // UC [16] Exception 3.a: Khóa học chưa có bài giảng → không cho xuất bản
+    if (newStatus === true) {
+      const lectures = await InstructorDao.getLecturesByCourse(id);
+      if (!lectures || lectures.length === 0) {
+        return res.status(400).send('Khóa học chưa có bài giảng, không thể xuất bản.');
+      }
+    }
+
     await CourseDao.toggleStatus(id, newStatus);
 
 
@@ -328,5 +349,27 @@ export async function toggleCourseStatus(req, res) {
   } catch (err) {
     console.error('❌ Lỗi khi cập nhật Status:', err);
     res.status(500).send('Không thể cập nhật Status.');
+  }
+}
+
+// ══════════════════════════════════════════
+// UC [15] Sub-flow 1.d: Delete Course
+// ══════════════════════════════════════════
+
+/**
+ * Xóa khóa học.
+ * UC [15] Sub-flow 1.d: Instructor nhấn "Xóa" → hệ thống xóa khóa học.
+ */
+export async function deleteCourse(req, res) {
+  try {
+    const { id } = req.params;
+    const course = await CourseDao.findById(id);
+    if (!course) return res.status(404).send('Không tìm thấy khóa học');
+
+    await CourseDao.deleteById(id);
+    res.redirect('/instructor/dashboard');
+  } catch (err) {
+    console.error('❌ Lỗi khi xóa khóa học:', err);
+    res.status(500).send('Không thể xóa khóa học.');
   }
 }

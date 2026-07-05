@@ -71,10 +71,12 @@
                             class="btn btn-outline-secondary btn-sm w-100 mb-1">
                             <i class="fa fa-video"></i> Quản lý bài giảng
                         </a>
-                        <button type="button" class="btn btn-danger btn-sm w-100"
-                            onclick="if(confirm('Xác nhận xóa khóa học {{this.title}}?')) { window.location.href='/instructor/delete/{{this.id}}'; }">
-                            <i class="fa fa-trash"></i> Xóa
-                        </button>
+                        <form method="POST" action="/instructor/delete/{{this.id}}" style="display:inline; width:100%;"
+                            onsubmit="return confirm('Xác nhận xóa khóa học {{this.title}}?');">
+                            <button type="submit" class="btn btn-danger btn-sm w-100">
+                                <i class="fa fa-trash"></i> Xóa
+                            </button>
+                        </form>
                         <a href="/courses/{{this.id}}" class="btn btn-outline-info btn-sm w-100">
                             <i class="bi bi-info-circle"></i> Chi tiết khóa học
                         </a>

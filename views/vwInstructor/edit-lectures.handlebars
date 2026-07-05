@@ -45,7 +45,8 @@
                     <div>
                         <i class="bi bi-play-btn text-danger"></i> {{this.title}}
                     </div>
-                    <form method="POST" action="/instructor/lectures/{{this.id}}/delete" style="display:inline;">
+                    <form method="POST" action="/instructor/lectures/{{this.id}}/delete" style="display:inline;"
+                        onsubmit="return confirm('Xác nhận xóa bài giảng này?');">
                         <button type="submit" class="btn btn-sm btn-outline-danger">
                             <i class="bi bi-trash"></i> Xóa
                         </button>

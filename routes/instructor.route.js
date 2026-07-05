@@ -33,4 +33,7 @@ router.post('/profile/edit', restrictInstructor, instructorController.updateProf
 // Toggle trạng thái khóa học
 router.post('/courses/toggle/:id', restrictInstructor, instructorController.toggleCourseStatus);
 
+// Xóa khóa học
+router.post('/delete/:id', restrictInstructor, instructorController.deleteCourse);
+
 export default router;
