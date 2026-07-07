@@ -1,52 +1,15 @@
-/**
- * ╔══════════════════════════════════════════════════════════════╗
- * ║  «entity» User — Account Controller                         ║
- * ║  Class Diagram Methods → Controller Mapping:                 ║
- * ║                                                              ║
- * ║    + register(): bool                ✅ doSignup()           ║
- * ║    + login(): bool                   ✅ doSignin()           ║
- * ║    + logout(): void                  ✅ doLogout()           ║
- * ║    + updateProfile(): bool           ✅ updateProfile()      ║
- * ║    + changePassword(): bool          ✅ doChangePwd()        ║
- * ║                                                              ║
- * ║  UC liên quan:                                               ║
- * ║    [01] Register, [02] Login,                                ║
- * ║    [21] Manage Profile, [22] Change Password                 ║
- * ╚══════════════════════════════════════════════════════════════╝
- */
-
 import bcrypt from 'bcryptjs';
 
 import UserDao from '../daos/user.dao.js';
 import Permission from '../enums/Permission.js';
 
-// ══════════════════════════════════════════
 // UC [01] Register
 // Class Diagram: User.register()
-// ══════════════════════════════════════════
 
-/**
- * Hiển thị form đăng ký.
- * UC [01] Main Flow Step 2.
- */
 export function showSignup(req, res) {
   res.render('vwAccount/signup');
 }
 
-/**
- * Xử lý đăng ký tài khoản → tạo tài khoản ngay (không dùng OTP).
- * UC [01] Main Flow:
- *   3. Actor nhập thông tin
- *   4. Hệ thống kiểm tra tính hợp lệ (thiếu trường, email đã tồn tại)
- *   5. Băm mật khẩu, tạo user (permission = STUDENT) và chuyển tới trang đăng nhập
- *
- * Exception Flow:
- *   4.1. Thiếu trường bắt buộc
- *   4.2. Mật khẩu quá ngắn (<6 ký tự) — kiểm tra phía client
- *   4.3. Mật khẩu xác thực không khớp — kiểm tra phía client
- *   4.4. Email không hợp lệ — kiểm tra phía client
- *   4.6. Email đã tồn tại
- */
 export async function doSignup(req, res) {
   try {
     // chấp nhận cả username hoặc name từ form
@@ -94,9 +57,8 @@ export async function doSignup(req, res) {
   }
 }
 
-// ══════════════════════════════════════════
+
 // Check Username Available
-// ══════════════════════════════════════════
 
 export async function checkAvailable(req, res) {
   const u = (req.query.u || '').trim();
@@ -110,32 +72,13 @@ export async function checkAvailable(req, res) {
   return res.json(!user);
 }
 
-// ══════════════════════════════════════════
 // UC [02] Login
 // Class Diagram: User.login()
-// ══════════════════════════════════════════
 
-/**
- * Hiển thị form đăng nhập.
- * UC [02] Main Flow Step 1.
- */
 export function showSignin(req, res) {
   res.render('vwAccount/signin', { error: false });
 }
 
-/**
- * Xử lý đăng nhập.
- * UC [02] Main Flow:
- *   2. Actor nhập Username + Mật khẩu
- *   3. Hệ thống xác thực → đối chiếu CSDL
- *   4. Khởi tạo session + phân quyền (Permission enum)
- *   5. Chuyển hướng theo role
- *
- * Exception Flow:
- *   3.1. Thiếu username hoặc mật khẩu
- *   3.2. Sai thông tin đăng nhập
- *   3.3. Tài khoản bị khóa (is_disabled)
- */
 export async function doSignin(req, res) {
   try {
     const username = (req.body.username || req.body.name || '').trim();
@@ -185,9 +128,7 @@ export async function doSignin(req, res) {
   }
 }
 
-// ══════════════════════════════════════════
 // Class Diagram: User.logout()
-// ══════════════════════════════════════════
 
 /**
  * Đăng xuất — xóa session.
@@ -205,10 +146,8 @@ export function doSignout(req, res) {
   res.redirect(req.headers.referer || '/');
 }
 
-// ══════════════════════════════════════════
 // UC [21] Manage Profile
 // Class Diagram: User.updateProfile()
-// ══════════════════════════════════════════
 
 export function showProfile(req, res) {
   res.render('vwAccount/profile', { user: req.session.authUser });
@@ -226,10 +165,8 @@ export async function updateProfile(req, res) {
   res.render('vwAccount/profile', { user: req.session.authUser });
 }
 
-// ══════════════════════════════════════════
 // UC [22] Change Password
 // Class Diagram: User.changePassword()
-// ══════════════════════════════════════════
 
 export function showChangePwd(req, res) {
   res.render('vwAccount/change-pwd', { user: req.session.authUser });

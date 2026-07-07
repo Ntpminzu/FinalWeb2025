@@ -90,6 +90,19 @@
     </h5>
 
     <div class="card-body px-4">
+        {{#if emailExist}}
+        <div class="alert alert-danger d-flex align-items-center" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <div>Email này đã được đăng ký. Vui lòng dùng email khác.</div>
+        </div>
+        {{/if}}
+        {{#if systemError}}
+        <div class="alert alert-danger d-flex align-items-center" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <div>{{message}}</div>
+        </div>
+        {{/if}}
+
         <form id="frmSignup" method="post" action="/account/signup">
             <div class="mb-3">
                 <label for="txtUsername" class="form-label fw-semibold">Tên đăng nhập</label>
