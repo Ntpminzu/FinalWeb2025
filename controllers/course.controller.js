@@ -1,7 +1,18 @@
+/**
+ * ╔══════════════════════════════════════════════════════════════╗
+ * ║  Course Controller                                          ║
+ * ║  Class Diagram Mapping:                                      ║
+ * ║    Student.viewCourseDetail(id)  → showCourseDetail()        ║
+ * ║    Student.viewCourseList(page)  → listCourses()             ║
+ * ║                                                              ║
+ * ║  UC liên quan:                                               ║
+ * ║    [03] View Course Details, [07] View Courses by Category   ║
+ * ╚══════════════════════════════════════════════════════════════╝
+ */
 // controllers/course.controller.js
 
-import * as courseModel from '../models/course.model.js';
-import * as feedbackModel from '../models/feedback.model.js';
+import CourseDao from '../daos/course.dao.js';
+import FeedbackDao from '../daos/feedback.dao.js';
 
 const COURSES_PER_PAGE = 9;
 
@@ -12,8 +23,8 @@ export async function listCourses(req, res, next) {
     const offset = (page - 1) * limit;
 
     const [courses, totalCourses] = await Promise.all([
-      courseModel.findPageAll(limit, offset),
-      courseModel.countAll()
+      CourseDao.findPageAll(limit, offset),
+      CourseDao.countAll()
     ]);
 
     const totalPages = Math.ceil(totalCourses / limit);
@@ -38,11 +49,11 @@ export async function listCourses(req, res, next) {
 export async function showCourseDetail(req, res, next) {
   try {
     const courseId = req.params.id;
-    await courseModel.incrementViewCount(courseId);
+    await CourseDao.incrementViewCount(courseId);
 
     const [course, feedbacks] = await Promise.all([
-      courseModel.findById(courseId),
-      feedbackModel.findByCourse(courseId)
+      CourseDao.findById(courseId),
+      FeedbackDao.findByCourse(courseId)
     ]);
 
     if (!course) {

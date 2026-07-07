@@ -3,6 +3,8 @@
 import express from 'express';
 import { restrict } from '../middlewares/auth.mdw.js';
 import * as studentController from '../controllers/student.controller.js';
+import * as lectureController from '../controllers/lecture.controller.js';
+import * as reviewController from '../controllers/review.controller.js';
 
 const router = express.Router();
 
@@ -32,15 +34,15 @@ router.post('/watchlist/remove', studentController.removeFromWatchlist);
 
 // Purchased Courses
 router.get('/courses', studentController.showPurchasedCourses);
-router.get('/courses/:courseId', restrict, studentController.showCourseLectures);
-router.get('/courses/:courseId/:lectureId', restrict, studentController.showLearn);
+router.get('/courses/:courseId', restrict, lectureController.showCourseLectures);
+router.get('/courses/:courseId/:lectureId', restrict, lectureController.getLecture);
 
 // API tiến trình
-router.post('/api/progress', restrict, studentController.saveProgress);
-router.post('/api/lecture-duration', restrict, studentController.saveLectureDuration);
+router.post('/api/progress', restrict, lectureController.saveProgress);
+router.post('/api/lecture-duration', restrict, lectureController.saveLectureDuration);
 
 // Đánh giá khoá học
-router.get('/course/:courseId/feedback', restrict, ensureStudent, studentController.showFeedbackForm);
-router.post('/course/:courseId/feedback', restrict, ensureStudent, studentController.submitFeedback);
+router.get('/course/:courseId/feedback', restrict, ensureStudent, reviewController.checkReviewStatus);
+router.post('/course/:courseId/feedback', restrict, ensureStudent, reviewController.submitReview);
 
 export default router;

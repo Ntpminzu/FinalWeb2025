@@ -1,79 +1,78 @@
-// /models/watchlist.model.js
-import db from '../utils/db.js';
+/**
+ * ╔══════════════════════════════════════════════════════════════╗
+ * ║  «entity» Wishlist — Class Diagram                          ║
+ * ║  (File: watchlist.model.js — mapping Wishlist class)         ║
+ * ║                                                              ║
+ * ║  Attributes:                                                 ║
+ * ║    - id: int {PK}                                            ║
+ * ║    - user_id: int                                            ║
+ * ║    - item: List<Course>                                      ║
+ * ║                                                              ║
+ * ║  Methods:                                                    ║
+ * ║    + isInWatchlist(uId,cId): bool     ✅                     ║
+ * ║    + add(uId,cId,title): Wishlist     ✅                     ║
+ * ║    + remove(uId,cId): bool            ✅                     ║
+ * ║    + findAllByUser(uId): List         ✅                     ║
+ * ║                                                              ║
+ * ║  Quan hệ:                                                   ║
+ * ║    Wishlist ◇──── Course (aggregation)                       ║
+ * ║    Wishlist ────→ User (via user_id)                         ║
+ * ║                                                              ║
+ * ║  UC liên quan:                                               ║
+ * ║    [12] Manage Watchlist                                     ║
+ * ╚══════════════════════════════════════════════════════════════╝
+ */
+
+
 
 /**
- * Thêm vào watchlist của 1 user.
- * - Tránh trùng (user_id, course_id)
- * - Không bắt buộc course_title (đã có trong bảng courses); nếu bảng watchlist của bạn
- *   còn cột course_title thì vẫn ghi kèm (nullable).
+ * Entity class Wishlist — tương đương @Entity trong Spring Boot.
+ * Bảng DB: "watchlist"
  */
-export function add({ user_id, course_id, course_title = null }) {
-  return db('watchlist')
-    .insert({ user_id, course_id, course_title })
-    .onConflict(['user_id', 'course_id'])
-    .ignore()
-    .returning('*');
+class Wishlist {
+
+  // ─── Tương đương @Column trong Spring Boot ───
+
+  /** @Column(name = "id", primaryKey = true, autoIncrement = true) */
+  id;
+
+  /**
+   * @ManyToOne(fetch = LAZY)
+   * @JoinColumn(name = "user_id", referencedColumnName = "id")
+   */
+  user_id;
+
+  /**
+   * @ManyToMany(fetch = LAZY)
+   * Quan hệ aggregation: Wishlist ◇──── Course
+   */
+  course_id;
+
+  /** @Column(name = "course_title", nullable = true) */
+  course_title;
+
+  /** @Column(name = "added_at", nullable = false, default = CURRENT_TIMESTAMP) */
+  added_at;
+
+  // ─── Constructor ───
+
+  constructor(data = {}) {
+    this.id = data.id || null;
+    this.user_id = data.user_id || null;
+    this.course_id = data.course_id || null;
+    this.course_title = data.course_title || null;
+    this.added_at = data.added_at || null;
+  }
+
+  validate() {
+    if (!this.user_id) {
+      throw new Error('User ID must not be empty');
+    }
+    if (!this.course_id) {
+      throw new Error('Course ID must not be empty');
+    }
+    return true;
+  }
 }
 
-/** Kiểm tra 1 khóa đã có trong watchlist của user chưa */
-export function isInWatchlist(user_id, course_id) {
-  return db('watchlist')
-    .where({ user_id, course_id })
-    .first();
-}
-
-/**
- * Lấy danh sách watchlist của user + thông tin khóa học từ bảng courses
- * Phù hợp với cấu trúc bảng courses hiện tại của bạn (ảnh chụp).
- */
-export function findAllByUser(user_id) {
-  return db('watchlist as w')
-    .leftJoin('courses as c', 'w.course_id', 'c.id')
-    .where('w.user_id', user_id)
-    .select(
-      // watchlist fields
-      'w.id',
-      'w.user_id',
-      'w.course_id',
-      'w.added_at',
-      'w.course_title',                // vẫn giữ để tương thích, có thể null
-
-      // course fields (theo bảng courses của bạn)
-      'c.title',
-      'c.thumbnail',
-      'c.short_desc',
-      'c.full_desc',
-      'c.price',
-      'c.sale_price',
-      'c.rating_avg',
-      'c.rating_count',
-      'c.student_count',
-      'c.category_id',
-      'c.instructor_id',
-      'c.created_at',
-      'c.updated_at'
-    )
-    .orderBy('w.added_at', 'desc');
-}
-
-/** Xóa khỏi watchlist theo (user_id, course_id) */
-export function remove(user_id, course_id) {
-  return db('watchlist')
-    .where({ user_id, course_id })
-    .del();
-}
-
-/** (tuỳ chọn) Lấy 1 dòng watchlist theo id nhưng ràng buộc user */
-export function findById(id, user_id) {
-  return db('watchlist')
-    .where({ id, user_id })
-    .first();
-}
-
-/** (tuỳ chọn) Đếm số mục watchlist của user */
-export function countByUser(user_id) {
-  return db('watchlist')
-    .where({ user_id })
-    .count('id as total')
-    .first();
-}
+export default Wishlist;

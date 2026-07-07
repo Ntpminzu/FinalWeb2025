@@ -1,25 +1,47 @@
-// controllers/cart.controller.js
+/**
+ * ╔══════════════════════════════════════════════════════════════╗
+ * ║  «session – no DB» Cart — Class Diagram                     ║
+ * ║                                                              ║
+ * ║  Attributes:                                                 ║
+ * ║    - user_id: int                                            ║
+ * ║    - items: List<Course>                                     ║
+ * ║    - cart_id: int                                            ║
+ * ║                                                              ║
+ * ║  Methods:                                                    ║
+ * ║    + addItem(course): void           → addToCart()           ║
+ * ║    + removeItem(courseId): void       → removeFromCart()     ║
+ * ║    + getTotalPrice(): decimal        → getTotalPrice()      ║
+ * ║    + clear(): void                   → clearCart()           ║
+ * ║    + checkout(): Order               → checkout()           ║
+ * ║                                                              ║
+ * ║  Lưu ý:                                                     ║
+ * ║    Cart lưu trong session (không có bảng DB).                ║
+ * ║    req.session.cart = Array<Course>                           ║
+ * ║                                                              ║
+ * ║  UC liên quan:                                               ║
+ * ║    [05] Manage Cart, [06] Checkout                           ║
+ * ╚══════════════════════════════════════════════════════════════╝
+ */
 
-import * as courseModel from '../models/course.model.js';
-import * as purchasedModel from '../models/purchased.model.js';
+import CourseDao from '../daos/course.dao.js';
+import PurchasedDao from '../daos/purchased.dao.js';
+import Cart from '../models/cart.model.js';
 
-/** Thêm vào giỏ */
+// ─── Class Diagram: Cart.addItem(course) ── UC [05] Manage Cart (a. Thêm) ───
+/**
+ * Thêm khóa học vào giỏ hàng (session).
+ * UC [05] Main Flow a: Actor nhấn "thêm vào giỏ hàng".
+ * Exception a.2.1: Không thể thêm cùng 1 khóa học nhiều lần.
+ */
 export async function addToCart(req, res, next) {
   try {
     const courseId = req.body.course_id;
-    const course = await courseModel.findById(courseId);
+    const course = await CourseDao.findById(courseId);
 
     if (course) {
-      let isCourseInCart = false;
-      for (const item of req.session.cart) {
-        if (String(item.id) === String(course.id)) {
-          isCourseInCart = true;
-          break;
-        }
-      }
-      if (!isCourseInCart) {
-        req.session.cart.push(course);
-      }
+      const cart = new Cart(req.session.cart || []);
+      cart.addItem(course);
+      req.session.cart = cart.items;
     }
     res.redirect(req.headers.referer || '/');
   } catch (err) {
@@ -27,21 +49,37 @@ export async function addToCart(req, res, next) {
   }
 }
 
-/** Xóa khỏi giỏ */
+// ─── Class Diagram: Cart.removeItem(courseId) ── UC [05] Manage Cart (c. Xóa) ───
+/**
+ * Xóa khóa học khỏi giỏ hàng.
+ * UC [05] Main Flow c: Actor nhấn icon "thùng rác".
+ */
 export function removeFromCart(req, res) {
   const courseIdToRemove = req.body.course_id;
-  req.session.cart = (req.session.cart || []).filter(item => String(item.id) !== String(courseIdToRemove));
+  const cart = new Cart(req.session.cart || []);
+  cart.removeItem(courseIdToRemove);
+  req.session.cart = cart.items;
   res.redirect('/cart');
 }
 
-/** Trang giỏ hàng */
+// ─── Class Diagram: Cart.getTotalPrice() ───
+/**
+ * Tính tổng tiền giỏ hàng.
+ * UC [05] Main Flow b.3: Hiển thị tổng tiền cần thanh toán.
+ */
+export function getTotalPrice(cartCourses) {
+  const cart = new Cart(cartCourses);
+  return cart.getTotalPrice();
+}
+
+// ─── Class Diagram: Cart (hiển thị giỏ hàng) ── UC [05] Manage Cart (b. Xem) ───
+/**
+ * Hiển thị trang giỏ hàng.
+ * UC [05] Main Flow b: Hệ thống hiển thị các khóa học + bảng tóm tắt.
+ */
 export function showCart(req, res) {
   const cartCourses = req.session.cart || [];
-  let total = 0;
-  for (const course of cartCourses) {
-    const priceToSum = course.sale_price || course.price || 0;
-    total += parseFloat(priceToSum);
-  }
+  const total = getTotalPrice(cartCourses);
   res.render('vwCart/list', {
     layout: 'main',
     courses: cartCourses,
@@ -50,40 +88,58 @@ export function showCart(req, res) {
   });
 }
 
-/** Thanh toán → ghi vào purchased (không còn enrollments) */
+// ─── Class Diagram: Cart.clear() ───
+/**
+ * Xóa toàn bộ giỏ hàng.
+ * Được gọi sau khi checkout thành công.
+ */
+export function clearCart(req) {
+  const cart = new Cart(req.session.cart || []);
+  cart.clear();
+  req.session.cart = cart.items;
+}
+
+// ─── Class Diagram: Cart.checkout() ── UC [06] Checkout ───
+/**
+ * Thanh toán giỏ hàng.
+ * UC [06] Main Flow:
+ *   1. Actor nhấn "Thanh toán"
+ *   2. Hệ thống xử lý giao dịch
+ *   3. Thêm khóa học vào danh sách đã mua (purchased)
+ *   4. Xóa giỏ hàng
+ *   5. Chuyển đến trang khóa học đã mua
+ * Exception 1.1: Nếu Guest → redirect đến Login.
+ */
 export async function checkout(req, res, next) {
   try {
+    // Exception 1.1: Guest chưa đăng nhập
     if (!req.session.isAuthenticated) {
       return res.redirect('/account/signin');
     }
 
-    const cart = req.session.cart || [];
+    const cartItems = req.session.cart || [];
     const userId = req.session.authUser.id;
 
-    if (cart.length === 0) {
+    if (cartItems.length === 0) {
       return res.redirect('/cart');
     }
 
-    // 1) Khóa học user đã mua
-    const ownedCourseIds = await purchasedModel.findCourseIdsByUserId(userId);
+    // 1) Khóa học user đã mua (sử dụng PurchasedDao)
+    const ownedCourseIds = await PurchasedDao.findOwnedCourseIds(userId);
+    const ownedCourseIdsStr = ownedCourseIds.map(String);
 
     // 2) Lọc chỉ giữ khóa học chưa mua
-    const toBuy = cart.filter(item => !ownedCourseIds.includes(String(item.id)));
+    const toBuy = cartItems.filter(item => !ownedCourseIdsStr.includes(String(item.id)));
 
-    // 3) Ghi purchased
+    // 3) Ghi purchased (sử dụng PurchasedDao)
     if (toBuy.length > 0) {
-      const now = new Date();
-      const rows = toBuy.map(c => ({
-        user_id: userId,
-        course_id: c.id,
-        course_title: c.title,
-        purchased_at: now
-      }));
-      await purchasedModel.addMany(rows);
+      await PurchasedDao.addMultiple(userId, toBuy);
     }
 
-    // 4) Xóa giỏ và chuyển
-    req.session.cart = [];
+    // 4) Xóa giỏ hàng (Class Diagram: Cart.clear())
+    clearCart(req);
+
+    // 5) Chuyển đến trang khóa học đã mua
     res.redirect('/student/courses');
 
   } catch (err) {

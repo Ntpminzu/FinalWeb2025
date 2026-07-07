@@ -10,11 +10,10 @@ import { fileURLToPath } from 'url';
 // Auth
 import { restrict, restrictAdmin } from './middlewares/auth.mdw.js';
 
-// Models
-import * as categoryModel from './models/category.model.js';
-import * as courseModel from './models/course.model.js';
-// import * as enrollmentModel from './models/enrollment.model.js';
-import * as purchasedModel from './models/purchased.model.js';
+// DAOs
+import CategoryDao from './daos/category.dao.js';
+import CourseDao from './daos/course.dao.js';
+import db from './utils/db.js';
 
 // Routers
 import adminRouter from './routes/admin.route.js';
@@ -155,8 +154,8 @@ app.use(async (req, res, next) => {
       res.locals.isAuthenticated = true;
       res.locals.authUser = req.session.authUser;
 
-      const ownedCourses = await purchasedModel.findCourseIdsByUserId(req.session.authUser.id);
-      res.locals.ownedCourseIds = ownedCourses;
+      const ownedRows = await db('purchased').where('user_id', req.session.authUser.id).select('course_id');
+      res.locals.ownedCourseIds = ownedRows.map(r => String(r.course_id));
     } else {
       res.locals.isAuthenticated = false;
       res.locals.ownedCourseIds = [];
@@ -173,7 +172,7 @@ app.use(async (req, res, next) => {
 // Categories for header
 app.use(async (req, res, next) => {
   try {
-    const categories = await categoryModel.all();
+    const categories = await CategoryDao.all();
     res.locals.categories = categories;
   } catch (err) {
     console.error('Không thể tải categories:', err);
@@ -194,10 +193,10 @@ app.get('/', async (req, res, next) => {
   try {
     const [outstandingCourses, mostViewedCourses, newestCourses, topCategories] =
       await Promise.all([
-        courseModel.findOutstandingPastWeek(),     // TODO: có thể đổi sang purchased
-        courseModel.findMostViewed(10),
-        courseModel.findNewest(10),
-        categoryModel.findMostEnrolledPastWeek(5), // TODO: có findMostPurchasedPastWeek thì đổi
+        CourseDao.findOutstandingPastWeek(),     // TODO: có thể đổi sang purchased
+        CourseDao.findMostViewed(10),
+        CourseDao.findNewest(10),
+        CategoryDao.findMostEnrolledPastWeek(5), // TODO: có findMostPurchasedPastWeek thì đổi
       ]);
     res.render('home', { outstandingCourses, mostViewedCourses, newestCourses, topCategories });
   } catch (err) {
@@ -225,4 +224,5 @@ app.use((err, req, res, next) => {
 });
 
 // Start
-app.listen(4000, () => console.log('✅ Server is running at http://localhost:4000'));
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => console.log(`✅ Server is running on port ${PORT}`));

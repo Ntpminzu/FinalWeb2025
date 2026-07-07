@@ -1,7 +1,18 @@
+/**
+ * ╔══════════════════════════════════════════════════════════════╗
+ * ║  Category Controller                                        ║
+ * ║  Class Diagram Mapping:                                      ║
+ * ║    Category.all(), Category.findById(),                      ║
+ * ║    Category.findChildIds()                                   ║
+ * ║                                                              ║
+ * ║  UC liên quan:                                               ║
+ * ║    [07] View Courses by Category                             ║
+ * ╚══════════════════════════════════════════════════════════════╝
+ */
 // controllers/category.controller.js
 
-import * as categoryModel from '../models/category.model.js';
-import * as courseModel from '../models/course.model.js';
+import CategoryDao from '../daos/category.dao.js';
+import CourseDao from '../daos/course.dao.js';
 
 const COURSES_PER_PAGE = 9;
 
@@ -9,12 +20,12 @@ export async function showByCategory(req, res, next) {
   const parentCategoryId = parseInt(req.params.id, 10);
 
   try {
-    const category = await categoryModel.findById(parentCategoryId);
+    const category = await CategoryDao.findById(parentCategoryId);
     if (!category) {
       return res.status(404).render('404');
     }
 
-    const childIds = await categoryModel.findChildIds(parentCategoryId);
+    const childIds = await CategoryDao.findChildIds(parentCategoryId);
     const allCategoryIds = [parentCategoryId, ...childIds];
 
     // Logic phân trang
@@ -24,8 +35,8 @@ export async function showByCategory(req, res, next) {
 
     // Gọi 2 hàm model (đếm và lấy)
     const [courses, totalCourses] = await Promise.all([
-      courseModel.findPageByCategoryIds(allCategoryIds, limit, offset),
-      courseModel.countByCategoryIds(allCategoryIds)
+      CourseDao.findPageByCategoryIds(allCategoryIds, limit, offset),
+      CourseDao.countByCategoryIds(allCategoryIds)
     ]);
 
     const totalPages = Math.ceil(totalCourses / limit);

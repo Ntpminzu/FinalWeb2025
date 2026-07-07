@@ -1,17 +1,44 @@
-// controllers/admin.controller.js
+/**
+ * ╔══════════════════════════════════════════════════════════════╗
+ * ║  «role» Admin — Controller (permission=3)                   ║
+ * ║  Class Diagram Methods → Controller Mapping:                 ║
+ * ║                                                              ║
+ * ║    + manageUsers(): List             ✅ listUsers()          ║
+ * ║    + promoteToInstructor(id): bool   ✅ makeTeacher()        ║
+ * ║    + disableUser(id,state): bool     ✅ disableUser()        ║
+ * ║    + deleteUser(id): bool            ✅ deleteUser()         ║
+ * ║    + manageCourses(): List           ✅ listCourses()        ║
+ * ║    + disableCourse(id,state): bool   ✅ disableCourse()      ║
+ * ║    + deleteCourse(id): bool          ✅ deleteCourse()       ║
+ * ║    + manageCategories(): List        ✅ listCategories()     ║
+ * ║    + addCategory(name): Category     ✅ addCategory()        ║
+ * ║    + editCategory(id,name): bool     ✅ editCategory()       ║
+ * ║    + deleteCategory(id): bool        ✅ deleteCategory()     ║
+ * ║    + viewDashboard(): DashboardStats ✅ dashboard()          ║
+ * ║                                                              ║
+ * ║  UC liên quan:                                               ║
+ * ║    [17] Manage Users, [19] Manage Courses (Admin),           ║
+ * ║    [20] Manage Categories                                    ║
+ * ╚══════════════════════════════════════════════════════════════╝
+ */
 
 import bcrypt from 'bcryptjs';
-import * as userModel from '../models/user.model.js';
-import * as adminModel from '../models/admin.model.js';
-import * as categoryModel from '../models/category.model.js';
-import * as courseModel from '../models/course.model.js';
-import db from '../utils/db.js';
+import UserDao from '../daos/user.dao.js';
+import AdminDao from '../daos/admin.dao.js';
+import CategoryDao from '../daos/category.dao.js';
+import CourseDao from '../daos/course.dao.js';
 
-/** 🏠 Dashboard */
+// ══════════════════════════════════════════
+// Class Diagram: Admin.viewDashboard()
+// ══════════════════════════════════════════
+
+/**
+ * 🏠 Dashboard — Hiển thị thống kê tổng quan.
+ */
 export async function dashboard(req, res) {
-  const stats = await adminModel.getDashboardStats?.() ?? {};
-  const topCategories = await adminModel.getTopCategories?.() ?? [];
-  const courseStatuses = await adminModel.getCourseStatuses?.() ?? [];
+  const stats = await AdminDao.getDashboardStats() ?? {};
+  const topCategories = await AdminDao.getTopCategories() ?? [];
+  const courseStatuses = await AdminDao.getCourseStatuses() ?? [];
 
   res.render('vwAdmin/home', {
     layout: false,
@@ -23,10 +50,19 @@ export async function dashboard(req, res) {
   });
 }
 
-/** 👥 Quản lý người dùng */
+// ══════════════════════════════════════════
+// UC [17] Manage Users
+// Class Diagram: Admin.manageUsers(), promoteToInstructor(),
+//                disableUser(), deleteUser()
+// ══════════════════════════════════════════
+
+/**
+ * 👥 Quản lý người dùng — Hiển thị danh sách.
+ * UC [17] Main Flow Step 1-3: Admin xem danh sách user phân theo vai trò.
+ */
 export async function listUsers(req, res) {
-  const teachers = await userModel.findTeachers();
-  const students = await userModel.findStudents();
+  const teachers = await UserDao.findTeachers();
+  const students = await UserDao.findStudents();
 
   res.render('vwAdmin/users', {
     teachers,
@@ -34,25 +70,28 @@ export async function listUsers(req, res) {
   });
 }
 
-/** 🚀 Cấp quyền giáo viên */
+/**
+ * 🚀 Cấp quyền giảng viên.
+ * UC [17] Main Flow Step 4.3: Admin → Promote to Instructor.
+ * Class Diagram: Admin.promoteToInstructor(id)
+ */
 export async function makeTeacher(req, res) {
   const { id } = req.params;
-  await userModel.promoteToTeacher(id);
+  await UserDao.promoteToTeacher(id);
   res.redirect('/admin/users');
 }
 
-/** 🚫 Khóa / Mở khóa tài khoản người dùng */
+/**
+ * 🚫 Khóa / Mở khóa tài khoản người dùng.
+ * UC [17] Main Flow Step 4.1: Admin → Disable/Enable Account.
+ * Class Diagram: Admin.disableUser(id, state)
+ */
 export async function disableUser(req, res) {
   const { id } = req.params;
   const disable = req.body.disable === 'true';
  
   try {
-    if (typeof userModel.toggleDisable === 'function') {
-      await userModel.toggleDisable(id, disable);
-    } else {
-      await db('users').where('id', id).update({ is_disabled: disable });
-    }
-
+    await UserDao.toggleDisable(id, disable);
     res.redirect('/admin/users');
   } catch (err) {
     console.error('❌ Lỗi khi khóa/mở khóa user:', err);
@@ -60,19 +99,31 @@ export async function disableUser(req, res) {
   }
 }
 
-/** 🗑️ Xóa người dùng */
+/**
+ * 🗑️ Xóa người dùng.
+ * UC [17] Main Flow Step 4.2: Admin → Delete Account.
+ * Class Diagram: Admin.deleteUser(id)
+ */
 export async function deleteUser(req, res) {
   const { id } = req.params;
-  await userModel.deleteById(id);
+  await UserDao.deleteById(id);
   res.redirect('/admin/users');
 }
 
-/** 📚 Quản lý khóa học */
+// ══════════════════════════════════════════
+// UC [19] Manage Courses (Admin)
+// Class Diagram: Admin.manageCourses(), disableCourse(), deleteCourse()
+// ══════════════════════════════════════════
+
+/**
+ * 📚 Quản lý khóa học — Hiển thị danh sách.
+ * UC [19] Main Flow: Admin xem toàn bộ khóa học + trạng thái.
+ */
 export async function listCourses(req, res) {
   try {
     const [courses, categories] = await Promise.all([
-      courseModel.getAllWithCategoryAndTeacher(),
-      categoryModel.getAllWithCourseCount(),
+      CourseDao.getAllWithCategoryAndTeacher(),
+      CategoryDao.getAllWithCourseCount(),
     ]);
 
     res.render('vwAdmin/courses', {
@@ -85,25 +136,28 @@ export async function listCourses(req, res) {
   }
 }
 
-/** 🗑️ Xóa khóa học */
+/**
+ * 🗑️ Xóa khóa học.
+ * UC [19]: Admin → Delete Course.
+ * Class Diagram: Admin.deleteCourse(id)
+ */
 export async function deleteCourse(req, res) {
   const { id } = req.params;
-  await courseModel.deleteById(id);
+  await CourseDao.deleteById(id);
   res.redirect('/admin/courses');
 }
 
-/** 🚫 Đình chỉ / Khôi phục khóa học */
+/**
+ * 🚫 Đình chỉ / Khôi phục khóa học.
+ * UC [19]: Admin → Disable/Enable Course.
+ * Class Diagram: Admin.disableCourse(id, state)
+ */
 export async function disableCourse(req, res) {
   const courseId = req.params.id;
   const disable = req.body.disable === 'true';
 
   try {
-    if (typeof courseModel.toggleDisable === 'function') {
-      await courseModel.toggleDisable(courseId, disable);
-    } else {
-      await db('courses').where('id', courseId).update({ is_disabled: disable });
-    }
-
+    await CourseDao.toggleDisable(courseId, disable);
     return res.redirect('/admin/courses');
   } catch (err) {
     console.error('❌ Lỗi khi disable khóa học:', err);
@@ -111,36 +165,62 @@ export async function disableCourse(req, res) {
   }
 }
 
-/** 🗂️ Quản lý danh mục */
+// ══════════════════════════════════════════
+// UC [20] Manage Categories
+// Class Diagram: Admin.manageCategories(), addCategory(),
+//                editCategory(), deleteCategory()
+// ══════════════════════════════════════════
+
+/**
+ * 🗂️ Quản lý danh mục — Hiển thị danh sách.
+ * UC [20] Main Flow Step 1-3: Admin xem cấu trúc cây danh mục.
+ */
 export async function listCategories(req, res) {
-  const categories = await categoryModel.getAllWithCourseCount();
+  const categories = await CategoryDao.getAllWithCourseCount();
   res.render('vwAdmin/categories', { categories });
 }
 
+/**
+ * Class Diagram: Admin.addCategory(name)
+ * UC [20] Main Flow Step 4: Admin thêm danh mục.
+ */
 export async function addCategory(req, res) {
   const name = req.body.name?.trim();
-  if (name) await categoryModel.add({ name });
+  if (name) await CategoryDao.add({ name });
   res.redirect('/admin/categories');
 }
 
+/**
+ * Class Diagram: Admin.editCategory(id, name)
+ * UC [20] Main Flow Step 4: Admin sửa danh mục.
+ */
 export async function editCategory(req, res) {
   const { id, name } = req.body;
   if (id && name?.trim()) {
-    await categoryModel.patch(id, { name: name.trim() });
+    await CategoryDao.patch(id, { name: name.trim() });
   }
   res.redirect('/admin/categories');
 }
 
+/**
+ * Class Diagram: Admin.deleteCategory(id)
+ * UC [20] Main Flow Step 4: Admin xóa danh mục.
+ */
 export async function deleteCategory(req, res) {
   try {
     const { id } = req.body;
-    await categoryModel.remove(id);
+    await CategoryDao.remove(id);
     res.redirect('/admin/categories');
   } catch (error) {
     console.error(error);
     res.render('admin/categories', { error: 'Lỗi khi xóa lĩnh vực' });
   }
 }
+
+// ══════════════════════════════════════════
+// UC [21] Manage Profile — Admin
+// Class Diagram: User.updateProfile(), User.changePassword()
+// ══════════════════════════════════════════
 
 /** 👤 Trang hồ sơ admin */
 export function showProfile(req, res) {
@@ -158,7 +238,7 @@ export async function updateProfile(req, res) {
     name: req.body.name?.trim(),
     email: req.body.email?.trim(),
   };
-  await userModel.patch(id, updatedUser);
+  await UserDao.updateProfile(id, updatedUser);
   req.session.authUser.name = updatedUser.name;
   req.session.authUser.email = updatedUser.email;
 
@@ -170,6 +250,10 @@ export async function updateProfile(req, res) {
   });
 }
 
+/**
+ * UC [22] Change Password — Admin
+ * Class Diagram: User.changePassword()
+ */
 export async function changePwd(req, res) {
   const id = req.body.id;
   const currentPassword = req.body.currentPassword || '';
@@ -196,7 +280,7 @@ export async function changePwd(req, res) {
   }
 
   const hashed = bcrypt.hashSync(newPassword, 10);
-  await userModel.patch(id, { password: hashed });
+  await UserDao.changePassword(id, hashed);
   req.session.authUser.password = hashed;
 
   res.render('vwAdmin/profile', {

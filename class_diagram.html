@@ -494,18 +494,6 @@ classDiagram
         +remove() bool
     }
 
-    class OtpToken {
-        &lt;&lt;entity&gt;&gt;
-        +int id
-        +string email
-        +string otp_code
-        +timestamp expires_at
-        +timestamp created_at
-        +insert() OtpToken
-        +verify() bool
-        +deleteByEmail() void
-    }
-
     class ProgressResult {
         &lt;&lt;value object&gt;&gt;
         +int total
@@ -541,7 +529,6 @@ classDiagram
     Enrollment "0..*" --> "1" Course      : course_id FK
     Feedback "0..*" --> "1" Course        : course_id FK
     LectureProgress "0..*" --> "1" Lecture : lecture_id FK
-    Guest ..> OtpToken                    : uses signup OTP
     LectureProgress ..> ProgressResult   : returns
     Admin ..> DashboardStats             : views
       </div>
@@ -834,17 +821,6 @@ classDiagram
         </div>
       </div>
 
-      <div class="class-card">
-        <div class="class-card-header gray">OtpToken <span class="stereotype">«entity»</span></div>
-        <div class="class-card-body">
-          <ul class="attr-list">
-            <li><span class="dot attr"></span><span class="type">string</span> email</li>
-            <li><span class="dot attr"></span><span class="type">string</span> otp_code (6 chữ số)</li>
-            <li><span class="dot attr"></span><span class="type">timestamp</span> expires_at (5 phút)</li>
-          </ul>
-        </div>
-      </div>
-
     </div><!-- /cards-grid transactions -->
   </div>
 </div>
@@ -886,7 +862,6 @@ classDiagram
         <tr><td class="mono">Enrollment</td><td><span class="rel-type rel-dependency">Dependency</span></td><td class="mono">Course</td><td>0..* : 1</td><td>enrollments.course_id → courses.id (FK)</td></tr>
         <tr><td class="mono">Feedback</td><td><span class="rel-type rel-dependency">Dependency</span></td><td class="mono">Course</td><td>0..* : 1</td><td>feedback.course_id → courses.id (FK)</td></tr>
         <tr><td class="mono">LectureProgress</td><td><span class="rel-type rel-dependency">Dependency</span></td><td class="mono">Lecture</td><td>0..* : 1</td><td>lecture_progress.lecture_id → lectures.id (FK)</td></tr>
-        <tr><td class="mono">Guest</td><td><span class="rel-type rel-dependency">Dependency</span></td><td class="mono">OtpToken</td><td>uses</td><td>Dùng OTP khi đăng ký</td></tr>
         <tr><td class="mono">LectureProgress</td><td><span class="rel-type rel-dependency">Dependency</span></td><td class="mono">ProgressResult</td><td>returns</td><td>DTO trả về {total, done, percent}</td></tr>
         <tr><td class="mono">Admin</td><td><span class="rel-type rel-dependency">Dependency</span></td><td class="mono">DashboardStats</td><td>views</td><td>DTO tổng hợp số liệu dashboard</td></tr>
       </tbody>
@@ -941,7 +916,7 @@ mermaid.initialize({
 
 // ── USE CASE DATA ─────────────────────────────────
 const ucData = [
-  { id:'UC01', name:'Register (Đăng ký)',            actors:['guest'],      classes:'User, OtpToken' },
+  { id:'UC01', name:'Register (Đăng ký)',            actors:['guest'],      classes:'User' },
   { id:'UC02', name:'Login (Đăng nhập)',              actors:['guest'],      classes:'User' },
   { id:'UC03', name:'Logout (Đăng xuất)',             actors:['student','instructor','admin'], classes:'User' },
   { id:'UC04', name:'View Course List',               actors:['guest','student'], classes:'Course, Category' },

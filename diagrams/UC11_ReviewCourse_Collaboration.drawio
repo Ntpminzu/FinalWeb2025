@@ -1,0 +1,143 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="UC11 - Review Course (Collaboration)" id="uc11_collab">
+    <mxGraphModel dx="1200" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1150" pageHeight="600" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- ==================== TITLE ==================== -->
+        <mxCell id="title" value="&lt;b&gt;Collaboration Diagram: UC11 - Review Course (Đánh giá khóa học) [Simple BCE]&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="325" y="10" width="500" height="30" as="geometry"/>
+        </mxCell>
+
+        <!-- ==================== OBJECTS / NODES ==================== -->
+
+        <!-- Student (Actor) -->
+        <mxCell id="student" value="Student" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="70" y="270" width="40" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- :ReviewBoundary (Boundary) -->
+        <mxCell id="boundary" value="&amp;#171;boundary&amp;#187;&lt;br&gt;&lt;b&gt;:ReviewBoundary&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;fillColor=#d5e8d4;strokeColor=#82b366;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="220" y="280" width="130" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- :ReviewController (Control) -->
+        <mxCell id="control" value="&amp;#171;control&amp;#187;&lt;br&gt;&lt;b&gt;:ReviewController&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;fillColor=#ffe6cc;strokeColor=#d79b00;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="450" y="280" width="140" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- :ReviewDAO (Entity/DAO) -->
+        <mxCell id="reviewDAO" value="&amp;#171;entity&amp;#187;&lt;br&gt;&lt;b&gt;:ReviewDAO&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;fillColor=#fff2cc;strokeColor=#d6b656;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="690" y="160" width="140" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- :CourseDAO (Entity/DAO) -->
+        <mxCell id="courseDAO" value="&amp;#171;entity&amp;#187;&lt;br&gt;&lt;b&gt;:CourseDAO&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;fillColor=#fff2cc;strokeColor=#d6b656;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="690" y="400" width="140" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- Database (DBMS) -->
+        <mxCell id="db" value="&amp;#171;database&amp;#187;&lt;br&gt;&lt;b&gt;Database&lt;/b&gt;" style="shape=cylinder;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#f5f5f5;strokeColor=#666666;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="950" y="275" width="90" height="70" as="geometry"/>
+        </mxCell>
+
+        <!-- ==================== LINKS ==================== -->
+
+        <!-- Student - Boundary -->
+        <mxCell id="link1" style="endArrow=none;html=1;rounded=0;strokeWidth=1.5;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="student" target="boundary">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Boundary - Control -->
+        <mxCell id="link2" style="endArrow=none;html=1;rounded=0;strokeWidth=1.5;" edge="1" parent="1" source="boundary" target="control">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Control - ReviewDAO -->
+        <mxCell id="link3" style="endArrow=none;html=1;rounded=0;strokeWidth=1.5;" edge="1" parent="1" source="control" target="reviewDAO">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Control - CourseDAO -->
+        <mxCell id="link4" style="endArrow=none;html=1;rounded=0;strokeWidth=1.5;" edge="1" parent="1" source="control" target="courseDAO">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- CourseDAO - ReviewDAO -->
+        <mxCell id="link5" style="endArrow=none;html=1;rounded=0;strokeWidth=1.5;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="courseDAO" target="reviewDAO">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- ReviewDAO - Database -->
+        <mxCell id="link6" style="endArrow=none;html=1;rounded=0;strokeWidth=1.5;" edge="1" parent="1" source="reviewDAO" target="db">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- CourseDAO - Database -->
+        <mxCell id="link7" style="endArrow=none;html=1;rounded=0;strokeWidth=1.5;" edge="1" parent="1" source="courseDAO" target="db">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- ==================== MESSAGES ON LINKS ==================== -->
+
+        <!-- Messages: Student - Boundary -->
+        <mxCell id="msgLink1_forward" value="1: click &quot;Đánh giá khóa học&quot; &amp;#8594;&lt;br&gt;2: edit rating &amp; comment and click &quot;Gửi đánh giá&quot; &amp;#8594;&lt;br&gt;3: select stars, enter comment and click &quot;Gửi đánh giá&quot; &amp;#8594;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=9;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="110" y="200" width="220" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="msgLink1_backward" value="&amp;#8592; 1.1.2.1: show existing review on UI&lt;br&gt;&amp;#8592; 1.1.3.1: show empty form on UI&lt;br&gt;&amp;#8592; 2.1.3.1 / 3.1.3.1: show message &quot;Cảm ơn bạn đã đánh giá&quot;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=9;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="110" y="350" width="230" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- Messages: Boundary - Control -->
+        <mxCell id="msgLink2_forward" value="1.1: checkReviewStatus(userId, courseId) &amp;#8594;&lt;br&gt;2.1: updateReview(reviewId, stars, comment) &amp;#8594;&lt;br&gt;3.1: submitReview(userId, courseId, stars, comment) &amp;#8594;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=9;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="300" y="210" width="260" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="msgLink2_backward" value="&amp;#8592; 1.1.2: showExistingReview(review)&lt;br&gt;&amp;#8592; 1.1.3: showEmptyForm()&lt;br&gt;&amp;#8592; 2.1.3 / 3.1.3: renderSuccess()" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=9;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="310" y="350" width="240" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- Messages: Control - ReviewDAO -->
+        <mxCell id="msgLink3_forward" value="1.1.1: findByUserAndCourse(userId, courseId) &amp;#8599;&lt;br&gt;2.1.1: update(stars, comment) &amp;#8599;&lt;br&gt;3.1.1: create(userId, courseId, stars, comment) &amp;#8599;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=9;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="490" y="160" width="210" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="msgLink3_backward" value="&amp;#8601; 1.1.1.2: return review details (or null)&lt;br&gt;&amp;#8601; 2.1.1.2 / 3.1.1.2: return success" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=9;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="540" y="235" width="160" height="30" as="geometry"/>
+        </mxCell>
+
+        <!-- Messages: Control - CourseDAO -->
+        <mxCell id="msgLink4_forward" value="2.1.2 / 3.1.2: recalculateAverageRating(courseId) &amp;#8600;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=9;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="450" y="380" width="220" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="msgLink4_backward" value="&amp;#8598; 2.1.2.3 / 3.1.2.3: return success" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=9;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="510" y="350" width="160" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- Messages: CourseDAO - ReviewDAO -->
+        <mxCell id="msgLink5_forward" value="2.1.2.1 / 3.1.2.1: getAverageRating(courseId) &amp;#8593;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=9;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="640" y="280" width="190" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="msgLink5_backward" value="&amp;#8595; 2.1.2.1.2 / 3.1.2.1.2: return average rating" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=9;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="650" y="300" width="190" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- Messages: ReviewDAO - Database -->
+        <mxCell id="msgLink6_forward" value="1.1.1.1: execute select query &amp;#8600;&lt;br&gt;2.1.1.1: execute update query &amp;#8600;&lt;br&gt;3.1.1.1: execute insert query &amp;#8600;&lt;br&gt;2.1.2.1.1 / 3.1.2.1.1: execute avg query &amp;#8600;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=9;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="780" y="200" width="180" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="msgLink6_backward" value="&amp;#8598; 1.1.1.1.1: return review row&lt;br&gt;&amp;#8598; 2.1.1.1.1 / 3.1.1.1.1: return success&lt;br&gt;&amp;#8598; 2.1.2.1.1.1 / 3.1.2.1.1.1: return average value" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=9;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="780" y="260" width="200" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- Messages: CourseDAO - Database -->
+        <mxCell id="msgLink7_forward" value="2.1.2.2 / 3.1.2.2: execute update query (average) &amp;#8599;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=9;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="780" y="370" width="210" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="msgLink7_backward" value="&amp;#8601; 2.1.2.2.1 / 3.1.2.2.1: return success" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=9;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="810" y="340" width="170" height="20" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
