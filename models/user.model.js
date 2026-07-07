@@ -81,21 +81,26 @@ class User {
   }
 
   /**
-   * Validate dữ liệu trước khi lưu (tương đương @Valid trong Spring Boot).
-   * UC [01] Exception Flow: 4.1 thiếu trường, 4.4 email không hợp lệ.
+   * Validate dữ liệu của Entity trước khi lưu (tương đương @Valid trong Spring Boot).
+   * Đối tượng User tự đảm bảo các bất biến (invariant) nghiệp vụ.
+   * UC [01] Exception Flow — 4.1 thiếu trường, 4.2 mật khẩu ngắn, 4.4 email sai định dạng.
+   * Lưu ý: gọi validate() trên mật khẩu DẠNG GỐC (chưa băm) để kiểm được độ dài.
    */
   validate() {
     if (!this.username || this.username.trim() === '') {
-      throw new Error('Username must not be blank');
+      throw new Error('Vui lòng nhập tên đăng nhập.');
     }
     if (!this.email || this.email.trim() === '') {
-      throw new Error('Email must not be blank');
+      throw new Error('Vui lòng nhập email.');
     }
-    if (!this.password || this.password.trim() === '') {
-      throw new Error('Password must not be blank');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email)) {
+      throw new Error('Email không hợp lệ.');
+    }
+    if (!this.password || this.password.length < 6) {
+      throw new Error('Mật khẩu phải có ít nhất 6 ký tự.');
     }
     if (!Object.values(Permission).includes(this.permission)) {
-      throw new Error('Invalid permission value');
+      throw new Error('Quyền không hợp lệ.');
     }
     return true;
   }
