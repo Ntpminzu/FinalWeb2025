@@ -222,6 +222,13 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.render('500');
 });
+app.get("/health", (req, res) => {
+    res.status(200).json({
+        status: "OK",
+        timestamp: new Date()
+    });
+});
 
 // Start
 app.listen(4000, () => console.log('✅ Server is running at http://localhost:4000'));
+
