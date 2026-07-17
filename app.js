@@ -38,7 +38,25 @@ app.get("/health", (req, res) => {
         timestamp: new Date()
     });
 });
+app.get("/health/db", async (req, res) => {
+  try {
+    await db.raw("SELECT 1").timeout(5000);
 
+    res.status(200).json({
+      status: "OK",
+      database: "connected",
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error("Database health check failed:", error.message);
+
+    res.status(503).json({
+      status: "ERROR",
+      database: "disconnected",
+      timestamp: new Date().toISOString()
+    });
+  }
+});
 // Session
 app.set('trust proxy', 1);
 app.use(session({
