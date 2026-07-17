@@ -24,7 +24,12 @@ import categoryRoute from './routes/category.route.js';
 import searchRouter from './routes/search.route.js';
 import cartRouter from './routes/cart.route.js';
 import instructorRouter from './routes/instructor.route.js';
-
+app.get("/health", (req, res) => {
+    res.status(200).json({
+        status: "OK",
+        timestamp: new Date()
+    });
+});
 // __dirname (ESM)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -222,12 +227,7 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.render('500');
 });
-app.get("/health", (req, res) => {
-    res.status(200).json({
-        status: "OK",
-        timestamp: new Date()
-    });
-});
+
 
 // Start
 app.listen(4000, () => console.log('✅ Server is running at http://localhost:4000'));
