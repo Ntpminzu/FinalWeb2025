@@ -1,4 +1,4 @@
-<div class="container mt-5">
+<div class="py-4">
 <section class="hero-brand rounded-4 p-5 mb-5 text-center">
     <h1 class="fw-bold text-white mb-2">Online Academy – Học thông minh, bứt phá nhanh</h1>
     <p class="text-white-50 mb-4">Hàng trăm khóa học chất lượng được cập nhật mỗi tuần.</p>
@@ -8,7 +8,7 @@
 </section>
 
     <h2 class="mb-4 fw-bold">🔥 Khóa học nổi bật trong tuần</h2>
-    <div class="row row-cols-1 row-cols-md-4 g-4">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-4 g-4">
         {{#each outstandingCourses}}
         <div class="col">
             <div class="card course-card h-100">
@@ -46,8 +46,8 @@
 
                         <div class="d-flex align-items-center mt-2 gap-2">
                             {{#if_contains ../ownedCourseIds this.id}}
-                            <a href="/student/my-courses" class="btn btn-outline-success btn-sm w-100 disabled">
-                                <i class="bi bi-check-circle"></i> Đã sở hữu
+                            <a href="/student/courses" class="btn btn-outline-primary btn-sm w-100">
+                                <i class="bi bi-play-circle"></i> Vào học
                             </a>
                             {{else}}
                             <form action="/cart/add" method="POST" style="flex-grow: 1;">
@@ -73,7 +73,7 @@
     <hr class="my-5">
 
     <h2 class="mb-4 fw-bold">👀 Khóa học được xem nhiều nhất</h2>
-    <div class="row row-cols-1 row-cols-md-4 g-4">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-4 g-4">
         {{#each mostViewedCourses}}
         <div class="col">
             <div class="card course-card h-100">
@@ -111,8 +111,8 @@
 
                         <div class="d-flex align-items-center mt-2 gap-2">
                             {{#if_contains ../ownedCourseIds this.id}}
-                            <a href="/student/my-courses" class="btn btn-outline-success btn-sm w-100 disabled">
-                                <i class="bi bi-check-circle"></i> Đã sở hữu
+                            <a href="/student/courses" class="btn btn-outline-primary btn-sm w-100">
+                                <i class="bi bi-play-circle"></i> Vào học
                             </a>
                             {{else}}
                             <form action="/cart/add" method="POST" style="flex-grow: 1;">
@@ -138,7 +138,7 @@
     <hr class="my-5">
 
     <h2 class="mb-4 fw-bold">✨ Khóa học mới nhất</h2>
-    <div class="row row-cols-1 row-cols-md-4 g-4">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-4 g-4">
         {{#each newestCourses}}
         <div class="col">
             <div class="card course-card h-100">
@@ -176,8 +176,8 @@
 
                         <div class="d-flex align-items-center mt-2 gap-2">
                             {{#if_contains ../ownedCourseIds this.id}}
-                            <a href="/student/my-courses" class="btn btn-outline-success btn-sm w-100 disabled">
-                                <i class="bi bi-check-circle"></i> Đã sở hữu
+                            <a href="/student/courses" class="btn btn-outline-primary btn-sm w-100">
+                                <i class="bi bi-play-circle"></i> Vào học
                             </a>
                             {{else}}
                             <form action="/cart/add" method="POST" style="flex-grow: 1;">

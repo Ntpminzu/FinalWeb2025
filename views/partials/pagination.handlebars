@@ -1,20 +1,20 @@
 {{! (Kiểm tra xem có nhiều hơn 1 trang không) }}
 {{#if (gt pagination.totalPages 1)}}
-<nav aria-label="Page navigation" class="mt-5 d-flex justify-content-center">
+<nav aria-label="Phân trang" class="mt-5 d-flex justify-content-center">
     <ul class="pagination">
 
         {{! Nút Trang Trước }}
         {{#if (gt pagination.currentPage 1)}}
         <li class="page-item">
             {{! Nối page vào query string, nếu query string rỗng thì dùng ? }}
-            <a class="page-link"
+            <a class="page-link" aria-label="Trang trước"
                 href="?{{#if pagination.queryString}}{{pagination.queryString}}&{{/if}}page={{subtract pagination.currentPage 1}}">
                 &laquo;
             </a>
         </li>
         {{else}}
         <li class="page-item disabled">
-            <span class="page-link">&laquo;</span>
+            <span class="page-link" aria-hidden="true">&laquo;</span>
         </li>
         {{/if}}
 
@@ -24,7 +24,7 @@
         <li class="page-item disabled"><span class="page-link">...</span></li>
         {{else}}
         <li class="page-item {{#if this.isCurrent}}active{{/if}}">
-            <a class="page-link"
+            <a class="page-link" {{#if this.isCurrent}}aria-current="page"{{/if}}
                 href="?{{#if ../pagination.queryString}}{{../pagination.queryString}}&{{/if}}page={{this.number}}">
                 {{this.number}}
             </a>
@@ -35,14 +35,14 @@
         {{! Nút Trang Sau }}
         {{#if (lt pagination.currentPage pagination.totalPages)}}
         <li class="page-item">
-            <a class="page-link"
+            <a class="page-link" aria-label="Trang sau"
                 href="?{{#if pagination.queryString}}{{pagination.queryString}}&{{/if}}page={{add pagination.currentPage 1}}">
                 &raquo;
             </a>
         </li>
         {{else}}
         <li class="page-item disabled">
-            <span class="page-link">&raquo;</span>
+            <span class="page-link" aria-hidden="true">&raquo;</span>
         </li>
         {{/if}}
 

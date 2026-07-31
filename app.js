@@ -147,6 +147,13 @@ app.use(express.json());
 app.use('/static', express.static(path.join(__dirname, 'static')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Global view data used by the shared layout.
+app.use((req, res, next) => {
+  res.locals.currentYear = new Date().getFullYear();
+  res.locals.currentPath = req.path;
+  next();
+});
+
 // Auth locals + ownedCourseIds
 app.use(async (req, res, next) => {
   try {

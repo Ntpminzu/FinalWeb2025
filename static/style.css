@@ -1,397 +1,164 @@
-/* ====== THEME B: Nền xanh gradient sang trọng ====== */
+:root {
+  --brand-50: #f1f5ff;
+  --brand-100: #e2eaff;
+  --brand-200: #c6d5ff;
+  --brand-400: #648cff;
+  --brand-500: #3567e8;
+  --brand-600: #244fc3;
+  --brand-700: #1d409e;
+  --brand-900: #162c63;
+  --ink: #15213b;
+  --muted: #64708a;
+  --surface: #ffffff;
+  --surface-soft: #f7f9fe;
+  --border: #dfe6f3;
+  --shadow-sm: 0 4px 14px rgba(25, 48, 96, .08);
+  --shadow-md: 0 14px 36px rgba(25, 48, 96, .13);
+  --radius: 16px;
+}
+
+html { scroll-behavior: smooth; }
+
 body.theme-blue {
-    background: linear-gradient(180deg, #E7EEFF 0%, #D0DBFF 40%, #F7F9FF 100%);
-    background-attachment: fixed;
-    background-repeat: no-repeat;
-    background-size: cover;
-    color: var(--ink);
+  background: linear-gradient(180deg, #f5f7ff 0, #edf2ff 42rem, #f8faff 100%);
+  color: var(--ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.6;
 }
 
-/* Làm hero nổi bật với bóng gradient đậm hơn */
-/* ===== Hero Brand hiện đại & thu hút hơn ===== */
+a { color: var(--brand-600); text-underline-offset: .18em; }
+a:hover { color: var(--brand-700); }
+img { max-width: 100%; }
+h1, h2, h3, h4, h5, h6 { color: var(--ink); line-height: 1.25; letter-spacing: -.018em; }
+
+.skip-link {
+  position: fixed; left: 1rem; top: -5rem; z-index: 9999; padding: .7rem 1rem;
+  background: #fff; border-radius: 0 0 10px 10px; box-shadow: var(--shadow-md);
+}
+.skip-link:focus { top: 0; }
+
+:focus-visible { outline: 3px solid rgba(53, 103, 232, .42) !important; outline-offset: 2px; }
+
+.site-header { z-index: 1030; }
+.navbar {
+  min-height: 72px; background: rgba(255,255,255,.92); border-bottom: 1px solid rgba(198,213,255,.8);
+  box-shadow: 0 3px 18px rgba(25, 48, 96, .08); backdrop-filter: blur(14px);
+}
+.navbar-brand img, .site-footer img { object-fit: contain; }
+.brand-name { font-weight: 800; color: var(--brand-900); letter-spacing: -.03em; }
+.navbar .nav-link { border: 0; background: transparent; color: #33405d; font-weight: 600; }
+.navbar-search { flex: 1 1 18rem; max-width: 32rem; min-width: 0; }
+.navbar-search .input-group { flex-wrap: nowrap; }
+.navbar-search .input-group-text { background: #fff; border-right: 0; color: var(--muted); }
+.navbar-search .form-control { border-left: 0; min-width: 8rem; }
+.navbar-search .form-control:focus { box-shadow: none; border-color: #86a4f4; }
+.navbar-search .form-control:focus + .btn { border-color: #86a4f4; }
+.dropdown-menu { border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-md); padding: .5rem; }
+.dropdown-item { border-radius: 9px; padding: .6rem .75rem; }
+.dropdown-item:hover, .dropdown-item:focus { background: var(--brand-50); color: var(--brand-700); }
+.cart-link { min-width: 44px; min-height: 42px; }
+.cart-badge { position: absolute; top: -5px; right: -7px; border: 2px solid #fff; }
+.navbar-actions { flex-shrink: 0; }
+
+.site-main { padding-top: 1.5rem; padding-bottom: 4rem; }
+.site-footer { background: var(--brand-900); color: rgba(255,255,255,.86); padding: 2rem 0; }
+.site-footer strong { color: #fff; }
+.site-footer small { color: rgba(255,255,255,.7); }
+.footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.25rem; }
+.footer-links a { color: #fff; text-decoration: none; }
+.footer-links a:hover { text-decoration: underline; }
+
 .hero-brand {
-    position: relative;
-    border-radius: 28px;
-    padding: 4rem 2rem;
-    color: #fff;
-    text-align: center;
-    background: linear-gradient(135deg, #4C8EFF 0%, #2B59C3 45%, #1E429F 100%);
-    overflow: hidden;
-    box-shadow: 0 20px 60px rgba(43, 89, 195, 0.35);
+  position: relative; isolation: isolate; overflow: hidden; border-radius: 28px; padding: clamp(3rem, 8vw, 6.5rem) 1.5rem;
+  color: #fff; text-align: center; background: linear-gradient(125deg, #173b9b 0%, #3567e8 58%, #668cff 100%);
+  box-shadow: 0 24px 60px rgba(29, 64, 158, .28);
 }
-
-/* Hiệu ứng ánh sáng động phía sau */
 .hero-brand::before {
-    content: "";
-    position: absolute;
-    inset: -100px;
-    background: radial-gradient(600px 200px at 20% 10%, rgba(255, 255, 255, 0.25), transparent 70%),
-        radial-gradient(500px 180px at 90% 90%, rgba(255, 255, 255, 0.18), transparent 70%);
-    opacity: 0.8;
-    z-index: 0;
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: radial-gradient(circle at 12% 15%, rgba(255,255,255,.23), transparent 30%),
+              radial-gradient(circle at 88% 80%, rgba(255,215,99,.24), transparent 27%);
+}
+.hero-brand h1 { color: #fff; font-size: clamp(2rem, 5vw, 3.7rem); max-width: 900px; margin-inline: auto; }
+.hero-brand p { color: rgba(255,255,255,.84) !important; font-size: clamp(1rem, 2vw, 1.2rem); }
+.btn-brand-lg { background: #ffd76a; color: #17213a; border: 0; font-weight: 800; border-radius: 12px; box-shadow: 0 10px 24px rgba(19,31,68,.24); }
+.btn-brand-lg:hover { background: #ffe28b; color: #17213a; transform: translateY(-2px); }
+
+.card, .accordion-item, .list-group, .table-responsive {
+  border: 1px solid var(--border) !important; border-radius: var(--radius) !important; box-shadow: var(--shadow-sm);
+}
+.card { overflow: hidden; background: var(--surface); transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+.card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--brand-200) !important; }
+.card-header { border-bottom-color: var(--border); padding: 1rem 1.2rem; }
+.card-body { padding: 1.25rem; }
+.card-footer { padding: 0 1.25rem 1.25rem; }
+.course-card .card-img-top, .card > .card-img-top { height: 190px; object-fit: cover; background: #eef2fa; }
+.course-card .card-title { font-weight: 750; }
+.course-card .card-text { line-height: 1.5; }
+.text-truncate-2 { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.price-now { color: var(--brand-700); font-weight: 800; }
+.price-old { color: #7b8499; text-decoration: line-through; }
+
+.btn { min-height: 40px; border-radius: 10px; font-weight: 650; transition: transform .15s ease, box-shadow .15s ease, background-color .15s ease; }
+.btn-sm { min-height: 34px; }
+.btn:hover { transform: translateY(-1px); }
+.btn-primary, .btn-success { background: var(--brand-600); border-color: var(--brand-600); color: #fff; }
+.btn-primary:hover, .btn-success:hover { background: var(--brand-700); border-color: var(--brand-700); }
+.btn-outline-primary { color: var(--brand-600); border-color: var(--brand-500); }
+.btn-outline-primary:hover { background: var(--brand-600); border-color: var(--brand-600); }
+.btn-warning { color: #392b00; }
+
+.form-control, .form-select, .input-group-text { min-height: 44px; border-color: #cfd8e9; border-radius: 10px; }
+.form-control:focus, .form-select:focus { border-color: var(--brand-400); box-shadow: 0 0 0 .22rem rgba(53,103,232,.14); }
+.form-label { color: #303c57; }
+.form-text { color: var(--muted) !important; }
+
+.table-responsive { background: #fff; overflow: auto; }
+.table { margin-bottom: 0; }
+.table thead th { background: var(--brand-50); color: #35425e; border-bottom-width: 1px; white-space: nowrap; }
+.table td, .table th { padding: .85rem 1rem; vertical-align: middle; }
+.progress { background: #e6ebf5; }
+.progress-bar { background: var(--brand-500); }
+.pagination { gap: .35rem; }
+.page-link { border-radius: 9px !important; border-color: var(--border); color: var(--brand-600); min-width: 40px; text-align: center; }
+.active > .page-link { background: var(--brand-600); border-color: var(--brand-600); }
+.alert { border: 0; border-radius: 14px; }
+.breadcrumb { font-size: .92rem; }
+
+.profile-card { background: linear-gradient(140deg, #fff, #f8faff); }
+.info-label { display: block; margin-bottom: .3rem; color: var(--muted); font-size: .8rem; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; }
+.info-item { border-left: 3px solid var(--brand-200); padding-left: 1rem; }
+.empty-state { max-width: 560px; margin: 4rem auto; padding: 2.5rem 1.5rem; text-align: center; color: var(--muted); }
+.empty-state i { display: block; margin-bottom: .75rem; color: var(--brand-400); font-size: 3rem; }
+.auth-card { width: 100%; max-width: 640px; }
+.course-detail-image { width: 100%; height: clamp(240px, 38vw, 420px); object-fit: cover; background: #eef2fa; }
+.cart-summary { position: sticky; top: 96px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
 
-/* Tăng chiều sâu với lớp mờ nhẹ */
-.hero-brand::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.25) 100%);
-    border-radius: 28px;
-    pointer-events: none;
-    z-index: 1;
+@media (min-width: 992px) and (max-width: 1599.98px) {
+  .brand-name { display: none; }
 }
 
-/* Nội dung */
-.hero-brand h1 {
-    position: relative;
-    z-index: 2;
-    font-weight: 800;
-    font-size: 2rem;
-    letter-spacing: 0.3px;
-    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+@media (max-width: 991.98px) {
+  .navbar-collapse { padding: .75rem 0 1rem; }
+  .navbar-search { max-width: none; }
+  .navbar-actions { align-items: stretch !important; }
+  .navbar-actions > .btn { flex: 1; }
+  .navbar-actions .cart-link { white-space: nowrap; }
+  .dropdown-menu { box-shadow: none; }
+  .site-main { padding-top: 1rem; }
+  .cart-summary { position: static; }
 }
 
-.hero-brand p {
-    position: relative;
-    z-index: 2;
-    color: rgba(255, 255, 255, 0.85);
-    font-size: 1rem;
-    margin-bottom: 1.5rem;
-}
-
-/* Nút CTA nổi bật */
-.hero-brand .btn-brand-lg {
-    position: relative;
-    z-index: 3;
-    background: linear-gradient(135deg, #FFD43B, #F59E0B);
-    border: none;
-    color: #1E293B;
-    font-weight: 700;
-    box-shadow: 0 8px 20px rgba(245, 158, 11, .45);
-    transition: transform .2s ease, box-shadow .2s ease;
-}
-
-.hero-brand .btn-brand-lg:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 28px rgba(245, 158, 11, .6);
-}
-
-/* Card nổi rõ hơn trên nền gradient */
-.card {
-    background: #fff;
-    border-radius: 18px;
-    box-shadow: 0 8px 24px rgba(43, 89, 195, 0.12);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 16px 40px rgba(43, 89, 195, 0.22);
-}
-
-/* Nút chính – đậm và sáng hơn */
-.btn-success {
-    background: linear-gradient(135deg, #3F73E0, #1E429F);
-    border: none;
-}
-
-.btn-success:hover {
-    background: linear-gradient(135deg, #4C82FF, #2B59C3);
-}
-
-/* Footer đồng bộ màu gradient */
-footer {
-    background: linear-gradient(135deg, #1E429F, #2B59C3);
-    color: #fff;
-    border-top: none;
-    box-shadow: 0 -6px 24px rgba(43, 89, 195, 0.3);
-}
-
-/* Tô đậm navbar một chút để hòa với nền */
-.navbar {
-    background: #ffffffaa;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 6px 20px rgba(43, 89, 195, 0.15);
-}
-
-/* ==== Khung + hiệu ứng đẹp cho card khóa học ==== */
-
-/* Card nền tảng */
-.course-card {
-    position: relative;
-    border-radius: 20px;
-    border: 1.5px solid var(--brand-200);
-    /* viền nhạt */
-    background: #fff;
-    box-shadow: 0 8px 24px rgba(43, 89, 195, .10);
-    transition: border-color .2s ease, box-shadow .25s ease, transform .2s ease;
-}
-
-/* Đổi viền + bóng khi hover */
-.course-card:hover {
-    border-color: var(--brand-400);
-    box-shadow: 0 16px 44px rgba(43, 89, 195, .22);
-    transform: translateY(-6px);
-}
-
-/* Ánh sáng mờ phía sau card khi hover */
-.course-card::before {
-    content: "";
-    position: absolute;
-    inset: -6px;
-    border-radius: 22px;
-    background: radial-gradient(600px 120px at 20% -10%, rgba(63, 115, 224, .20), transparent 70%);
-    filter: blur(14px);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity .25s ease;
-}
-
-.course-card:hover::before {
-    opacity: 1;
-}
-
-/* Ảnh: bo góc + hiệu ứng "shine" */
-.course-card .card-img-top {
-    height: 180px;
-    object-fit: cover;
-    border-top-left-radius: 20px;
-    border-top-right-radius: 20px;
-    position: relative;
-    overflow: hidden;
-    transition: transform .25s ease;
-}
-
-.course-card:hover .card-img-top {
-    transform: scale(1.03)
-}
-
-/* Vệt sáng quét qua ảnh khi hover */
-.course-card .card-img-top::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(120deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, .35) 35%, rgba(255, 255, 255, 0) 70%);
-    transform: translateX(-120%);
-}
-
-.course-card:hover .card-img-top::after {
-    transform: translateX(120%);
-    transition: transform .9s ease;
-}
-
-/* Tiêu đề & text */
-.course-card .card-title {
-    font-weight: 800;
-    color: var(--ink);
-    margin-bottom: .35rem
-}
-
-.course-card .card-text.text-muted {
-    color: var(--muted)
-}
-
-/* Hàng nút dưới cùng */
-.course-card .btn {
-    border-radius: 12px
-}
-
-.course-card .btn-success {
-    background: linear-gradient(135deg, var(--brand-400), var(--brand-600));
-    border: none;
-    box-shadow: 0 8px 18px rgba(43, 89, 195, .22);
-}
-
-.course-card .btn-success:hover {
-    filter: brightness(1.03);
-    transform: translateY(-1px);
-    box-shadow: 0 12px 26px rgba(43, 89, 195, .28);
-}
-
-/* Nút “Xem chi tiết” đồng bộ 1 màu */
-.course-card .btn-outline-primary {
-    border-color: var(--brand-500);
-    color: var(--brand-600);
-}
-
-.course-card .btn-outline-primary:hover {
-    background: var(--brand-500);
-    color: #fff;
-}
-
-/* Viền mảnh dưới khu vực giá để tách khối */
-.course-card .card-body .mt-auto {
-    padding-top: .4rem;
-    border-top: 1px dashed rgba(43, 89, 195, .15)
-}
-
-/* Giá */
-.course-card .price-now {
-    color: var(--brand-600);
-    font-weight: 900
-}
-
-.course-card .price-old {
-    color: #9CA3AF;
-    text-decoration: line-through
-}
-
-/* Sao rating cùng tông brand */
-.course-card .bi-star,
-.course-card .bi-star-fill,
-.course-card .bi-star-half {
-    color: var(--brand-400)
-}
-
-/* ===== FIX nút "Thêm vào giỏ" bị ẩn ===== */
-.course-card form button.btn-success {
-    display: inline-block !important;
-    background: linear-gradient(135deg, #3F73E0, #1E429F) !important;
-    color: #fff !important;
-    border: none !important;
-    font-weight: 600;
-    border-radius: 12px;
-    padding: 6px 10px;
-    box-shadow: 0 6px 16px rgba(43, 89, 195, .25);
-    transition: transform .15s ease, box-shadow .25s ease;
-}
-
-.course-card form button.btn-success:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 22px rgba(43, 89, 195, .35);
-    filter: brightness(1.05);
-}
-
-/* Đảm bảo form không bị co */
-.course-card form {
-    flex-grow: 1;
-    width: 100%;
-}
-
-.navbar {
-    position: relative;
-    z-index: 2000;
-}
-
-.dropdown-menu {
-    position: absolute;
-    z-index: 2100;
-}
-
-/* cao hơn hero */
-
-
-.profile-card {
-    background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
-    transition: all 0.3s ease-in-out;
-    border: 1px solid #e6e9f2;
-}
-
-.profile-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-}
-
-.info-list>div {
-    font-size: 1rem;
-    margin-bottom: 0.75rem;
-    display: flex;
-    align-items: center;
-    color: #333;
-    border-left: 3px solid transparent;
-    padding-left: 10px;
-    transition: all 0.2s ease;
-}
-
-.info-list>div:hover {
-    border-left-color: #3b82f6;
-    background-color: rgba(59, 130, 246, 0.05);
-    border-radius: 6px;
-    padding-left: 14px;
-}
-
-.btn-primary {
-    background: linear-gradient(90deg, #2563eb, #1d4ed8);
-    border: none;
-    font-weight: 500;
-}
-
-.btn-primary:hover {
-    background: linear-gradient(90deg, #1d4ed8, #1e40af);
-}
-
-h2 {
-    letter-spacing: 0.5px;
-}
-
-.profile-card {
-    background: #ffffff;
-    border: 1px solid #e6e9f2;
-    transition: all 0.3s ease;
-}
-
-.profile-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.07);
-}
-
-.info-label {
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: 600;
-    color: #6c757d;
-    margin-bottom: 6px;
-    display: block;
-}
-
-.info-item {
-    border-left: 3px solid transparent;
-    padding-left: 10px;
-    transition: all 0.25s ease;
-}
-
-.info-item:hover {
-    border-left-color: #2563eb;
-    background: #f8faff;
-    border-radius: 6px;
-    padding-left: 14px;
-}
-
-.btn-primary {
-    background: linear-gradient(90deg, #2563eb, #1e40af);
-    border: none;
-    font-weight: 500;
-}
-
-.btn-primary:hover {
-    background: linear-gradient(90deg, #1e40af, #1d4ed8);
-}
-
-h2 {
-    letter-spacing: 0.5px;
-}
-
-.bi-person-badge {
-    font-size: 1.2rem;
-}
-
-.card-body p {
-    line-height: 1.5;
-}
-
-.dropdown-item {
-    font-size: 0.95rem;
-    padding: 8px 14px;
-}
-
-.dropdown-item:hover {
-    background-color: #f3f6ff;
-    color: #2563eb;
-}
-
-.dropdown-item.text-danger:hover {
-    background-color: #ffeaea;
-    color: #dc3545 !important;
+@media (max-width: 575.98px) {
+  .brand-name { font-size: .95rem; }
+  .navbar-search .btn { padding-inline: .75rem; font-size: .875rem; }
+  .site-main { padding-inline: 1rem; }
+  .hero-brand { border-radius: 20px; }
+  .hero-brand.p-5 { padding: 3rem 1.25rem !important; }
+  .card-footer.d-flex, .d-flex.justify-content-end.gap-2 { flex-wrap: wrap; }
+  .card-footer .btn, .card-footer form { flex: 1 1 auto; }
+  .table td, .table th { padding: .7rem .75rem; }
 }
