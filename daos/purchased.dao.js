@@ -42,7 +42,7 @@ class PurchasedDao {
       course_title: c.title,
       purchased_at: now
     }));
-    await db('purchased').insert(rows);
+    await db('purchased').insert(rows).onConflict(['user_id', 'course_id']).ignore();
   }
 }
 

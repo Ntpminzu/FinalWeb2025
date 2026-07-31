@@ -1,20 +1,9 @@
 // routes/admin.route.js
 
 import express from 'express';
-import { restrict } from '../middlewares/auth.mdw.js';
 import * as adminController from '../controllers/admin.controller.js';
 
 const router = express.Router();
-
-/** Kiểm tra quyền admin */
-function ensureAdmin(req, res, next) {
-  if (!req.session?.authUser || Number(req.session.authUser.permission) !== 3) {
-    return res.status(403).send('Forbidden: Admins only.');
-  }
-  next();
-}
-
-router.use(restrict, ensureAdmin);
 
 // Dashboard
 router.get('/', adminController.dashboard);

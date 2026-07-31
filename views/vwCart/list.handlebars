@@ -1,16 +1,19 @@
-<div class="container mt-5 mb-5">
+<div class="py-4">
     <h2 class="mb-4">🛒 Giỏ hàng của bạn</h2>
 
     {{#if empty}}
-    <div class="alert alert-info" role="alert">
-        Giỏ hàng của bạn đang trống.
+    <div class="empty-state">
+        <i class="bi bi-cart3" aria-hidden="true"></i>
+        <h3 class="h4">Giỏ hàng đang trống</h3>
+        <p>Khám phá các khóa học phù hợp và bắt đầu học ngay hôm nay.</p>
+        <a href="/courses" class="btn btn-primary">Khám phá khóa học</a>
     </div>
     {{else}}
     <div class="row">
-        <div class="col-md-8">
+        <div class="col-lg-8">
             <ul class="list-group shadow-sm">
                 {{#each courses}}
-                <li class="list-group-item d-flex align-items-center">
+                <li class="list-group-item d-flex flex-column flex-sm-row align-items-sm-center gap-3">
                     <img src="{{this.thumbnail}}" alt="{{this.title}}"
                         style="width: 100px; height: 60px; object-fit: cover;">
                     <div class="ms-3 flex-grow-1">
@@ -26,7 +29,7 @@
                     <div class="ms-3 text-end">
                         <form action="/cart/remove" method="POST" class="d-inline">
                             <input type="hidden" name="course_id" value="{{this.id}}">
-                            <button type="submit" class="btn btn-outline-danger btn-sm border-0" title="Xóa">
+                            <button type="submit" class="btn btn-outline-danger btn-sm" aria-label="Xóa {{this.title}} khỏi giỏ hàng">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </form>
@@ -36,8 +39,8 @@
             </ul>
         </div>
 
-        <div class="col-md-4">
-            <div class="card shadow-sm">
+        <div class="col-lg-4 mt-4 mt-lg-0">
+            <div class="card cart-summary">
                 <div class="card-body">
                     <h5 class="card-title">Tóm tắt</h5>
                     <hr>

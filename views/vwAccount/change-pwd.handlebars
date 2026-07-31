@@ -1,91 +1,35 @@
-{{#fillContent "js"}}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script>
-    function handleSubmit(event) {
-        event.preventDefault();
-
-        const newPwd = document.querySelector('#txtNewPwd').value;
-        const confirmPwd = document.querySelector('#txtConfirmPwd').value;
-
-        if (newPwd.length < 6) {
-            Swal.fire({
-                title: 'Error!',
-                text: 'New password must be at least 6 characters long.',
-                icon: 'error',
-                confirmButtonText: 'OK'
-            });
-            return;
-        }
-
-        if (newPwd !== confirmPwd) {
-            Swal.fire({
-                title: 'Error!',
-                text: 'Passwords do not match.',
-                icon: 'error',
-                confirmButtonText: 'OK'
-            });
-            return;
-        }
-
-
-        event.target.submit();
-    }
-
-
-    document.querySelector('#txtConfirmPwd').oninput = function () {
-        if (this.value !== document.querySelector('#txtNewPwd').value) {
-            this.setCustomValidity('Passwords do not match.');
-        } else {
-            this.setCustomValidity('');
-        }
-    };
-
-</script>
-
-{{/fillContent}}
-
-
-
-
-<form id="changePwdForm" action="/account/change-pwd" method="post">
-    <div class="card">
-        <div class="card-header">Change Password</div>
-        <div class="card-body">
-            {{#if error}}
-            <div class="alert alert-primary alert-dismissible fade show" role="alert">
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                <strong>Alert Heading</strong> Alert Content
-            </div>
-
-            <script>
-                var alertList = document.querySelectorAll(".alert");
-                alertList.forEach(function (alert) {
-                    new bootstrap.Alert(alert);
-                });
-            </script>
-
-            {{/if}}
-            <div class="mb-3">
-                <label for="txtId" class="form-label">#</label>
-                <input type="text" class="form-control" id="txtId" name="id" readonly value="{{user.id}}">
-            </div>
-            <div class="mb-3">
-                <label for="txtCurPwd" class="form-label">Current Password</label>
-                <input type="password" class="form-control" id="txtCurPwd" name="curPassword">
-            </div>
-            <div class="mb-3">
-                <label for="txtNewPwd" class="form-label">New Password</label>
-                <input type="password" class="form-control" id="txtNewPwd" name="newPassword">
-            </div>
-            <div class="mb-3">
-                <label for="txtConfirmPwd" class="form-label">Confirm Password</label>
-                <input type="password" class="form-control" id="txtConfirmPwd" name="confirmPassword">
-            </div>
-        </div>
-        <div class="card-footer text-muted">
-            <button type="submit" class="btn btn-primary">
-                Save
-            </button>
-        </div>
+<section class="auth-card mx-auto py-4 py-lg-5" aria-labelledby="password-heading">
+  <div class="text-center mb-4">
+    <i class="bi bi-shield-lock display-5 text-primary" aria-hidden="true"></i>
+    <h1 id="password-heading" class="h2 fw-bold mt-2">Đổi mật khẩu</h1>
+    <p class="text-muted">Sử dụng mật khẩu có ít nhất 8 ký tự để bảo vệ tài khoản.</p>
+  </div>
+  <form id="changePwdForm" action="/account/change-pwd" method="post" class="card">
+    <div class="card-body p-4 p-lg-5">
+      {{#if error}}
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">Mật khẩu hiện tại không chính xác. Vui lòng thử lại.<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng thông báo"></button></div>
+      {{/if}}
+      <div class="mb-3"><label for="txtCurPwd" class="form-label fw-semibold">Mật khẩu hiện tại</label><input type="password" class="form-control" id="txtCurPwd" name="curPassword" autocomplete="current-password" required></div>
+      <div class="mb-3"><label for="txtNewPwd" class="form-label fw-semibold">Mật khẩu mới</label><input type="password" class="form-control" id="txtNewPwd" name="newPassword" minlength="8" maxlength="72" autocomplete="new-password" aria-describedby="passwordHelp" required><div id="passwordHelp" class="form-text">Tối thiểu 8 ký tự.</div></div>
+      <div class="mb-4"><label for="txtConfirmPwd" class="form-label fw-semibold">Xác nhận mật khẩu mới</label><input type="password" class="form-control" id="txtConfirmPwd" name="confirmPassword" minlength="8" maxlength="72" autocomplete="new-password" required><div class="invalid-feedback">Mật khẩu xác nhận chưa khớp.</div></div>
+      <button type="submit" class="btn btn-primary w-100"><i class="bi bi-check2-circle me-1" aria-hidden="true"></i>Lưu mật khẩu mới</button>
     </div>
-</form>
+  </form>
+</section>
+{{#fillContent "js"}}
+<script>
+  (() => {
+    const form = document.getElementById('changePwdForm');
+    const password = document.getElementById('txtNewPwd');
+    const confirmation = document.getElementById('txtConfirmPwd');
+    const validateMatch = () => confirmation.setCustomValidity(confirmation.value && confirmation.value !== password.value ? 'Mật khẩu không khớp.' : '');
+    password.addEventListener('input', validateMatch);
+    confirmation.addEventListener('input', validateMatch);
+    form.addEventListener('submit', event => {
+      validateMatch();
+      if (!form.checkValidity()) { event.preventDefault(); event.stopPropagation(); }
+      form.classList.add('was-validated');
+    });
+  })();
+</script>
+{{/fillContent}}

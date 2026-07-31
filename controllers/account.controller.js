@@ -1,319 +1,83 @@
-/**
- * ╔══════════════════════════════════════════════════════════════╗
- * ║  «entity» User — Account Controller                         ║
- * ║  Class Diagram Methods → Controller Mapping:                 ║
- * ║                                                              ║
- * ║    + register(): bool                ✅ doSignup()           ║
- * ║    + login(): bool                   ✅ doSignin()           ║
- * ║    + logout(): void                  ✅ doLogout()           ║
- * ║    + updateProfile(): bool           ✅ updateProfile()      ║
- * ║    + changePassword(): bool          ✅ doChangePwd()        ║
- * ║                                                              ║
- * ║  UC liên quan:                                               ║
- * ║    [01] Register, [02] Login,                                ║
- * ║    [21] Manage Profile, [22] Change Password                 ║
- * ╚══════════════════════════════════════════════════════════════╝
- */
-
-import bcrypt from 'bcryptjs';
-import nodemailer from 'nodemailer';
-
-import UserDao from '../daos/user.dao.js';
-import OtpTokenDao from '../daos/otp-token.dao.js';
 import Permission from '../enums/Permission.js';
+import { AppError, ForbiddenError } from '../errors/app-error.js';
+import * as accountService from '../services/account.service.js';
 
-// ══════════════════════════════════════════
-// UC [01] Register
-// Class Diagram: User.register()
-// ══════════════════════════════════════════
-
-/**
- * Hiển thị form đăng ký.
- * UC [01] Main Flow Step 2.
- */
-export function showSignup(req, res) {
-  res.render('vwAccount/signup');
+function regenerateSession(req) {
+  return new Promise((resolve, reject) => req.session.regenerate(error => error ? reject(error) : resolve()));
 }
 
-/**
- * Xử lý đăng ký tài khoản → gửi OTP.
- * UC [01] Main Flow Step 3-5:
- *   3. Actor nhập thông tin
- *   4. Hệ thống kiểm tra tính hợp lệ
- *   5. Gửi OTP qua email
- *
- * Exception Flow:
- *   4.1. Thiếu trường bắt buộc
- *   4.2. Mật khẩu quá ngắn (<6 ký tự)
- *   4.3. Mật khẩu xác thực không khớp
- *   4.4. Email không hợp lệ / đã tồn tại
- */
-export async function doSignup(req, res) {
-  try {
-    // chấp nhận cả username hoặc name từ form
-    const username = (req.body.username || req.body.name || '').trim();
-    const password = req.body.password || '';
-    const name = (req.body.name || username || '').trim();
-    const email = (req.body.email || '').trim();
-    const dob = req.body.dob || null;
+export function showSignup(req, res) { return res.render('vwAccount/signup'); }
 
-    if (!username || !password || !email) {
-      return res.status(400).render('vwAccount/signup', {
-        systemError: true,
-        message: 'Thiếu thông tin: tên đăng nhập, mật khẩu, email.',
+export async function doSignup(req, res, next) {
+  try {
+    await accountService.register(req.body);
+    return res.redirect('/account/signin?registered=1');
+  } catch (error) {
+    if (error instanceof AppError || error?.code === '23505') {
+      return res.status(error.statusCode || 409).render('vwAccount/signup', {
+        systemError: true, message: error?.code === '23505' ? 'Tên đăng nhập hoặc email đã tồn tại.' : error.message,
+        form: { username: req.body.username, name: req.body.name, email: req.body.email, dob: req.body.dob },
       });
     }
-
-    // kiểm tra email tồn tại
-    const existsEmail = await UserDao.findByEmail(email);
-    if (existsEmail) {
-      return res.render('vwAccount/signup', { emailExist: true });
-    }
-
-    // tạo & lưu OTP
-    const otp = Math.floor(100000 + Math.random() * 900000);
-
-    await OtpTokenDao.add(email, otp.toString(), 5);
-
-
-    // gửi mail OTP (Mailtrap sandbox)
-    const transporter = nodemailer.createTransport({
-      host: "sandbox.smtp.mailtrap.io",
-      port: 2525,
-      auth: {
-        user: "325d3a4b14039a",
-        pass: "17b0afcd916ef6"
-      }
-    });
-
-    await transporter.sendMail({
-      from: '"FinalWeb System" <noreply@finalweb.com>',
-      to: email,
-      subject: 'Mã xác nhận OTP',
-      text: `Xin chào ${name}, mã OTP của bạn là ${otp}. Mã có hiệu lực trong 5 phút.`,
-    });
-
-    // chuyển sang trang nhập OTP (pass data ẩn)
-    return res.render('vwAccount/verify-otp', {
-      username,
-      password,
-      name,
-      email,
-      dob,
-    });
-  } catch (err) {
-    console.error('❌ Lỗi tại signup:', err);
-    return res.status(500).render('vwAccount/signup', {
-      systemError: true,
-      message: 'Đăng ký thất bại, vui lòng thử lại sau.',
-    });
+    return next(error);
   }
 }
 
-/**
- * Xác thực OTP và tạo tài khoản.
- * UC [01] — Bước cuối: Xác nhận OTP → tạo user (permission = STUDENT).
- */
-export async function verifyOtp(req, res) {
-  try {
-    const username = (req.body.username || req.body.name || '').trim();
-    const password = req.body.password || '';
-    const name = (req.body.name || username || '').trim();
-    const email = (req.body.email || '').trim();
-    const dob = req.body.dob || null;
-    const otp = (req.body.otp || '').trim();
-
-    if (!email || !username || !password) {
-      return res.status(400).send('❌ Thiếu thông tin. Vui lòng đăng ký lại.');
-    }
-
-    const record = await OtpTokenDao.findLatestByEmail(email);
-
-    if (!record) return res.send('❌ Không tìm thấy mã OTP.');
-    if (record.otp_code !== otp) return res.send('❌ Mã OTP không đúng.');
-    if (record.isExpired()) return res.send('❌ Mã OTP đã hết hạn.');
-
-    const hashed = bcrypt.hashSync(password, 10);
-
-    // Class Diagram: User.register() — tạo user mới (permission = STUDENT)
-    await UserDao.register({
-      username,
-      name,
-      password: hashed,
-      email,
-      dob,
-      permission: Permission.STUDENT,
-      role: 'student',
-    });
-
-    // xoá otp đã dùng
-    await OtpTokenDao.deleteByEmail(email);
-
-
-    return res.render('vwAccount/signin', { success: true });
-  } catch (err) {
-    console.error('❌ Lỗi tại verify-otp:', err);
-    return res.status(500).send(`Lỗi xác nhận OTP: ${err.message}`);
-  }
+export async function checkAvailable(req, res, next) {
+  try { return res.json(await accountService.isUsernameAvailable(req.query.u)); }
+  catch (error) { return next(error); }
 }
 
-// ══════════════════════════════════════════
-// Check Username Available
-// ══════════════════════════════════════════
-
-export async function checkAvailable(req, res) {
-  const u = (req.query.u || '').trim();
-  if (!u) return res.json(false);
-
-  const user =
-    (await UserDao.findByUsername(u)) ||
-    (await UserDao.findByName(u)) ||
-    null;
-
-  return res.json(!user);
-}
-
-// ══════════════════════════════════════════
-// UC [02] Login
-// Class Diagram: User.login()
-// ══════════════════════════════════════════
-
-/**
- * Hiển thị form đăng nhập.
- * UC [02] Main Flow Step 1.
- */
 export function showSignin(req, res) {
-  res.render('vwAccount/signin', { error: false });
+  return res.render('vwAccount/signin', { error: false, success: req.query.registered === '1', disabled: req.query.disabled === '1' });
 }
 
-/**
- * Xử lý đăng nhập.
- * UC [02] Main Flow:
- *   2. Actor nhập Username + Mật khẩu
- *   3. Hệ thống xác thực → đối chiếu CSDL
- *   4. Khởi tạo session + phân quyền (Permission enum)
- *   5. Chuyển hướng theo role
- *
- * Exception Flow:
- *   3.1. Thiếu username hoặc mật khẩu
- *   3.2. Sai thông tin đăng nhập
- *   3.3. Tài khoản bị khóa (is_disabled)
- */
-export async function doSignin(req, res) {
+export async function doSignin(req, res, next) {
   try {
-    const username = (req.body.username || req.body.name || '').trim();
-    const password = req.body.password || '';
-
-    const user =
-      (await UserDao.findByUsername(username)) ||
-      (await UserDao.findByName(username)) ||
-      null;
-
-    // Exception 3.2: Không tồn tại user
-    if (!user) {
-      return res.render('vwAccount/signin', { error: true });
-    }
-
-    // Exception 3.3: Bị vô hiệu hóa
-    if (user.is_disabled === true || user.is_disabled === 'TRUE' || user.is_disabled === 1) {
-      return res.render('vwAccount/signin', {
-        error: true,
-        disabled: true,
-      });
-    }
-
-    // So khớp mật khẩu
-    const ok = bcrypt.compareSync(password, user.password || '');
-    if (!ok) {
-      return res.render('vwAccount/signin', { error: true });
-    }
-
-    // Lưu session & điều hướng theo permission (Permission enum)
+    const user = await accountService.authenticate(req.body);
+    const retUrl = req.session.retUrl;
+    await regenerateSession(req);
     req.session.isAuthenticated = true;
-    req.session.authUser = user;
-
-    switch (Number(user.permission)) {
-      case Permission.STUDENT: return res.redirect('/student');
-      case Permission.INSTRUCTOR: return res.redirect('/instructor');
-      case Permission.ADMIN: return res.redirect('/admin');
-      default: {
-        const retUrl = req.session.retUrl || '/';
-        delete req.session.retUrl;
-        return res.redirect(retUrl);
-      }
-    }
-  } catch (err) {
-    console.error('❌ Signin error:', err);
-    return res.render('vwAccount/signin', { error: true });
+    req.session.authUser = accountService.toSessionUser(user);
+    if (retUrl?.startsWith('/') && !retUrl.startsWith('//')) return res.redirect(retUrl);
+    const destinations = { [Permission.STUDENT]: '/student', [Permission.INSTRUCTOR]: '/instructor', [Permission.ADMIN]: '/admin' };
+    return res.redirect(destinations[Number(user.permission)] || '/');
+  } catch (error) {
+    if (error instanceof AppError) return res.status(error.statusCode).render('vwAccount/signin', { error: true, disabled: error instanceof ForbiddenError });
+    return next(error);
   }
 }
 
-// ══════════════════════════════════════════
-// Class Diagram: User.logout()
-// ══════════════════════════════════════════
-
-/**
- * Đăng xuất — xóa session.
- */
-export function doLogout(req, res) {
-  req.session.isAuthenticated = false;
-  req.session.authUser = null;
-  res.redirect(req.headers.referer || '/');
+export function doLogout(req, res, next) {
+  req.session.destroy(error => {
+    if (error) return next(error);
+    res.clearCookie('online_academy.sid');
+    return res.redirect('/');
+  });
 }
 
-// alias cho file cũ
-export function doSignout(req, res) {
-  req.session.isAuthenticated = false;
-  req.session.authUser = null;
-  res.redirect(req.headers.referer || '/');
-}
+export const doSignout = doLogout;
+export function showProfile(req, res) { return res.render('vwAccount/profile', { user: req.session.authUser }); }
 
-// ══════════════════════════════════════════
-// UC [21] Manage Profile
-// Class Diagram: User.updateProfile()
-// ══════════════════════════════════════════
-
-export function showProfile(req, res) {
-  res.render('vwAccount/profile', { user: req.session.authUser });
-}
-
-export async function updateProfile(req, res) {
-  const id = req.body.id;
-  const userPatch = {
-    name: (req.body.name || '').trim(),
-    email: (req.body.email || '').trim(),
-  };
-  await UserDao.updateProfile(id, userPatch);
-  req.session.authUser = { ...req.session.authUser, ...userPatch };
-
-  res.render('vwAccount/profile', { user: req.session.authUser });
-}
-
-// ══════════════════════════════════════════
-// UC [22] Change Password
-// Class Diagram: User.changePassword()
-// ══════════════════════════════════════════
-
-export function showChangePwd(req, res) {
-  res.render('vwAccount/change-pwd', { user: req.session.authUser });
-}
-
-export async function doChangePwd(req, res) {
-  const id = req.body.id;
-  const curPwd = req.body.currentPassword || req.body.curPassword || '';
-  const newPwd = req.body.newPassword || '';
-
-  const ok = bcrypt.compareSync(curPwd, req.session.authUser.password || '');
-  if (!ok) {
-    return res.render('vwAccount/change-pwd', {
-      user: req.session.authUser,
-      error: true,
-    });
+export async function updateProfile(req, res, next) {
+  try {
+    const data = await accountService.updateProfile(req.session.authUser.id, req.body);
+    req.session.authUser = { ...req.session.authUser, ...data };
+    return res.render('vwAccount/profile', { user: req.session.authUser, success: 'Cập nhật thành công.' });
+  } catch (error) {
+    if (error instanceof AppError) return res.status(error.statusCode).render('vwAccount/profile', { user: req.session.authUser, error: error.message });
+    return next(error);
   }
+}
 
-  const hashed = bcrypt.hashSync(newPwd, 10);
-  await UserDao.changePassword(id, hashed);
-  req.session.authUser.password = hashed;
+export function showChangePwd(req, res) { return res.render('vwAccount/change-pwd', { user: req.session.authUser }); }
 
-  res.redirect('/account/profile');
+export async function doChangePwd(req, res, next) {
+  try {
+    await accountService.changePassword(req.session.authUser.id, req.body, true);
+    return res.redirect('/account/profile?passwordChanged=1');
+  } catch (error) {
+    if (error instanceof AppError) return res.status(error.statusCode).render('vwAccount/change-pwd', { user: req.session.authUser, error: true, message: error.message });
+    return next(error);
+  }
 }

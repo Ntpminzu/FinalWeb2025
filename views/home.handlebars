@@ -1,14 +1,95 @@
-<div class="container mt-5">
-<section class="hero-brand rounded-4 p-5 mb-5 text-center">
-    <h1 class="fw-bold text-white mb-2">Online Academy – Học thông minh, bứt phá nhanh</h1>
-    <p class="text-white-50 mb-4">Hàng trăm khóa học chất lượng được cập nhật mỗi tuần.</p>
-    <a href="/courses" class="btn btn-brand-lg px-4 py-2">
-        <i class="bi bi-compass"></i> Khám phá ngay
-    </a>
-</section>
+<div class="home-page py-4">
+    <section class="hero-brand mb-4" aria-labelledby="home-hero-title">
+        <div class="hero-content">
+            <span class="hero-kicker">Academy commerce platform</span>
+            <h1 id="home-hero-title">Online Academy</h1>
+            <p class="hero-lead">Khám phá khóa học chất lượng, mua nhanh như một online shop và bắt đầu học ngay trong tài khoản của bạn.</p>
 
-    <h2 class="mb-4 fw-bold">🔥 Khóa học nổi bật trong tuần</h2>
-    <div class="row row-cols-1 row-cols-md-4 g-4">
+            <form class="hero-search" role="search" action="/search" method="get">
+                <label class="visually-hidden" for="hero-search-input">Tìm khóa học</label>
+                <i class="bi bi-search" aria-hidden="true"></i>
+                <input id="hero-search-input" type="search" name="q" placeholder="Tìm khóa học, kỹ năng, giảng viên..." autocomplete="off">
+                <button class="btn btn-primary" type="submit">Tìm kiếm</button>
+            </form>
+
+            <div class="hero-actions">
+                <a href="/courses" class="btn btn-primary btn-lg">
+                    <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>
+                    Khóa học
+                </a>
+                <a href="/account/signup" class="btn btn-outline-primary btn-lg">
+                    <i class="bi bi-person-plus" aria-hidden="true"></i>
+                    Tạo tài khoản
+                </a>
+            </div>
+        </div>
+
+        <div class="hero-panel" aria-label="Tổng quan học tập">
+            <div class="hero-panel-header">
+                <div>
+                    <span>Learning console</span>
+                    <strong>Dashboard</strong>
+                </div>
+                <i class="bi bi-bar-chart-line" aria-hidden="true"></i>
+            </div>
+            <div class="metric-grid">
+                <div>
+                    <strong>10+</strong>
+                    <span>Nổi bật</span>
+                </div>
+                <div>
+                    <strong>10+</strong>
+                    <span>Mới nhất</span>
+                </div>
+                <div>
+                    <strong>5</strong>
+                    <span>Lĩnh vực</span>
+                </div>
+            </div>
+            <div class="learning-path">
+                <div class="path-row active">
+                    <span></span>
+                    <p>Chọn khóa học phù hợp</p>
+                </div>
+                <div class="path-row">
+                    <span></span>
+                    <p>Thanh toán và lưu vào thư viện</p>
+                </div>
+                <div class="path-row">
+                    <span></span>
+                    <p>Theo dõi tiến độ học</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="quick-stats mb-5" aria-label="Điểm nổi bật">
+        <div>
+            <i class="bi bi-mortarboard" aria-hidden="true"></i>
+            <strong>Học theo lộ trình</strong>
+            <span>Bài giảng, quiz và tiến độ trong một nơi.</span>
+        </div>
+        <div>
+            <i class="bi bi-bag-check" aria-hidden="true"></i>
+            <strong>Mua khóa học nhanh</strong>
+            <span>Giỏ hàng rõ ràng, giá khuyến mãi nổi bật.</span>
+        </div>
+        <div>
+            <i class="bi bi-stars" aria-hidden="true"></i>
+            <strong>Xếp hạng minh bạch</strong>
+            <span>Rating và lượt đánh giá hiển thị ngay trên card.</span>
+        </div>
+    </section>
+
+    <section class="content-section">
+    <div class="section-heading">
+        <div>
+            <span class="section-kicker">Đề xuất tuần này</span>
+            <h2>Khóa học nổi bật</h2>
+        </div>
+        <a href="/courses" class="section-link">Xem tất cả <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+    </div>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-4 g-4">
         {{#each outstandingCourses}}
         <div class="col">
             <div class="card course-card h-100">
@@ -46,8 +127,8 @@
 
                         <div class="d-flex align-items-center mt-2 gap-2">
                             {{#if_contains ../ownedCourseIds this.id}}
-                            <a href="/student/my-courses" class="btn btn-outline-success btn-sm w-100 disabled">
-                                <i class="bi bi-check-circle"></i> Đã sở hữu
+                            <a href="/student/courses" class="btn btn-outline-primary btn-sm w-100">
+                                <i class="bi bi-play-circle"></i> Vào học
                             </a>
                             {{else}}
                             <form action="/cart/add" method="POST" style="flex-grow: 1;">
@@ -70,10 +151,16 @@
         {{/each}}
     </div>
 
-    <hr class="my-5">
+    </section>
 
-    <h2 class="mb-4 fw-bold">👀 Khóa học được xem nhiều nhất</h2>
-    <div class="row row-cols-1 row-cols-md-4 g-4">
+    <section class="content-section">
+    <div class="section-heading">
+        <div>
+            <span class="section-kicker">Xu hướng</span>
+            <h2>Khóa học được xem nhiều nhất</h2>
+        </div>
+    </div>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-4 g-4">
         {{#each mostViewedCourses}}
         <div class="col">
             <div class="card course-card h-100">
@@ -111,8 +198,8 @@
 
                         <div class="d-flex align-items-center mt-2 gap-2">
                             {{#if_contains ../ownedCourseIds this.id}}
-                            <a href="/student/my-courses" class="btn btn-outline-success btn-sm w-100 disabled">
-                                <i class="bi bi-check-circle"></i> Đã sở hữu
+                            <a href="/student/courses" class="btn btn-outline-primary btn-sm w-100">
+                                <i class="bi bi-play-circle"></i> Vào học
                             </a>
                             {{else}}
                             <form action="/cart/add" method="POST" style="flex-grow: 1;">
@@ -135,10 +222,16 @@
         {{/each}}
     </div>
 
-    <hr class="my-5">
+    </section>
 
-    <h2 class="mb-4 fw-bold">✨ Khóa học mới nhất</h2>
-    <div class="row row-cols-1 row-cols-md-4 g-4">
+    <section class="content-section">
+    <div class="section-heading">
+        <div>
+            <span class="section-kicker">Vừa cập nhật</span>
+            <h2>Khóa học mới nhất</h2>
+        </div>
+    </div>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-4 g-4">
         {{#each newestCourses}}
         <div class="col">
             <div class="card course-card h-100">
@@ -176,8 +269,8 @@
 
                         <div class="d-flex align-items-center mt-2 gap-2">
                             {{#if_contains ../ownedCourseIds this.id}}
-                            <a href="/student/my-courses" class="btn btn-outline-success btn-sm w-100 disabled">
-                                <i class="bi bi-check-circle"></i> Đã sở hữu
+                            <a href="/student/courses" class="btn btn-outline-primary btn-sm w-100">
+                                <i class="bi bi-play-circle"></i> Vào học
                             </a>
                             {{else}}
                             <form action="/cart/add" method="POST" style="flex-grow: 1;">
@@ -200,22 +293,39 @@
         {{/each}}
     </div>
 
-    <hr class="my-5">
+    </section>
 
-    <h2 class="mb-4 fw-bold">🏆 Lĩnh vực được đăng ký nhiều nhất tuần</h2>
+    <section class="content-section category-section">
+    <div class="section-heading">
+        <div>
+            <span class="section-kicker">Danh mục</span>
+            <h2>Lĩnh vực được đăng ký nhiều nhất tuần</h2>
+        </div>
+    </div>
     <div class="row">
-        <div class="col-md-6">
-            <ul class="list-group list-group-flush">
+        <div class="col-lg-7">
+            <ul class="list-group list-group-flush top-category-list">
                 {{#each topCategories}}
-                <li class="list-group-item d-flex justify-content-between align-items-center fs-5 p-3">
-                    <a href="/categories/{{this.id}}" class="text-decoration-none text-dark fw-bold">
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <a href="/categories/{{this.id}}" class="text-decoration-none fw-bold">
                         {{this.catname}}
                     </a>
-                    <span class="badge bg-primary rounded-pill">{{this.enroll_count}} lượt đăng ký</span>
+                    <span class="badge rounded-pill">{{this.enroll_count}} lượt đăng ký</span>
                 </li>
                 {{/each}}
             </ul>
         </div>
+        <div class="col-lg-5 mt-4 mt-lg-0">
+            <div class="category-cta">
+                <span>Instructor workspace</span>
+                <h3>Bán khóa học và quản lý học viên trong cùng hệ thống.</h3>
+                <a href="/instructor" class="btn btn-success">
+                    <i class="bi bi-easel2" aria-hidden="true"></i>
+                    Kênh giảng viên
+                </a>
+            </div>
+        </div>
     </div>
+    </section>
 
 </div>

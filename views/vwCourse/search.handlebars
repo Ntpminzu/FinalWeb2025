@@ -29,16 +29,15 @@
 
     {{#if empty}}
     <div class="alert alert-warning" role="alert">
-        Không tìm thấy khóa học nào phù hợp. [cite: 16, 17]
+        Không tìm thấy khóa học phù hợp. Hãy thử từ khóa ngắn hơn hoặc khám phá tất cả khóa học.
     </div>
     {{else}}
 
-    <div class="row row-cols-1 row-cols-md-3 g-4">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-4">
         {{#each courses}}
         <div class="col">
-            <div class="card shadow-sm h-100 border-0">
-                <img src="{{this.thumbnail}}" class="card-img-top" alt="{{this.title}}"
-                    style="height: 180px; object-fit: cover;">
+            <div class="card course-card h-100">
+                <img src="{{this.thumbnail}}" class="card-img-top" alt="Ảnh khóa học {{this.title}}" loading="lazy">
 
                 <div class="card-body d-flex flex-column">
                     <h5 class="card-title text-truncate">{{this.title}}</h5>

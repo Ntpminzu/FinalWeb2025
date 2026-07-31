@@ -2,6 +2,7 @@
 
 import express from 'express';
 import * as cartController from '../controllers/cart.controller.js';
+import { restrictStudent } from '../middlewares/auth.mdw.js';
 
 const router = express.Router();
 
@@ -15,6 +16,6 @@ router.post('/remove', cartController.removeFromCart);
 router.get('/', cartController.showCart);
 
 // Thanh toán
-router.post('/checkout', cartController.checkout);
+router.post('/checkout', restrictStudent, cartController.checkout);
 
 export default router;

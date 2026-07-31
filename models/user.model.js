@@ -77,6 +77,11 @@ class User {
     this.password = data.password || null;
     this.dob = data.dob || null;
     this.permission = data.permission || Permission.STUDENT;
+    this.role = data.role || ({
+      [Permission.STUDENT]: 'student',
+      [Permission.INSTRUCTOR]: 'instructor',
+      [Permission.ADMIN]: 'admin',
+    }[Number(this.permission)] ?? 'student');
     this.is_disabled = data.is_disabled || false;
   }
 
