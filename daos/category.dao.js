@@ -55,12 +55,12 @@ class CategoryDao {
 
     return db('categories as cat')
       .join('courses as c', 'c.category_id', 'cat.id')
-      .join('enrollments as e', 'e.course_id', 'c.id')
-      .where('e.enrolled_at', '>=', sevenDaysAgo)
+      .join('purchased as p', 'p.course_id', 'c.id')
+      .where('p.purchased_at', '>=', sevenDaysAgo)
       .select(
         'cat.id',
         'cat.catname',
-        db.raw('COUNT(e.id) as enroll_count')
+        db.raw('COUNT(p.id) as enroll_count')
       )
       .groupBy('cat.id', 'cat.catname')
       .orderBy('enroll_count', 'desc')

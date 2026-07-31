@@ -34,9 +34,9 @@ class InstructorDao {
 
   static async countStudent(instructorId) {
     const result = await db('courses as c')
-      .join('enrollments as e', 'c.id', 'e.course_id')
+      .join('purchased as p', 'c.id', 'p.course_id')
       .where('c.instructor_id', instructorId)
-      .countDistinct('e.student_id as total')
+      .countDistinct('p.user_id as total')
       .first();
     return Number(result?.total || 0);
   }
@@ -119,10 +119,10 @@ class InstructorDao {
 
   static async getCoursesByInstructor(instructorId) {
     const courses = await db('courses as c')
-      .leftJoin('enrollments as e', 'e.course_id', 'c.id')
+      .leftJoin('purchased as p', 'p.course_id', 'c.id')
       .where('c.instructor_id', instructorId)
       .select('c.*')
-      .count('e.id as total_students')
+      .count('p.id as total_students')
       .groupBy('c.id')
       .orderBy('c.id', 'desc');
 

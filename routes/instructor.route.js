@@ -2,6 +2,8 @@
 
 import express from 'express';
 import { restrictInstructor } from '../middlewares/auth.mdw.js';
+import { requireOwnedCourse } from '../middlewares/ownership.middleware.js';
+import { thumbnailUpload } from '../middlewares/upload.middleware.js';
 import * as instructorController from '../controllers/instructor.controller.js';
 
 const router = express.Router();
@@ -16,11 +18,11 @@ router.get('/dashboard', instructorController.dashboard);
 
 // Tạo khóa học mới
 router.get('/new', instructorController.showNewForm);
-router.post('/new', instructorController.upload.single('thumbnail'), instructorController.createCourse);
+router.post('/new', thumbnailUpload.single('thumbnail'), instructorController.createCourse);
 
 // Chỉnh sửa khóa học
 router.get('/edit/course/:id', instructorController.showEditCourse);
-router.post('/edit/:id', instructorController.requireOwnedCourse, instructorController.upload.single('thumbnail'), instructorController.updateCourse);
+router.post('/edit/:id', requireOwnedCourse, thumbnailUpload.single('thumbnail'), instructorController.updateCourse);
 
 // Quản lý bài giảng
 router.get('/edit/lectures/:id', instructorController.showEditLectures);

@@ -1,61 +1,11 @@
-/**
- * ╔══════════════════════════════════════════════════════════════╗
- * ║  Category Controller                                        ║
- * ║  Class Diagram Mapping:                                      ║
- * ║    Category.all(), Category.findById(),                      ║
- * ║    Category.findChildIds()                                   ║
- * ║                                                              ║
- * ║  UC liên quan:                                               ║
- * ║    [07] View Courses by Category                             ║
- * ╚══════════════════════════════════════════════════════════════╝
- */
-// controllers/category.controller.js
-
-import CategoryDao from '../daos/category.dao.js';
-import CourseDao from '../daos/course.dao.js';
-
-const COURSES_PER_PAGE = 9;
+import * as catalogService from '../services/catalog.service.js';
 
 export async function showByCategory(req, res, next) {
-  const parentCategoryId = parseInt(req.params.id, 10);
-
   try {
-    const category = await CategoryDao.findById(parentCategoryId);
-    if (!category) {
-      return res.status(404).render('404');
-    }
-
-    const childIds = await CategoryDao.findChildIds(parentCategoryId);
-    const allCategoryIds = [parentCategoryId, ...childIds];
-
-    // Logic phân trang
-    const requestedPage = Number.parseInt(req.query.page || '1', 10);
-    const page = Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
-    const limit = COURSES_PER_PAGE;
-    const offset = (page - 1) * limit;
-
-    // Gọi 2 hàm model (đếm và lấy)
-    const [courses, totalCourses] = await Promise.all([
-      CourseDao.findPageByCategoryIds(allCategoryIds, limit, offset),
-      CourseDao.countByCategoryIds(allCategoryIds)
-    ]);
-
-    const totalPages = Math.ceil(totalCourses / limit);
-
-    res.render('vwCourse/byCategory', {
-      layout: 'main',
-      category: category,
-      courses: courses,
-      empty: courses.length === 0,
-      pagination: {
-        totalPages: totalPages,
-        currentPage: page,
-        queryString: null
-      }
+    const result = await catalogService.listByCategory(req.params.id, req.query);
+    return res.render('vwCourse/byCategory', {
+      layout: 'main', category: result.category, courses: result.courses, empty: result.courses.length === 0,
+      pagination: { totalPages: result.totalPages, currentPage: result.page, queryString: null },
     });
-
-  } catch (err) {
-    console.error(err);
-    next(err);
-  }
+  } catch (error) { return next(error); }
 }

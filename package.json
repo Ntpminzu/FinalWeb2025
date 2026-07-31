@@ -5,10 +5,14 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "test": "npm run check",
-    "start": "node app.js",
-    "dev": "node --watch app.js",
-    "check": "node tools/validate.js"
+    "test": "npm run check && npm run test:unit",
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "check": "node tools/validate.js",
+    "test:unit": "node --test tests/unit/validators.test.js",
+    "db:migrate": "knex migrate:latest",
+    "db:rollback": "knex migrate:rollback",
+    "db:seed": "knex seed:run"
   },
   "repository": {
     "type": "git",

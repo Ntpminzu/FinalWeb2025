@@ -1,5 +1,5 @@
-import UserDao from '../daos/user.dao.js';
 import Permission from '../enums/Permission.js';
+import { findUserById } from '../services/account.service.js';
 
 function toSessionUser(user) {
   return {
@@ -22,7 +22,7 @@ async function requireUser(req, res, next, permission = null) {
       return res.redirect('/account/signin');
     }
 
-    const user = await UserDao.findById(userId);
+    const user = await findUserById(userId);
     if (!user || user.is_disabled) {
       return req.session.destroy(() => res.redirect('/account/signin?disabled=1'));
     }

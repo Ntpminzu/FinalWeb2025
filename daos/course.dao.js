@@ -93,16 +93,16 @@ class CourseDao {
 
     return db('courses as c')
       .where('c.is_disabled', false)
-      .join('enrollments as e', 'c.id', 'e.course_id')
+      .join('purchased as p', 'c.id', 'p.course_id')
       .join('categories as cat', 'c.category_id', 'cat.id')
       .leftJoin('users as u', 'c.instructor_id', 'u.id')
-      .where('e.enrolled_at', '>=', sevenDaysAgo)
+      .where('p.purchased_at', '>=', sevenDaysAgo)
       .select(
         'c.id', 'c.title', 'c.description', 'c.thumbnail',
         'c.price', 'c.sale_price', 'c.rating_avg', 'c.rating_count',
         'cat.catname as category',
         'u.name as instructor_name',
-        db.raw('COUNT(e.course_id) as enrollment_count')
+        db.raw('COUNT(p.course_id) as enrollment_count')
       )
       .groupBy('c.id', 'c.title', 'c.description', 'c.thumbnail', 'c.price', 'c.sale_price', 'c.rating_avg', 'c.rating_count', 'cat.catname', 'u.name')
       .orderBy('enrollment_count', 'desc')
