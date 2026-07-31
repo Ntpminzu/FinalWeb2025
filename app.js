@@ -4,16 +4,20 @@ import express from 'express';
 import { engine } from 'express-handlebars';
 import hbs_sections from 'express-handlebars-sections';
 import session from 'express-session';
+import connectPgSimple from 'connect-pg-simple';
+import helmet from 'helmet';
+import { rateLimit } from 'express-rate-limit';
+import crypto from 'crypto';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 // Auth
-import { restrict, restrictAdmin } from './middlewares/auth.mdw.js';
+import { restrictAdmin } from './middlewares/auth.mdw.js';
 
 // DAOs
 import CategoryDao from './daos/category.dao.js';
 import CourseDao from './daos/course.dao.js';
-import db from './utils/db.js';
+import db, { dbConfig } from './utils/db.js';
 
 // Routers
 import adminRouter from './routes/admin.route.js';
@@ -32,13 +36,44 @@ const __dirname = path.dirname(__filename);
 // App
 const app = express();
 
+app.disable('x-powered-by');
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", 'https://cdn.jsdelivr.net', 'https://cdn.plyr.io', 'https://cdnjs.cloudflare.com'],
+      styleSrc: ["'self'", "'unsafe-inline'", 'https://cdn.jsdelivr.net', 'https://cdn.plyr.io', 'https://fonts.googleapis.com'],
+      imgSrc: ["'self'", 'data:', 'https:'],
+      mediaSrc: ["'self'", 'https:'],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'", 'data:', 'https://cdn.jsdelivr.net', 'https://fonts.gstatic.com'],
+    },
+  },
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+}));
+app.use('/static', express.static(path.join(__dirname, 'static'), { maxAge: '1d' }));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), { maxAge: '1d', dotfiles: 'deny' }));
+
 // Session
 app.set('trust proxy', 1);
+const PgSession = connectPgSimple(session);
+const sessionSecret = process.env.SESSION_SECRET;
+if (!sessionSecret || sessionSecret.length < 32) {
+  throw new Error('SESSION_SECRET must contain at least 32 characters.');
+}
 app.use(session({
-  secret: 'b3f8c2a1e7d4f6g9h0j2k5l8m1n3p6q9r2s5t8u1v4w7x0y3z6a9b2c5d8e1',
+  name: 'online_academy.sid',
+  store: new PgSession({ conObject: dbConfig, createTableIfMissing: true }),
+  secret: sessionSecret,
   resave: false,
-  saveUninitialized: true,
-  cookie: { secure: false }, // Bật true khi dùng HTTPS
+  saveUninitialized: false,
+  rolling: true,
+  cookie: {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.SESSION_COOKIE_SECURE === 'true' || process.env.NODE_ENV === 'production',
+    maxAge: 1000 * 60 * 60 * 8,
+  },
 }));
 
 // Handlebars
@@ -142,11 +177,38 @@ app.set('view engine', 'handlebars');
 app.set('views', path.join(__dirname, 'views'));
 
 // Middlewares
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-app.use('/static', express.static(path.join(__dirname, 'static')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(express.urlencoded({ extended: true, limit: '100kb', parameterLimit: 100 }));
+app.use(express.json({ limit: '100kb' }));
 
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: 'Bạn đã thử quá nhiều lần. Vui lòng thử lại sau.',
+});
+app.use(['/account/signin', '/account/signup', '/account/is-available'], authLimiter);
+
+function ensureCsrfToken(req) {
+  if (!req.session.csrfToken) req.session.csrfToken = crypto.randomBytes(32).toString('hex');
+  return req.session.csrfToken;
+}
+
+app.use((req, res, next) => {
+  const token = ensureCsrfToken(req);
+  res.locals.csrfToken = token;
+  if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) return next();
+
+  const supplied = req.body?._csrf || req.query?._csrf || req.get('x-csrf-token') || '';
+  const expected = Buffer.from(token);
+  const actual = Buffer.from(String(supplied));
+  if (actual.length !== expected.length || !crypto.timingSafeEqual(actual, expected)) {
+    return res.status(403).render('403', {
+      message: 'Yêu cầu đã hết hạn hoặc không hợp lệ. Vui lòng tải lại trang.',
+    });
+  }
+  return next();
+});
 // Global view data used by the shared layout.
 app.use((req, res, next) => {
   res.locals.currentYear = new Date().getFullYear();
@@ -157,7 +219,7 @@ app.use((req, res, next) => {
 // Auth locals + ownedCourseIds
 app.use(async (req, res, next) => {
   try {
-    if (req.session.isAuthenticated) {
+    if (req.session.isAuthenticated && req.method === 'GET') {
       res.locals.isAuthenticated = true;
       res.locals.authUser = req.session.authUser;
 
@@ -176,11 +238,14 @@ app.use(async (req, res, next) => {
   }
 });
 
-// Categories for header
+// Categories for header (short cache avoids one identical query per request)
+let categoryCache = { data: [], expiresAt: 0 };
 app.use(async (req, res, next) => {
   try {
-    const categories = await CategoryDao.all();
-    res.locals.categories = categories;
+    if (Date.now() >= categoryCache.expiresAt) {
+      categoryCache = { data: await CategoryDao.all(), expiresAt: Date.now() + 60_000 };
+    }
+    res.locals.categories = categoryCache.data;
   } catch (err) {
     console.error('Không thể tải categories:', err);
     res.locals.categories = [];
@@ -213,7 +278,7 @@ app.get('/', async (req, res, next) => {
 });
 
 // Routers
-app.use('/admin', restrict, restrictAdmin, adminRouter);
+app.use('/admin', restrictAdmin, adminRouter);
 app.use('/student', studentRouter);
 app.use('/account', accountRouter);
 app.use('/courses', courseRouter);
@@ -227,8 +292,12 @@ app.use('/instructor', instructorRouter);
 app.use((req, res) => res.status(404).render('404'));
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.render('500');
+  if (err?.name === 'MulterError') {
+    return res.status(400).send('Tệp tải lên không hợp lệ hoặc vượt quá 5 MB.');
+  }
+  res.status(500).render('500');
 });
 
 // Start
-app.listen(4000, () => console.log('✅ Server is running at http://localhost:4000'));
+const port = Number(process.env.PORT || 4000);
+app.listen(port, () => console.log(`✅ Server is running at http://localhost:${port}`));

@@ -62,20 +62,23 @@ class InstructorDao {
     return db('courses').where('instructor_id', instructorId);
   }
 
-  static async updateCourse(courseId, data) {
+  static async updateCourse(courseId, instructorId, data) {
     try {
       const updateData = {
         title: data.title,
         short_desc: data.short_desc,
         full_desc: data.full_desc,
         description: data.description || data.full_desc,
+        category_id: data.category_id,
         price: data.price,
         sale_price: data.sale_price || null,
         updated_at: new Date(),
       };
       if (data.thumbnail) updateData.thumbnail = data.thumbnail;
-      await db('courses').where('id', courseId).update(updateData);
-      return true;
+      const updated = await db('courses')
+        .where({ id: courseId, instructor_id: instructorId })
+        .update(updateData);
+      return updated > 0;
     } catch (err) {
       console.error('❌ Lỗi khi updateCourse:', err);
       throw new Error('Không thể cập nhật khóa học.');
@@ -115,24 +118,26 @@ class InstructorDao {
   }
 
   static async getCoursesByInstructor(instructorId) {
-    const courses = await db('courses')
-      .where('instructor_id', instructorId)
-      .select('*');
+    const courses = await db('courses as c')
+      .leftJoin('enrollments as e', 'e.course_id', 'c.id')
+      .where('c.instructor_id', instructorId)
+      .select('c.*')
+      .count('e.id as total_students')
+      .groupBy('c.id')
+      .orderBy('c.id', 'desc');
 
-    for (let course of courses) {
-      const studentCount = await db('enrollments')
-        .where('course_id', course.id)
-        .count('id as total_students')
-        .first();
+    for (const course of courses) {
       course.status = course.Status ? 'Đã hoàn thành' : 'Chưa hoàn thành';
-      course.total_students = studentCount?.total_students || 0;
+      course.total_students = Number(course.total_students || 0);
     }
     return courses;
   }
 
-  static async getCourseById(id) {
+  static async getCourseById(id, instructorId = null) {
     try {
-      return await db('courses').where('id', id).first();
+      const query = db('courses').where('id', id);
+      if (instructorId !== null) query.andWhere('instructor_id', instructorId);
+      return await query.first();
     } catch (err) {
       throw new Error('Lỗi khi lấy thông tin khóa học: ' + err.message);
     }
@@ -149,8 +154,10 @@ class InstructorDao {
     }
   }
 
-  static async addLecture(course_id, title, video_url) {
+  static async addLecture(course_id, instructorId, title, video_url) {
     try {
+      const owned = await db('courses').where({ id: course_id, instructor_id: instructorId }).first('id');
+      if (!owned) return null;
       const [lecture] = await db('lectures')
         .insert({ course_id, title, video_url })
         .returning(['id', 'title', 'video_url']);
@@ -160,12 +167,34 @@ class InstructorDao {
     }
   }
 
-  static async deleteLecture(id) {
+  static async deleteLecture(id, instructorId) {
     try {
+      const lecture = await db('lectures as l')
+        .join('courses as c', 'c.id', 'l.course_id')
+        .where('l.id', id)
+        .andWhere('c.instructor_id', instructorId)
+        .select('l.id')
+        .first();
+      if (!lecture) return false;
       await db('lectures').where('id', id).del();
+      return true;
     } catch (err) {
       throw new Error('Lỗi khi xóa bài giảng: ' + err.message);
     }
+  }
+
+  static getCategoryById(id) {
+    return db('categories').where('id', id).first('id');
+  }
+
+  static async countLectures(courseId, instructorId) {
+    const row = await db('lectures as l')
+      .join('courses as c', 'c.id', 'l.course_id')
+      .where('l.course_id', courseId)
+      .andWhere('c.instructor_id', instructorId)
+      .count('l.id as total')
+      .first();
+    return Number(row?.total || 0);
   }
 }
 

@@ -1,2 +1,7 @@
 node_modules/
 .agents/
+.env
+.env.*
+!.env.example
+uploads/*
+!uploads/.gitkeep

@@ -96,6 +96,7 @@ class CourseDao {
       .join('enrollments as e', 'c.id', 'e.course_id')
       .join('categories as cat', 'c.category_id', 'cat.id')
       .leftJoin('users as u', 'c.instructor_id', 'u.id')
+      .where('e.enrolled_at', '>=', sevenDaysAgo)
       .select(
         'c.id', 'c.title', 'c.description', 'c.thumbnail',
         'c.price', 'c.sale_price', 'c.rating_avg', 'c.rating_count',
@@ -256,8 +257,10 @@ class CourseDao {
     return query;
   }
 
-  static toggleStatus(id, status) {
-    return db('courses').where({ id }).update({
+  static toggleStatus(id, status, instructorId = null) {
+    const query = db('courses').where({ id });
+    if (instructorId !== null) query.andWhere('instructor_id', instructorId);
+    return query.update({
       Status: status,
       updated_at: new Date(),
     });

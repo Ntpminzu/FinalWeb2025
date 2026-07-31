@@ -1,151 +1,79 @@
+<div class="card auth-card mx-auto my-4">
+  <h1 class="h5 card-header bg-primary text-white fw-bold text-center py-3">Đăng ký tài khoản học viên</h1>
+  <div class="card-body px-4 py-4">
+    {{#if systemError}}
+    <div class="alert alert-danger" role="alert">{{message}}</div>
+    {{/if}}
+    <form id="frmSignup" method="post" action="/account/signup">
+      <div class="mb-3">
+        <label for="txtUsername" class="form-label fw-semibold">Tên đăng nhập</label>
+        <input type="text" class="form-control" id="txtUsername" name="username" value="{{form.username}}"
+          pattern="[A-Za-z0-9._-]{3,32}" minlength="3" maxlength="32" autocomplete="username" required
+          aria-describedby="usernameHelp">
+        <div id="usernameHelp" class="form-text">3–32 ký tự; dùng chữ, số, dấu chấm, gạch dưới hoặc gạch ngang.</div>
+      </div>
+      <div class="mb-3">
+        <label for="txtPassword" class="form-label fw-semibold">Mật khẩu</label>
+        <input type="password" class="form-control" id="txtPassword" name="password" minlength="8" maxlength="72"
+          autocomplete="new-password" required>
+        <div class="form-text">Tối thiểu 8 ký tự.</div>
+      </div>
+      <div class="mb-3">
+        <label for="txtConfirm" class="form-label fw-semibold">Xác nhận mật khẩu</label>
+        <input type="password" class="form-control" id="txtConfirm" name="confirm_password" minlength="8" maxlength="72"
+          autocomplete="new-password" required>
+        <div class="invalid-feedback">Mật khẩu xác nhận chưa khớp.</div>
+      </div>
+      <h2 class="h5 mt-4 mb-3 text-primary fw-bold">Thông tin cá nhân</h2>
+      <div class="mb-3">
+        <label for="txtName" class="form-label fw-semibold">Họ và tên</label>
+        <input type="text" class="form-control" id="txtName" name="name" value="{{form.name}}" minlength="2" maxlength="100" autocomplete="name" required>
+      </div>
+      <div class="mb-3">
+        <label for="txtEmail" class="form-label fw-semibold">Địa chỉ email</label>
+        <input type="email" class="form-control" id="txtEmail" name="email" value="{{form.email}}" maxlength="254" autocomplete="email" required>
+        <div class="form-text">Email được dùng để nhận thông báo tài khoản.</div>
+      </div>
+      <div class="mb-3">
+        <label for="txtDoB" class="form-label fw-semibold">Ngày sinh</label>
+        <input type="date" class="form-control" id="txtDoB" name="dob" value="{{form.dob}}" autocomplete="bday">
+      </div>
+      <p class="text-muted small">Tài khoản mới mặc định là học viên. Quyền giảng viên và quản trị viên chỉ được cấp bởi admin.</p>
+      <button type="submit" class="btn btn-primary w-100"><i class="bi bi-person-fill-add me-1"></i>Đăng ký</button>
+      <p class="text-center text-muted small mt-3 mb-0">Đã có tài khoản? <a href="/account/signin">Đăng nhập</a></p>
+    </form>
+  </div>
+</div>
+
 {{#fillContent 'js'}}
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-    crossorigin="anonymous"></script>
-
 <script>
-    document.querySelector('#frmSignup').addEventListener('submit', handleSubmit);
-
-    async function handleSubmit(e) {
-        e.preventDefault();
-
-        const username = document.querySelector('#txtUsername').value.trim();
-        const password = document.querySelector('#txtPassword').value;
-        const confirm = document.querySelector('#txtConfirm').value;
-        const name = document.querySelector('#txtName').value.trim();
-        const email = document.querySelector('#txtEmail').value.trim();
-
-        if (!username) {
-            Swal.fire({
-                title: 'Thiếu thông tin',
-                text: 'Vui lòng nhập tên đăng nhập!',
-                icon: 'warning',
-                confirmButtonText: 'OK'
-            });
-            return;
+  (() => {
+    const form = document.getElementById('frmSignup');
+    const username = document.getElementById('txtUsername');
+    const password = document.getElementById('txtPassword');
+    const confirmation = document.getElementById('txtConfirm');
+    const validatePassword = () => confirmation.setCustomValidity(
+      confirmation.value && confirmation.value !== password.value ? 'Mật khẩu không khớp.' : ''
+    );
+    password.addEventListener('input', validatePassword);
+    confirmation.addEventListener('input', validatePassword);
+    form.addEventListener('submit', async event => {
+      validatePassword();
+      if (!form.checkValidity()) { event.preventDefault(); form.classList.add('was-validated'); return; }
+      event.preventDefault();
+      try {
+        const response = await fetch(`/account/is-available?u=${encodeURIComponent(username.value.trim())}`);
+        if (!response.ok || !(await response.json())) {
+          username.setCustomValidity('Tên đăng nhập đã tồn tại hoặc không hợp lệ.');
+          username.reportValidity();
+          return;
         }
-
-        if (password.length < 6) {
-            Swal.fire({
-                title: 'Mật khẩu quá ngắn',
-                text: 'Mật khẩu phải ít nhất 6 ký tự!',
-                icon: 'error',
-                confirmButtonText: 'OK'
-            });
-            return;
-        }
-
-        if (password !== confirm) {
-            Swal.fire({
-                title: 'Mật khẩu không khớp',
-                text: 'Vui lòng nhập lại cho đúng!',
-                icon: 'error',
-                confirmButtonText: 'OK'
-            });
-            return;
-        }
-
-        if (!email.includes('@')) {
-            Swal.fire({
-                title: 'Email không hợp lệ',
-                text: 'Vui lòng nhập đúng định dạng email!',
-                icon: 'error',
-                confirmButtonText: 'OK'
-            });
-            return;
-        }
-
-        // Kiểm tra username có bị trùng không
-        try {
-            const res = await fetch(`/account/is-available?u=${username}`);
-            const data = await res.json();
-            if (data === false) {
-                Swal.fire({
-                    title: 'Tên đăng nhập đã tồn tại',
-                    text: 'Vui lòng chọn tên khác!',
-                    icon: 'error',
-                    confirmButtonText: 'OK'
-                });
-                return;
-            }
-
-            e.target.submit();
-        } catch (err) {
-            console.error(err);
-            Swal.fire({
-                title: 'Lỗi hệ thống',
-                text: 'Không thể kiểm tra tài khoản. Vui lòng thử lại!',
-                icon: 'error',
-                confirmButtonText: 'OK'
-            });
-        }
-    }
+        username.setCustomValidity('');
+        form.submit();
+      } catch {
+        form.submit();
+      }
+    });
+  })();
 </script>
 {{/fillContent}}
-
-<div class="card auth-card mx-auto my-4">
-    <h5 class="card-header bg-primary text-white fw-bold text-center py-3">
-        Đăng ký tài khoản học viên
-    </h5>
-
-    <div class="card-body px-4">
-        <form id="frmSignup" method="post" action="/account/signup">
-            <div class="mb-3">
-                <label for="txtUsername" class="form-label fw-semibold">Tên đăng nhập</label>
-                <input type="text" class="form-control" id="txtUsername" name="username"
-                    placeholder="Nhập tên đăng nhập...">
-            </div>
-
-            <div class="mb-3">
-                <label for="txtPassword" class="form-label fw-semibold">Mật khẩu</label>
-                <input type="password" class="form-control" id="txtPassword" name="password" placeholder="******">
-            </div>
-
-            <div class="mb-3">
-                <label for="txtConfirm" class="form-label fw-semibold">Xác nhận mật khẩu</label>
-                <input type="password" class="form-control" id="txtConfirm" name="confirm_password"
-                    placeholder="Nhập lại mật khẩu...">
-            </div>
-
-            <h5 class="mt-4 mb-3 text-primary fw-bold">Thông tin cá nhân</h5>
-
-            <div class="mb-3">
-                <label for="txtName" class="form-label fw-semibold">Họ và tên</label>
-                <input type="text" class="form-control" id="txtName" name="name" placeholder="Nguyễn Văn A">
-            </div>
-
-            <div class="mb-3">
-                <label for="txtEmail" class="form-label fw-semibold">Địa chỉ Email</label>
-                <input type="email" class="form-control" id="txtEmail" name="email" placeholder="example@gmail.com">
-                <div id="emailHelp" class="form-text text-muted">Email phải hợp lệ để nhận mã OTP xác nhận.</div>
-            </div>
-
-            <div class="mb-3">
-                <label for="txtDoB" class="form-label fw-semibold">Ngày sinh</label>
-                <input type="date" class="form-control" id="txtDoB" name="dob">
-            </div>
-
-            <!-- Ẩn role cố định -->
-            <input type="hidden" name="role" value="user">
-
-            <p class="text-muted fst-italic small">
-                * Tài khoản mới đăng ký sẽ mặc định là <b>học viên</b>.
-                Giảng viên và quản trị viên chỉ được cấp bởi admin.
-            </p>
-
-            <div class="d-flex gap-2 mt-4">
-                <button type="submit" class="btn btn-primary flex-fill">
-                    <i class="bi bi-person-fill-add me-1"></i> Đăng ký
-                </button>
-                <button type="reset" class="btn btn-secondary flex-fill">
-                    <i class="bi bi-arrow-counterclockwise me-1"></i> Làm mới
-                </button>
-            </div>
-
-            <a href="/" class="btn btn-outline-primary w-100 mt-4">
-                <i class="bi bi-house-door me-1"></i> Quay lại trang chủ
-            </a>
-        </form>
-    </div>
-</div>

@@ -26,6 +26,7 @@
 import CourseDao from '../daos/course.dao.js';
 import PurchasedDao from '../daos/purchased.dao.js';
 import Cart from '../models/cart.model.js';
+import { safeReferrer } from '../utils/safe-redirect.js';
 
 // ─── Class Diagram: Cart.addItem(course) ── UC [05] Manage Cart (a. Thêm) ───
 /**
@@ -35,7 +36,8 @@ import Cart from '../models/cart.model.js';
  */
 export async function addToCart(req, res, next) {
   try {
-    const courseId = req.body.course_id;
+    const courseId = Number(req.body.course_id);
+    if (!Number.isInteger(courseId) || courseId <= 0) return res.status(400).send('Khóa học không hợp lệ.');
     const course = await CourseDao.findById(courseId);
 
     if (course) {
@@ -43,7 +45,7 @@ export async function addToCart(req, res, next) {
       cart.addItem(course);
       req.session.cart = cart.items;
     }
-    res.redirect(req.headers.referer || '/');
+    res.redirect(safeReferrer(req));
   } catch (err) {
     next(err);
   }

@@ -18,7 +18,8 @@ const COURSES_PER_PAGE = 9;
 
 export async function listCourses(req, res, next) {
   try {
-    const page = parseInt(req.query.page || 1, 10);
+    const requestedPage = Number.parseInt(req.query.page || '1', 10);
+    const page = Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
     const limit = COURSES_PER_PAGE;
     const offset = (page - 1) * limit;
 
@@ -48,17 +49,16 @@ export async function listCourses(req, res, next) {
 
 export async function showCourseDetail(req, res, next) {
   try {
-    const courseId = req.params.id;
-    await CourseDao.incrementViewCount(courseId);
-
-    const [course, feedbacks] = await Promise.all([
-      CourseDao.findById(courseId),
-      FeedbackDao.findByCourse(courseId)
-    ]);
+    const courseId = Number(req.params.id);
+    if (!Number.isInteger(courseId) || courseId <= 0) return res.status(404).render('404');
+    const course = await CourseDao.findById(courseId);
 
     if (!course) {
       return res.status(404).render('404');
     }
+
+    await CourseDao.incrementViewCount(courseId);
+    const feedbacks = await FeedbackDao.findByCourse(courseId);
 
     res.render('vwCourse/details', {
       layout: 'main',

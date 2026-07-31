@@ -1,6 +1,6 @@
-<div class="container">
-    <h1>403</h1>
-    <p>Access Forbidden</p>
-    <p>You don't have permission to access this resource.</p>
-    <a href="/">Go Home</a>
-</div>
+<section class="empty-state" aria-labelledby="forbidden-title">
+  <i class="bi bi-shield-lock" aria-hidden="true"></i>
+  <h1 id="forbidden-title" class="h2">Không thể thực hiện yêu cầu</h1>
+  <p>{{#if message}}{{message}}{{else}}Bạn không có quyền truy cập tài nguyên này.{{/if}}</p>
+  <a href="/" class="btn btn-primary">Về trang chủ</a>
+</section>

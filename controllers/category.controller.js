@@ -29,7 +29,8 @@ export async function showByCategory(req, res, next) {
     const allCategoryIds = [parentCategoryId, ...childIds];
 
     // Logic phân trang
-    const page = parseInt(req.query.page || 1, 10);
+    const requestedPage = Number.parseInt(req.query.page || '1', 10);
+    const page = Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
     const limit = COURSES_PER_PAGE;
     const offset = (page - 1) * limit;
 

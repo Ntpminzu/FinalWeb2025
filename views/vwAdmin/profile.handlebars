@@ -8,7 +8,6 @@
 
         <!-- Thông tin cá nhân -->
         <form action="/admin/profile" method="post">
-            <input type="hidden" name="id" value="{{user.id}}">
 
             <div class="card mb-4">
                 <div class="card-header bg-primary text-white">
@@ -42,7 +41,6 @@
 
         <!-- Đổi mật khẩu -->
         <form action="/admin/change-pwd" method="post">
-            <input type="hidden" name="id" value="{{user.id}}">
 
             <div class="card">
                 <div class="card-header bg-warning text-dark">
@@ -64,7 +62,7 @@
 
                     <div class="mb-3">
                         <label for="newPassword" class="form-label">Mật khẩu mới</label>
-                        <input type="password" id="newPassword" name="newPassword" class="form-control" required>
+                        <input type="password" id="newPassword" name="newPassword" class="form-control" minlength="8" maxlength="72" autocomplete="new-password" required>
                     </div>
 
                     <div class="text-end">

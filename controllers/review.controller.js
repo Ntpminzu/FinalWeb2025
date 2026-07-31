@@ -16,7 +16,8 @@ import FeedbackDao from '../daos/feedback.dao.js';
  */
 export async function checkReviewStatus(req, res) {
   const user = req.session.authUser;
-  const { courseId } = req.params;
+  const courseId = Number(req.params.courseId);
+  if (!Number.isInteger(courseId) || courseId <= 0) return res.status(404).render('404');
 
   const course = await CourseDao.findById(courseId);
   if (!course) return res.status(404).render('404');
@@ -46,8 +47,11 @@ export async function checkReviewStatus(req, res) {
  */
 export async function submitReview(req, res) {
   const user = req.session.authUser;
-  const { courseId } = req.params;
+  const courseId = Number(req.params.courseId);
   const { rating, comment } = req.body;
+
+  if (!Number.isInteger(courseId) || courseId <= 0) return res.status(404).render('404');
+  if (String(comment || '').length > 2000) return res.status(400).send('Nhận xét không được vượt quá 2000 ký tự.');
 
   // validate căn bản — Rate enum (1–5)
   const r = Number(rating);

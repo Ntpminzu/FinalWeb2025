@@ -2,17 +2,16 @@
   <div class="text-center mb-4">
     <i class="bi bi-shield-lock display-5 text-primary" aria-hidden="true"></i>
     <h1 id="password-heading" class="h2 fw-bold mt-2">Đổi mật khẩu</h1>
-    <p class="text-muted">Sử dụng mật khẩu có ít nhất 6 ký tự để bảo vệ tài khoản.</p>
+    <p class="text-muted">Sử dụng mật khẩu có ít nhất 8 ký tự để bảo vệ tài khoản.</p>
   </div>
   <form id="changePwdForm" action="/account/change-pwd" method="post" class="card">
     <div class="card-body p-4 p-lg-5">
       {{#if error}}
       <div class="alert alert-danger alert-dismissible fade show" role="alert">Mật khẩu hiện tại không chính xác. Vui lòng thử lại.<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng thông báo"></button></div>
       {{/if}}
-      <input type="hidden" id="txtId" name="id" value="{{user.id}}">
       <div class="mb-3"><label for="txtCurPwd" class="form-label fw-semibold">Mật khẩu hiện tại</label><input type="password" class="form-control" id="txtCurPwd" name="curPassword" autocomplete="current-password" required></div>
-      <div class="mb-3"><label for="txtNewPwd" class="form-label fw-semibold">Mật khẩu mới</label><input type="password" class="form-control" id="txtNewPwd" name="newPassword" minlength="6" autocomplete="new-password" aria-describedby="passwordHelp" required><div id="passwordHelp" class="form-text">Tối thiểu 6 ký tự.</div></div>
-      <div class="mb-4"><label for="txtConfirmPwd" class="form-label fw-semibold">Xác nhận mật khẩu mới</label><input type="password" class="form-control" id="txtConfirmPwd" name="confirmPassword" minlength="6" autocomplete="new-password" required><div class="invalid-feedback">Mật khẩu xác nhận chưa khớp.</div></div>
+      <div class="mb-3"><label for="txtNewPwd" class="form-label fw-semibold">Mật khẩu mới</label><input type="password" class="form-control" id="txtNewPwd" name="newPassword" minlength="8" maxlength="72" autocomplete="new-password" aria-describedby="passwordHelp" required><div id="passwordHelp" class="form-text">Tối thiểu 8 ký tự.</div></div>
+      <div class="mb-4"><label for="txtConfirmPwd" class="form-label fw-semibold">Xác nhận mật khẩu mới</label><input type="password" class="form-control" id="txtConfirmPwd" name="confirmPassword" minlength="8" maxlength="72" autocomplete="new-password" required><div class="invalid-feedback">Mật khẩu xác nhận chưa khớp.</div></div>
       <button type="submit" class="btn btn-primary w-100"><i class="bi bi-check2-circle me-1" aria-hidden="true"></i>Lưu mật khẩu mới</button>
     </div>
   </form>

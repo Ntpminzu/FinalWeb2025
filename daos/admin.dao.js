@@ -6,12 +6,26 @@ class AdminDao {
     const totalStudents = await db('users').where('permission', '=', 1).count('id as total').first();
     const [totalInstructors] = await db('users').where('permission', 2).count('id as total');
     const [totalCategories] = await db('categories').count('id as total');
+    const [publishedCourses] = await db('courses').where('is_disabled', false).count('id as total');
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+    const hasCreatedAt = await db.schema.hasColumn('users', 'created_at');
+    const [newStudents] = hasCreatedAt
+      ? await db('users').where('permission', 1).andWhere('created_at', '>=', monthStart).count('id as total')
+      : [{ total: 0 }];
+    const [newInstructors] = hasCreatedAt
+      ? await db('users').where('permission', 2).andWhere('created_at', '>=', monthStart).count('id as total')
+      : [{ total: 0 }];
 
     return {
       totalCourses: Number(totalCourses?.total || 0),
       totalStudents: Number(totalStudents?.total || 0),
       totalInstructors: Number(totalInstructors?.total || 0),
       totalCategories: Number(totalCategories?.total || 0),
+      publishedCourses: Number(publishedCourses?.total || 0),
+      newStudentsThisMonth: Number(newStudents?.total || 0),
+      newInstructors: Number(newInstructors?.total || 0),
     };
   }
 

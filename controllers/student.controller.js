@@ -36,6 +36,7 @@ import WatchlistDao from '../daos/watchlist.dao.js';
 import CourseDao from '../daos/course.dao.js';
 import ProgressDao from '../daos/progress.dao.js';
 import PurchasedDao from '../daos/purchased.dao.js';
+import { safeReferrer } from '../utils/safe-redirect.js';
 
 // ══════════════════════════════════════════
 // Student Home
@@ -69,11 +70,28 @@ export function showProfile(req, res) {
  * Class Diagram: User.updateProfile()
  */
 export async function updateProfile(req, res) {
-  const id = req.body.id;
+  const id = req.session.authUser.id;
   const updatedUser = {
     name: req.body.name?.trim(),
-    email: req.body.email?.trim(),
+    email: req.body.email?.trim().toLowerCase(),
   };
+
+  if (!updatedUser.name || updatedUser.name.length > 100 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(updatedUser.email)) {
+    return res.status(400).render('vwStudent/profile', {
+      user: req.session.authUser,
+      error: 'Thông tin hồ sơ không hợp lệ.',
+      success: false,
+    });
+  }
+
+  const emailOwner = await UserDao.findByEmail(updatedUser.email);
+  if (emailOwner && Number(emailOwner.id) !== Number(id)) {
+    return res.status(409).render('vwStudent/profile', {
+      user: req.session.authUser,
+      error: 'Email đã được sử dụng.',
+      success: false,
+    });
+  }
 
   await UserDao.updateProfile(id, updatedUser);
 
@@ -99,12 +117,13 @@ export async function updateProfile(req, res) {
  * Class Diagram: User.changePassword()
  */
 export async function changePwd(req, res) {
-  const id = req.body.id;
+  const id = req.session.authUser.id;
   const currentPassword = req.body.currentPassword || '';
   const newPassword = req.body.newPassword || '';
+  const user = await UserDao.findById(id);
 
   // kiểm tra mật khẩu hiện tại
-  const ok = bcrypt.compareSync(currentPassword, req.session.authUser.password);
+  const ok = user && await bcrypt.compare(currentPassword, user.password || '');
   if (!ok) {
     return res.render('vwStudent/profile', {
       user: req.session.authUser,
@@ -116,21 +135,18 @@ export async function changePwd(req, res) {
   }
 
   //  ràng buộc độ dài mật khẩu mới
-  if (newPassword.length < 6) {
+  if (newPassword.length < 8 || newPassword.length > 72) {
     return res.render('vwStudent/profile', {
       user: req.session.authUser,
       isAuthenticated: true,
       authUser: req.session.authUser,
-      error: 'Mật khẩu mới phải tối thiểu 6 ký tự.',
+      error: 'Mật khẩu mới phải có từ 8 đến 72 ký tự.',
       success: false,
     });
   }
 
-  const hashed = bcrypt.hashSync(newPassword, 10);
+  const hashed = await bcrypt.hash(newPassword, 12);
   await UserDao.changePassword(id, hashed);
-
-  // cập nhật session
-  req.session.authUser.password = hashed;
 
   res.render('vwStudent/profile', {
     user: req.session.authUser,
@@ -186,7 +202,7 @@ export async function addToWatchlist(req, res, next) {
     }
 
     // về trang trước nếu có, mặc định về trang chi tiết course
-    const back = req.get('Referer') || `/courses/${courseId}`;
+    const back = safeReferrer(req, `/courses/${courseId}`);
     return res.redirect(back);
   } catch (err) {
     next(err);

@@ -34,30 +34,51 @@
  */
 
 import multer from 'multer';
+import crypto from 'crypto';
 
 import fs from 'fs';
 import path from 'path';
 import InstructorDao from '../daos/instructor.dao.js';
 import CourseDao from '../daos/course.dao.js';
+import { safeReferrer } from '../utils/safe-redirect.js';
 
 // --- Multer config ---
 const ensureDir = (dir) => fs.mkdirSync(dir, { recursive: true });
+const removeUploadedFile = file => file?.path
+  ? fs.promises.unlink(file.path).catch(() => {})
+  : Promise.resolve();
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const dir = file.mimetype.startsWith('video/')
-      ? path.join(process.cwd(), 'uploads', 'videos')
-      : path.join(process.cwd(), 'uploads', 'thumbnails');
+    const dir = path.join(process.cwd(), 'uploads', 'thumbnails');
     ensureDir(dir);
     cb(null, dir);
   },
   filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname) || '.jpg';
-    cb(null, `${Date.now()}-thumbnail${ext}`);
+    const extensions = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' };
+    cb(null, `${crypto.randomUUID()}${extensions[file.mimetype]}`);
   },
 });
 
-export const upload = multer({ storage });
+export const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024, files: 1, fields: 20 },
+  fileFilter: (req, file, cb) => {
+    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    cb(allowed.includes(file.mimetype) ? null : new multer.MulterError('LIMIT_UNEXPECTED_FILE'), allowed.includes(file.mimetype));
+  },
+});
+
+export async function requireOwnedCourse(req, res, next) {
+  try {
+    const course = await InstructorDao.getCourseById(req.params.id, req.session.authUser.id);
+    if (!course) return res.status(404).render('404');
+    req.ownedCourse = course;
+    return next();
+  } catch (error) {
+    return next(error);
+  }
+}
 
 // ══════════════════════════════════════════
 // Class Diagram: Instructor.viewDashboard()
@@ -114,21 +135,34 @@ export async function createCourse(req, res) {
   try {
     const { title, category_id, short_desc, full_desc, price, sale_price } = req.body;
     const thumbnail = req.file ? `/uploads/thumbnails/${req.file.filename}` : null;
+    const numericPrice = Number(price);
+    const numericSalePrice = sale_price === '' || sale_price == null ? null : Number(sale_price);
+
+    if (!title?.trim() || !Number.isInteger(Number(category_id)) || !Number.isFinite(numericPrice) || numericPrice < 0 ||
+      (numericSalePrice !== null && (!Number.isFinite(numericSalePrice) || numericSalePrice < 0 || numericSalePrice > numericPrice))) {
+      await removeUploadedFile(req.file);
+      return res.status(400).send('Thông tin khóa học hoặc mức giá không hợp lệ.');
+    }
+    if (!await InstructorDao.getCategoryById(category_id)) {
+      await removeUploadedFile(req.file);
+      return res.status(400).send('Lĩnh vực không tồn tại.');
+    }
 
     await InstructorDao.addCourse({
       instructor_id: req.session.authUser.id,
-      title,
+      title: title.trim(),
       category_id,
       short_desc,
       full_desc,
       description: full_desc,
-      price,
-      sale_price,
+      price: numericPrice,
+      sale_price: numericSalePrice,
       thumbnail,
     });
 
     res.redirect('/instructor/dashboard');
   } catch (err) {
+    await removeUploadedFile(req.file);
     console.error('❌ Lỗi khi thêm khóa học:', err);
     res.status(500).send('Đã xảy ra lỗi khi tạo khóa học.');
   }
@@ -146,7 +180,8 @@ export async function createCourse(req, res) {
 export async function showEditCourse(req, res) {
   try {
     const courseId = req.params.id;
-    const course = await InstructorDao.getCourseById(courseId);
+    const course = req.ownedCourse || await InstructorDao.getCourseById(courseId, req.session.authUser.id);
+    if (!course) return res.status(404).render('404');
     const lectures = await InstructorDao.getLecturesByCourse(courseId);
 
     const categories = await InstructorDao.getAllCategories();
@@ -172,19 +207,36 @@ export async function updateCourse(req, res) {
   try {
     const { title, short_desc, full_desc, category_id, price, sale_price } = req.body;
     const thumbnail = req.file ? `/uploads/thumbnails/${req.file.filename}` : null;
+    const numericPrice = Number(price);
+    const numericSalePrice = sale_price === '' || sale_price == null ? null : Number(sale_price);
+    if (!title?.trim() || !Number.isInteger(Number(category_id)) || !Number.isFinite(numericPrice) || numericPrice < 0 ||
+      (numericSalePrice !== null && (!Number.isFinite(numericSalePrice) || numericSalePrice < 0 || numericSalePrice > numericPrice))) {
+      await removeUploadedFile(req.file);
+      return res.status(400).send('Thông tin khóa học hoặc mức giá không hợp lệ.');
+    }
+    if (!await InstructorDao.getCategoryById(category_id)) {
+      await removeUploadedFile(req.file);
+      return res.status(400).send('Lĩnh vực không tồn tại.');
+    }
 
-    await InstructorDao.updateCourse(req.params.id, {
-      title,
+    const updated = await InstructorDao.updateCourse(req.params.id, req.session.authUser.id, {
+      title: title.trim(),
       short_desc,
       full_desc,
       description: full_desc,
-      price,
-      sale_price,
+      category_id: Number(category_id),
+      price: numericPrice,
+      sale_price: numericSalePrice,
       thumbnail,
     });
+    if (!updated) {
+      await removeUploadedFile(req.file);
+      return res.status(404).render('404');
+    }
 
     res.redirect('/instructor/dashboard');
   } catch (err) {
+    await removeUploadedFile(req.file);
     console.error('❌ Lỗi khi cập nhật khóa học:', err);
     res.status(500).send('Không thể cập nhật khóa học.');
   }
@@ -202,7 +254,8 @@ export async function updateCourse(req, res) {
 export async function showEditLectures(req, res) {
   try {
     const courseId = req.params.id;
-    const course = await InstructorDao.getCourseById(courseId);
+    const course = await InstructorDao.getCourseById(courseId, req.session.authUser.id);
+    if (!course) return res.status(404).render('404');
     const lectures = await InstructorDao.getLecturesByCourse(courseId);
 
     res.render('vwInstructor/edit-lectures', { course, lectures });
@@ -223,11 +276,16 @@ export async function addLecture(req, res) {
     const { courseId } = req.params;
     const { title, video_url } = req.body;
 
-    if (!title || !video_url) {
+    if (!title?.trim() || title.trim().length > 200 || !video_url) {
       return res.status(400).send('Thiếu tiêu đề hoặc link video.');
     }
 
-    await InstructorDao.addLecture(courseId, title, video_url);
+    let parsedUrl;
+    try { parsedUrl = new URL(video_url); } catch { return res.status(400).send('Link video không hợp lệ.'); }
+    if (!['http:', 'https:'].includes(parsedUrl.protocol)) return res.status(400).send('Link video không hợp lệ.');
+
+    const lecture = await InstructorDao.addLecture(courseId, req.session.authUser.id, title.trim(), parsedUrl.toString());
+    if (!lecture) return res.status(404).render('404');
 
     res.redirect(`/instructor/edit/lectures/${courseId}`);
   } catch (err) {
@@ -243,8 +301,9 @@ export async function addLecture(req, res) {
 export async function deleteLecture(req, res) {
   try {
     const { lectureId } = req.params;
-    await InstructorDao.deleteLecture(lectureId);
-    res.redirect('back');
+    const deleted = await InstructorDao.deleteLecture(lectureId, req.session.authUser.id);
+    if (!deleted) return res.status(404).render('404');
+    res.redirect(safeReferrer(req, '/instructor/dashboard'));
   } catch (err) {
     console.error('❌ Lỗi xóa bài giảng:', err);
     res.status(500).send('Không thể xóa bài giảng.');
@@ -316,12 +375,16 @@ export async function updateProfile(req, res) {
 export async function toggleCourseStatus(req, res) {
   try {
     const { id } = req.params;
-    const course = await CourseDao.findById(id);
+    const course = await InstructorDao.getCourseById(id, req.session.authUser.id);
     if (!course) return res.status(404).send('Không tìm thấy khóa học');
 
     const newStatus = !course.Status;
 
-    await CourseDao.toggleStatus(id, newStatus);
+    if (newStatus && await InstructorDao.countLectures(id, req.session.authUser.id) === 0) {
+      return res.status(400).send('Khóa học cần có ít nhất một bài giảng trước khi xuất bản.');
+    }
+
+    await CourseDao.toggleStatus(id, newStatus, req.session.authUser.id);
 
 
     res.redirect('/instructor/dashboard');

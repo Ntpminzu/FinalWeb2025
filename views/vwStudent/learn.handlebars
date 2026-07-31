@@ -47,6 +47,7 @@
 
 <script>
   const player = new Plyr('#player');
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
  
   const lastSecond = Number('{{progress.last_second}}') || 0;
@@ -62,7 +63,7 @@
     if (dur > 0) {
       fetch('/student/api/lecture-duration', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
         body: JSON.stringify({
           lecture_id: {{current.id}},
           duration_sec: dur
@@ -86,7 +87,7 @@
 
     fetch('/student/api/progress', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
       body: JSON.stringify({
         lecture_id: {{current.id}},
         last_second: pos,

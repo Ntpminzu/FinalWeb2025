@@ -22,7 +22,7 @@ class UserDao {
   }
 
   static async findByUsername(username) {
-    const row = await db('users').where('username', username).first();
+    const row = await db('users').whereRaw('LOWER(username) = LOWER(?)', [username]).first();
     return row ? new User(row) : null;
   }
 
@@ -65,7 +65,14 @@ class UserDao {
   }
 
   static promoteToTeacher(id) {
-    return db('users').where({ id }).update({ permission: Permission.INSTRUCTOR });
+    return db.transaction(async trx => {
+      const updated = await trx('users')
+        .where({ id, permission: Permission.STUDENT })
+        .update({ permission: Permission.INSTRUCTOR });
+      if (!updated) return 0;
+      await trx('instructors').insert({ user_id: id }).onConflict('user_id').ignore();
+      return updated;
+    });
   }
 
   static deleteById(id) {
@@ -77,7 +84,7 @@ class UserDao {
   }
 
   static async findByEmail(email) {
-    const row = await db('users').where('email', email).first();
+    const row = await db('users').whereRaw('LOWER(email) = LOWER(?)', [email]).first();
     return row ? new User(row) : null;
   }
 }

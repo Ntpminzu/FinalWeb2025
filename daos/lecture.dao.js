@@ -22,8 +22,11 @@ class LectureDao {
     return row ? new Lecture(row) : null;
   }
 
-  static updateDuration(lectureId, sec) {
-    return db('lectures').where('id', lectureId).update({ duration_sec: sec });
+  static updateDurationIfMissing(lectureId, sec) {
+    return db('lectures')
+      .where('id', lectureId)
+      .andWhere(query => query.whereNull('duration_sec').orWhere('duration_sec', '<=', 0))
+      .update({ duration_sec: sec });
   }
 }
 

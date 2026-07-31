@@ -41,7 +41,6 @@ export async function dashboard(req, res) {
   const courseStatuses = await AdminDao.getCourseStatuses() ?? [];
 
   res.render('vwAdmin/home', {
-    layout: false,
     user: req.session.authUser,
     isAuthenticated: req.session.isAuthenticated,
     stats,
@@ -89,6 +88,10 @@ export async function makeTeacher(req, res) {
 export async function disableUser(req, res) {
   const { id } = req.params;
   const disable = req.body.disable === 'true';
+
+  if (Number(id) === Number(req.session.authUser.id)) {
+    return res.status(400).send('Không thể khóa chính tài khoản đang sử dụng.');
+  }
  
   try {
     await UserDao.toggleDisable(id, disable);
@@ -106,6 +109,9 @@ export async function disableUser(req, res) {
  */
 export async function deleteUser(req, res) {
   const { id } = req.params;
+  if (Number(id) === Number(req.session.authUser.id)) {
+    return res.status(400).send('Không thể xóa chính tài khoản đang sử dụng.');
+  }
   await UserDao.deleteById(id);
   res.redirect('/admin/users');
 }
@@ -213,7 +219,8 @@ export async function deleteCategory(req, res) {
     res.redirect('/admin/categories');
   } catch (error) {
     console.error(error);
-    res.render('admin/categories', { error: 'Lỗi khi xóa lĩnh vực' });
+    const categories = await CategoryDao.getAllWithCourseCount();
+    res.status(400).render('vwAdmin/categories', { categories, error: 'Lỗi khi xóa lĩnh vực' });
   }
 }
 
@@ -233,11 +240,26 @@ export function showProfile(req, res) {
 }
 
 export async function updateProfile(req, res) {
-  const id = req.body.id;
+  const id = req.session.authUser.id;
   const updatedUser = {
     name: req.body.name?.trim(),
-    email: req.body.email?.trim(),
+    email: req.body.email?.trim().toLowerCase(),
   };
+  if (!updatedUser.name || updatedUser.name.length > 100 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(updatedUser.email)) {
+    return res.status(400).render('vwAdmin/profile', {
+      user: req.session.authUser,
+      error: 'Thông tin hồ sơ không hợp lệ.',
+      success: false,
+    });
+  }
+  const emailOwner = await UserDao.findByEmail(updatedUser.email);
+  if (emailOwner && Number(emailOwner.id) !== Number(id)) {
+    return res.status(409).render('vwAdmin/profile', {
+      user: req.session.authUser,
+      error: 'Email đã được sử dụng.',
+      success: false,
+    });
+  }
   await UserDao.updateProfile(id, updatedUser);
   req.session.authUser.name = updatedUser.name;
   req.session.authUser.email = updatedUser.email;
@@ -255,14 +277,14 @@ export async function updateProfile(req, res) {
  * Class Diagram: User.changePassword()
  */
 export async function changePwd(req, res) {
-  const id = req.body.id;
+  const id = req.session.authUser.id;
   const currentPassword = req.body.currentPassword || '';
   const newPassword = req.body.newPassword || '';
+  const user = await UserDao.findById(id);
 
-  const ok = bcrypt.compareSync(currentPassword, req.session.authUser.password);
+  const ok = user && await bcrypt.compare(currentPassword, user.password || '');
   if (!ok) {
     return res.render('vwAdmin/profile', {
-      layout: 'admin',
       user: req.session.authUser,
       isAuthenticated: true,
       error: 'Mật khẩu hiện tại không đúng.',
@@ -270,21 +292,19 @@ export async function changePwd(req, res) {
     });
   }
 
-  if (newPassword.length < 6) {
+  if (newPassword.length < 8 || newPassword.length > 72) {
     return res.render('vwAdmin/profile', {
       user: req.session.authUser,
       isAuthenticated: true,
-      error: 'Mật khẩu mới phải tối thiểu 6 ký tự.',
+      error: 'Mật khẩu mới phải có từ 8 đến 72 ký tự.',
       success: false,
     });
   }
 
-  const hashed = bcrypt.hashSync(newPassword, 10);
+  const hashed = await bcrypt.hash(newPassword, 12);
   await UserDao.changePassword(id, hashed);
-  req.session.authUser.password = hashed;
 
   res.render('vwAdmin/profile', {
-    layout: 'admin',
     user: req.session.authUser,
     isAuthenticated: true,
     error: false,

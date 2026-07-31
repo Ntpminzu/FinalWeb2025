@@ -16,9 +16,11 @@ const COURSES_PER_PAGE = 8;
 
 export async function search(req, res, next) {
   try {
-    const query = req.query.q || '';
-    const sortOption = req.query.sort || 'default';
-    const page = parseInt(req.query.page || 1, 10);
+    const query = String(req.query.q || '').trim().slice(0, 200);
+    const allowedSorts = new Set(['default', 'rating_desc', 'price_asc']);
+    const sortOption = allowedSorts.has(req.query.sort) ? req.query.sort : 'default';
+    const requestedPage = Number.parseInt(req.query.page || '1', 10);
+    const page = Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
     const limit = COURSES_PER_PAGE;
     const offset = (page - 1) * limit;
 
@@ -30,7 +32,7 @@ export async function search(req, res, next) {
     const totalPages = Math.ceil(totalCourses / limit);
 
     // Tạo chuỗi query string
-    const queryString = `q=${query}&sort=${sortOption}`;
+    const queryString = new URLSearchParams({ q: query, sort: sortOption }).toString();
 
     res.render('vwCourse/search', {
       layout: 'main',
