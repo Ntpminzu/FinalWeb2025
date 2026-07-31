@@ -17,7 +17,7 @@ import courseRouter from './routes/course.route.js';
 import instructorRouter from './routes/instructor.route.js';
 import searchRouter from './routes/search.route.js';
 import studentRouter from './routes/student.route.js';
-
+import db from './config/database.js';
 const rootDirectory = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
