@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import Cart from '../../models/cart.model.js';
 import { signupSchema } from '../../validators/account.schema.js';
-import { courseMutationSchema, durationSchema, reviewSchema } from '../../validators/course.schema.js';
+import { apiPagination } from '../../validators/common.schema.js';
+import { courseApiQuerySchema, courseMutationSchema, durationSchema, reviewSchema } from '../../validators/course.schema.js';
 
 test('signup schema normalizes valid input', () => {
   const result = signupSchema({ username: 'junior.dev', password: 'password123', confirm_password: 'password123', name: 'Junior Dev', email: 'JUNIOR@example.com' });
@@ -35,4 +36,16 @@ test('cart prevents duplicates and calculates sale prices', () => {
   cart.addItem({ id: 1, price: 100, sale_price: 80 });
   assert.equal(cart.items.length, 1);
   assert.equal(cart.getTotalPrice(), 80);
+});
+
+test('api pagination supports client limits but clamps unsafe values', () => {
+  assert.deepEqual(apiPagination({ page: '2', limit: '20' }), { page: 2, limit: 20, offset: 20 });
+  assert.deepEqual(apiPagination({ page: '-1', limit: '999' }), { page: 1, limit: 50, offset: 0 });
+});
+
+test('course api query supports search and rejects unknown sorts', () => {
+  assert.equal(courseApiQuerySchema({ q: 'node' }).sort, 'relevance');
+  assert.equal(courseApiQuerySchema({ sort: 'rating_desc' }).sort, 'rating_desc');
+  assert.equal(courseApiQuerySchema({ categoryId: '3' }).categoryId, 3);
+  assert.throws(() => courseApiQuerySchema({ sort: 'random' }));
 });

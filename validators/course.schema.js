@@ -1,5 +1,5 @@
 import { ValidationError } from '../errors/app-error.js';
-import { pagination, positiveInteger } from './common.schema.js';
+import { apiPagination, pagination, positiveInteger } from './common.schema.js';
 
 export function courseMutationSchema(input) {
   const title = String(input?.title || '').trim();
@@ -33,6 +33,17 @@ export function searchSchema(query) {
   const allowedSorts = new Set(['default', 'rating_desc', 'price_asc']);
   const sort = allowedSorts.has(query?.sort) ? query.sort : 'default';
   return { q, sort, ...pagination(query, 8) };
+}
+
+export function courseApiQuerySchema(query) {
+  const q = String(query?.q || '').trim().slice(0, 200);
+  const allowedSorts = new Set(['relevance', 'newest', 'popular', 'rating_desc', 'price_asc', 'price_desc']);
+  const sort = query?.sort || (q ? 'relevance' : 'newest');
+  if (!allowedSorts.has(sort)) throw new ValidationError('Kiểu sắp xếp khóa học không hợp lệ.');
+  const categoryId = query?.categoryId || query?.category_id
+    ? positiveInteger(query.categoryId || query.category_id, 'Lĩnh vực')
+    : null;
+  return { q, sort, categoryId, ...apiPagination(query, 12, 50) };
 }
 
 export function reviewSchema(input) {

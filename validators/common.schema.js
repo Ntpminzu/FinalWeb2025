@@ -17,6 +17,15 @@ export function pagination(query, defaultLimit = 9) {
   return { page, limit: defaultLimit, offset: (page - 1) * defaultLimit };
 }
 
+export function apiPagination(query, defaultLimit = 12, maxLimit = 50) {
+  const requestedPage = Number.parseInt(query?.page || '1', 10);
+  const requestedLimit = Number.parseInt(query?.limit || String(defaultLimit), 10);
+  const page = Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+  const safeLimit = Number.isInteger(requestedLimit) && requestedLimit > 0 ? requestedLimit : defaultLimit;
+  const limit = Math.min(safeLimit, maxLimit);
+  return { page, limit, offset: (page - 1) * limit };
+}
+
 export function profileSchema(input) {
   const name = String(input?.name || '').trim();
   const email = String(input?.email || '').trim().toLowerCase();

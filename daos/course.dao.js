@@ -25,6 +25,48 @@ class CourseDao {
       .offset(offset);
   }
 
+  static applyApiSort(query, sort) {
+    switch (sort) {
+      case 'popular':
+        return query.orderBy('c.view_count', 'desc').orderBy('c.id', 'desc');
+      case 'rating_desc':
+        return query.orderBy('c.rating_avg', 'desc').orderBy('c.rating_count', 'desc').orderBy('c.id', 'desc');
+      case 'price_asc':
+        return query.orderByRaw('COALESCE(c.sale_price, c.price) asc').orderBy('c.id', 'desc');
+      case 'price_desc':
+        return query.orderByRaw('COALESCE(c.sale_price, c.price) desc').orderBy('c.id', 'desc');
+      case 'newest':
+      default:
+        return query.orderBy('c.id', 'desc');
+    }
+  }
+
+  static findPageAllForApi(filters) {
+    const query = db('courses as c')
+      .where('c.is_disabled', false)
+      .leftJoin('categories as cat', 'c.category_id', 'cat.id')
+      .leftJoin('users as u', 'c.instructor_id', 'u.id')
+      .select(
+        'c.id', 'c.title', 'c.thumbnail', 'c.short_desc', 'c.description',
+        'c.price', 'c.sale_price', 'c.rating_avg', 'c.rating_count',
+        'c.view_count',
+        'cat.catname as category',
+        'u.name as instructor_name'
+      );
+    if (filters.categoryId) query.andWhere('c.category_id', filters.categoryId);
+    CourseDao.applyApiSort(query, filters.sort);
+    return query.limit(filters.limit).offset(filters.offset);
+  }
+
+  static async countAllForApi(filters) {
+    const query = db('courses as c')
+      .where('c.is_disabled', false)
+      .count('* as total');
+    if (filters.categoryId) query.andWhere('c.category_id', filters.categoryId);
+    const result = await query.first();
+    return result.total;
+  }
+
   static async countAll() {
     const result = await db('courses')
       .where('is_disabled', false)
@@ -109,14 +151,17 @@ class CourseDao {
       .limit(4);
   }
 
-  static async findPageByFTS(queryText, sortOption = 'default', limit, offset) {
+  static async findPageByFTS(queryText, sortOption = 'default', limit, offset, categoryId = null) {
     const safeQuery = sanitizeFTS(queryText);
 
     const query = db('courses as c')
       .leftJoin('categories as cat', 'c.category_id', 'cat.id')
+      .leftJoin('users as u', 'c.instructor_id', 'u.id')
       .select(
         'c.id', 'c.title', 'c.thumbnail', 'c.price', 'c.sale_price',
+        'c.short_desc', 'c.description',
         'cat.catname as category',
+        'u.name as instructor_name',
         'c.rating_avg', 'c.rating_count',
         db.raw(
           "ts_rank(to_tsvector('simple', c.title || ' ' || cat.catname), plainto_tsquery('simple', ?)) AS rank",
@@ -128,13 +173,23 @@ class CourseDao {
         [safeQuery]
       )
       .andWhere('c.is_disabled', false);
+    if (categoryId) query.andWhere('c.category_id', categoryId);
 
     switch (sortOption) {
       case 'price_asc':
         query.orderBy('c.price', 'asc');
         break;
+      case 'price_desc':
+        query.orderBy('c.price', 'desc');
+        break;
       case 'rating_desc':
         query.orderBy('c.rating_avg', 'desc');
+        break;
+      case 'newest':
+        query.orderBy('c.id', 'desc');
+        break;
+      case 'popular':
+        query.orderBy('c.view_count', 'desc');
         break;
       default:
         query.orderBy('rank', 'desc');
@@ -145,20 +200,21 @@ class CourseDao {
     return query;
   }
 
-  static async countByFTS(queryText) {
+  static async countByFTS(queryText, categoryId = null) {
     const safeQuery = sanitizeFTS(queryText);
 
-    const result = await db('courses as c')
+    const query = db('courses as c')
       .leftJoin('categories as cat', 'c.category_id', 'cat.id')
       .whereRaw(
         "to_tsvector('simple', c.title || ' ' || cat.catname) @@ plainto_tsquery('simple', ?)",
         [safeQuery]
       )
-      .andWhere('c.is_disabled', false)
-      .count('* as total')
-      .first();
+      .andWhere('c.is_disabled', false);
+    if (categoryId) query.andWhere('c.category_id', categoryId);
 
-    return result.total;
+    const row = await query.count('* as total').first();
+
+    return row.total;
   }
 
   static async findNewest(limit = 10) {

@@ -1,6 +1,8 @@
 import * as catalogService from '../../services/catalog.service.js';
-
-function courseDto(course) {
+import { ok } from '../../utils/api-response.js';
+// hàm này chuẩn hóa dữ liệu khóa học trước khi gửi về client
+// để cho frontend dễ sử dụng hơn, ví dụ: đổi tên trường, loại bỏ trường không cần thiết, chuyển đổi kiểu dữ liệu, v.v.
+export function courseDto(course) {
   return {
     id: course.id,
     title: course.title,
@@ -40,12 +42,12 @@ function feedbackDto(feedback) {
 
 export async function listCourses(req, res, next) {
   try {
-    const result = await catalogService.listCourses(req.query);
-    return res.status(200).json({
-      data: result.courses.map(courseDto),
+    const result = await catalogService.listCoursesForApi(req.query);
+    return ok(res, result.courses.map(courseDto), {
       pagination: {
         page: result.page,
         limit: result.limit,
+        total: result.totalCourses,
         totalPages: result.totalPages,
       },
     });
@@ -57,11 +59,9 @@ export async function listCourses(req, res, next) {
 export async function getCourse(req, res, next) {
   try {
     const result = await catalogService.getCourseDetail(req.params.id);
-    return res.status(200).json({
-      data: {
-        ...courseDetailDto(result.course),
-        feedbacks: result.feedbacks.map(feedbackDto),
-      },
+    return ok(res, {
+      ...courseDetailDto(result.course),
+      feedbacks: result.feedbacks.map(feedbackDto),
     });
   } catch (error) {
     return next(error);

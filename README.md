@@ -47,6 +47,10 @@ npm test
 
 `npm run check` kiểm tra cú pháp toàn bộ JavaScript và compile tất cả Handlebars templates. `npm run test:unit` kiểm tra validation và domain behavior.
 
+## REST API v1
+
+Dự án có REST API song song dưới `/api/v1` cho các endpoint public đầu tiên như health check, courses và categories. Tài liệu chi tiết nằm ở `docs/api-v1.md`.
+
 ## Các nhóm chức năng
 
 - Account: đăng ký trực tiếp, đăng nhập, đăng xuất, hồ sơ và đổi mật khẩu.

@@ -1,9 +1,9 @@
+import { ok } from '../../utils/api-response.js';
+
 export function health(req, res) {
-  return res.status(200).json({
-    data: {
-      status: 'consong nhe',
-      service: 'online-academy',
-      timestamp: new Date().toISOString(),
-    },
+  return ok(res, {
+    status: 'consong nhe',
+    service: 'online-academy',
+    timestamp: new Date().toISOString(),
   });
 }
