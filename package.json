@@ -26,7 +26,7 @@
   },
   "homepage": "https://github.com/anhnam26/FinalWeb2025#readme",
   "dependencies": {
-    "bcryptjs": "^3.0.2",
+    "bcrypt": "^6.0.0",
     "connect-pg-simple": "^10.0.0",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",

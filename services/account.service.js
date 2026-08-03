@@ -1,4 +1,4 @@
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import UserDao from '../daos/user.dao.js';
 import Permission from '../enums/Permission.js';
 import { ConflictError, ForbiddenError, UnauthorizedError } from '../errors/app-error.js';

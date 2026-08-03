@@ -17,6 +17,7 @@ import courseRouter from './routes/course.route.js';
 import instructorRouter from './routes/instructor.route.js';
 import searchRouter from './routes/search.route.js';
 import studentRouter from './routes/student.route.js';
+import apiRouter from './routes/api/index.js';
 
 const rootDirectory = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -32,6 +33,7 @@ configureHandlebars(app, rootDirectory);
 app.use(express.urlencoded({ extended: true, limit: '100kb', parameterLimit: 100 }));
 app.use(express.json({ limit: '100kb' }));
 app.use(['/account/signin', '/account/signup', '/account/is-available'], authRateLimiter);
+app.use('/api/v1', apiRouter);
 app.use(csrfProtection);
 app.use(commonViewContext);
 app.use(authViewContext);
