@@ -15,6 +15,11 @@ test('signup schema rejects mismatched password confirmation', () => {
   assert.throws(() => signupSchema({ username: 'junior.dev', password: 'password123', confirm_password: 'different', name: 'Junior Dev', email: 'junior@example.com' }));
 });
 
+test('signup schema accepts camelCase confirmation for api clients', () => {
+  const result = signupSchema({ username: 'api.dev', password: 'password123', confirmPassword: 'password123', name: 'API Dev', email: 'API@example.com' });
+  assert.equal(result.email, 'api@example.com');
+});
+
 test('course schema enforces sale price business rule', () => {
   assert.throws(() => courseMutationSchema({ title: 'Node.js', category_id: 1, price: 100, sale_price: 101 }));
   assert.equal(courseMutationSchema({ title: 'Node.js', category_id: 1, price: 100, sale_price: 80 }).sale_price, 80);

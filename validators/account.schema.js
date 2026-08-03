@@ -4,7 +4,7 @@ import { EMAIL_PATTERN, USERNAME_PATTERN, profileSchema } from './common.schema.
 export function signupSchema(input) {
   const username = String(input?.username || '').trim();
   const password = String(input?.password || '');
-  const confirmPassword = String(input?.confirm_password || '');
+  const confirmPassword = String(input?.confirm_password ?? input?.confirmPassword ?? '');
   const name = String(input?.name || '').trim();
   const email = String(input?.email || '').trim().toLowerCase();
   const dob = input?.dob || null;

@@ -119,6 +119,138 @@ Ví dụ:
 GET /api/v1/categories/1/courses?page=1&limit=12
 ```
 
+### Current User
+
+```http
+GET /api/v1/auth/csrf-token
+```
+
+Trả CSRF token của session hiện tại. Với các request API dùng `POST`, `PATCH`, `PUT`, `DELETE`, gửi token này qua header:
+
+```http
+x-csrf-token: token
+```
+
+```http
+POST /api/v1/auth/register
+```
+
+Body:
+
+```json
+{
+  "username": "new.student",
+  "password": "password123",
+  "confirmPassword": "password123",
+  "name": "New Student",
+  "email": "student@example.com",
+  "dob": "2000-01-01"
+}
+```
+
+Header bắt buộc:
+
+```http
+x-csrf-token: token
+```
+
+Nếu tạo user thành công, API trả `201 Created` và lưu user vào session.
+
+```http
+POST /api/v1/auth/login
+```
+
+Body:
+
+```json
+{
+  "username": "student1",
+  "password": "password123"
+}
+```
+
+Header bắt buộc:
+
+```http
+x-csrf-token: token
+```
+
+Nếu đăng nhập thành công, server lưu user vào session và trả thông tin user.
+
+```http
+POST /api/v1/auth/logout
+```
+
+Header bắt buộc:
+
+```http
+x-csrf-token: token
+```
+
+Nếu đăng xuất thành công, API trả `204 No Content`.
+
+```http
+GET /api/v1/auth/me
+```
+
+Trả thông tin user đang đăng nhập bằng session cookie.
+
+Nếu chưa đăng nhập, API trả `401` thay vì redirect sang trang login.
+
+### Cart
+
+```http
+GET /api/v1/cart
+```
+
+Trả giỏ hàng đang lưu trong session của user hiện tại.
+
+Nếu chưa đăng nhập, API trả `401`.
+
+```http
+POST /api/v1/cart/items
+```
+
+Body:
+
+```json
+{
+  "courseId": 1
+}
+```
+
+Header bắt buộc:
+
+```http
+x-csrf-token: token
+```
+
+Thêm course vào giỏ hàng trong session và trả lại cart mới.
+
+```http
+DELETE /api/v1/cart/items/:courseId
+```
+
+Header bắt buộc:
+
+```http
+x-csrf-token: token
+```
+
+Xóa course khỏi giỏ hàng trong session và trả lại cart mới.
+
+```http
+DELETE /api/v1/cart
+```
+
+Header bắt buộc:
+
+```http
+x-csrf-token: token
+```
+
+Xóa toàn bộ cart trong session và trả lại cart rỗng.
+
 ## Manual Test Ideas
 
 Thử các URL này trong browser, Postman hoặc curl:
@@ -133,6 +265,14 @@ Thử các URL này trong browser, Postman hoặc curl:
 /api/v1/courses/999999
 /api/v1/categories
 /api/v1/categories/1/courses
+/api/v1/auth/csrf-token
+/api/v1/auth/register
+/api/v1/auth/login
+/api/v1/auth/logout
+/api/v1/auth/me
+/api/v1/cart
+/api/v1/cart/items
+/api/v1/cart/items/1
 /api/v1/not-found
 ```
 
