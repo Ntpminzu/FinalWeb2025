@@ -28,6 +28,26 @@ class FeedbackDao {
     });
   }
 
+  static insert(userId, courseId, rating, comment) {
+    return db('feedback').insert({
+      user_id: userId,
+      course_id: courseId,
+      rating: Number(rating),
+      comment: comment ?? '',
+      created_at: db.fn.now(),
+    });
+  }
+
+  static update(userId, courseId, rating, comment) {
+    return db('feedback')
+      .where({ user_id: userId, course_id: courseId })
+      .update({
+        rating: Number(rating),
+        comment: comment ?? '',
+        created_at: db.fn.now(),
+      });
+  }
+
   static listByCourse(courseId) {
     return db('feedback as f')
       .leftJoin('users as u', 'u.id', 'f.user_id')

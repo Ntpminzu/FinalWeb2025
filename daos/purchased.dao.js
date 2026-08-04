@@ -26,14 +26,14 @@ class PurchasedDao {
     return row ? new Purchased(row) : null;
   }
 
-  static async findOwnedCourseIds(userId) {
-    const rows = await db('purchased')
+  static async findOwnedCourseIds(userId, trx = db) {
+    const rows = await trx('purchased')
       .where('user_id', userId)
       .select('course_id');
     return rows.map(r => r.course_id);
   }
 
-  static async addMultiple(userId, courses) {
+  static async addMultiple(userId, courses, trx = db) {
     if (!courses || courses.length === 0) return;
     const now = new Date();
     const rows = courses.map(c => ({
@@ -42,7 +42,7 @@ class PurchasedDao {
       course_title: c.title,
       purchased_at: now
     }));
-    await db('purchased').insert(rows).onConflict(['user_id', 'course_id']).ignore();
+    await trx('purchased').insert(rows).onConflict(['user_id', 'course_id']).ignore();
   }
 }
 

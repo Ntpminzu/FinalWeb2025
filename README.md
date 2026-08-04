@@ -51,6 +51,8 @@ npm test
 
 Dự án có REST API song song dưới `/api/v1` cho các endpoint public đầu tiên như health check, courses và categories. Tài liệu chi tiết nằm ở `docs/api-v1.md`.
 
+Ghi chú các khái niệm backend đã học nằm ở `docs/backend-concepts-notes.md`.
+
 ## Các nhóm chức năng
 
 - Account: đăng ký trực tiếp, đăng nhập, đăng xuất, hồ sơ và đổi mật khẩu.

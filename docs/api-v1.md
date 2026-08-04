@@ -251,6 +251,123 @@ x-csrf-token: token
 
 Xóa toàn bộ cart trong session và trả lại cart rỗng.
 
+```http
+POST /api/v1/checkout
+```
+
+Header bắt buộc:
+
+```http
+x-csrf-token: token
+```
+
+Mua các khóa học hiện có trong cart, ghi vào bảng `purchased`, rồi clear cart trong session.
+
+Checkout thành công lần đầu trả `201 Created`.
+
+Nếu cart rỗng, API trả `409 Conflict`.
+
+Nếu cart có khóa học user đã sở hữu, API trả `409 Conflict` và không mua một phần.
+
+Body:
+
+```json
+{
+  "idempotencyKey": "client-generated-unique-key",
+  "courseIds": [1, 2]
+}
+```
+
+`courseIds` là snapshot danh sách course trong cart tại lúc user bấm checkout. Backend dùng nó để tạo request fingerprint ổn định.
+
+Nếu gửi lại cùng `idempotencyKey` và cùng `courseIds`, API không checkout lần hai mà trả lại kết quả cũ với `200 OK` và `reused: true`.
+
+Nếu gửi cùng `idempotencyKey` nhưng `courseIds` khác, API trả `409 Conflict`.
+
+### My Learning
+
+```http
+GET /api/v1/me/courses
+```
+
+Trả danh sách khóa học user hiện tại đã mua, kèm phần trăm hoàn thành.
+
+Nếu chưa đăng nhập, API trả `401`.
+
+```http
+GET /api/v1/me/courses/:courseId/progress
+```
+
+Trả danh sách lecture và feedback của course cụ thể nếu user hiện tại đã sở hữu course đó.
+
+Nếu chưa đăng nhập, API trả `401`. Nếu chưa sở hữu course, API trả `403`.
+
+```http
+PATCH /api/v1/me/lectures/:lectureId/progress
+```
+
+Body:
+
+```json
+{
+  "lastSecond": 120
+}
+```
+
+Header bắt buộc:
+
+```http
+x-csrf-token: token
+```
+
+Cập nhật tiến độ xem bài giảng. Nếu lecture không thuộc course user đã mua, API trả `403`.
+
+### Reviews
+
+```http
+POST /api/v1/courses/:courseId/reviews
+```
+
+Body:
+
+```json
+{
+  "rating": 5,
+  "comment": "Khóa học dễ hiểu"
+}
+```
+
+Header bắt buộc:
+
+```http
+x-csrf-token: token
+```
+
+Tạo review của user hiện tại cho course. User phải sở hữu course và đã học ít nhất một lecture.
+
+Nếu tạo thành công, API trả `201 Created`. Nếu user đã có review cho course này, API trả `409 Conflict`.
+
+```http
+PATCH /api/v1/courses/:courseId/reviews/me
+```
+
+Body:
+
+```json
+{
+  "rating": 4,
+  "comment": "Sau khi học lại tôi thấy cần bổ sung thêm ví dụ"
+}
+```
+
+Header bắt buộc:
+
+```http
+x-csrf-token: token
+```
+
+Cập nhật review của user hiện tại cho course. Nếu user chưa có review cho course này, API trả `404 Not Found`.
+
 ## Manual Test Ideas
 
 Thử các URL này trong browser, Postman hoặc curl:
@@ -270,9 +387,15 @@ Thử các URL này trong browser, Postman hoặc curl:
 /api/v1/auth/login
 /api/v1/auth/logout
 /api/v1/auth/me
+/api/v1/me/courses
+/api/v1/me/courses/1/progress
+/api/v1/me/lectures/1/progress
+/api/v1/courses/1/reviews
+/api/v1/courses/1/reviews/me
 /api/v1/cart
 /api/v1/cart/items
 /api/v1/cart/items/1
+/api/v1/checkout
 /api/v1/not-found
 ```
 
@@ -282,3 +405,17 @@ Mục tiêu học:
 - Query params phải được validate trước khi truy vấn database.
 - Response thành công và lỗi nên có shape ổn định.
 - Web routes cũ vẫn hoạt động song song với API routes mới.
+
+## API Tests
+
+Chạy integration tests cho các API nền tảng:
+
+```bash
+npm run test:api
+```
+
+Hoặc chạy toàn bộ:
+
+```bash
+npm test
+```

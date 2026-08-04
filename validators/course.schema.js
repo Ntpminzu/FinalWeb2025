@@ -55,8 +55,8 @@ export function reviewSchema(input) {
 }
 
 export function progressSchema(input) {
-  const lectureId = positiveInteger(input?.lecture_id, 'Bài giảng');
-  const lastSecond = Number(input?.last_second);
+  const lectureId = positiveInteger(input?.lecture_id ?? input?.lectureId, 'Bài giảng');
+  const lastSecond = Number(input?.last_second ?? input?.lastSecond);
   if (!Number.isFinite(lastSecond) || lastSecond < 0) throw new ValidationError('Dữ liệu tiến độ không hợp lệ.');
   return { lectureId, lastSecond };
 }

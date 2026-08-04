@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { ConflictError } from '../../errors/app-error.js';
 import Cart from '../../models/cart.model.js';
+import * as cartService from '../../services/cart.service.js';
 import { signupSchema } from '../../validators/account.schema.js';
+import { checkoutSchema } from '../../validators/cart.schema.js';
 import { apiPagination } from '../../validators/common.schema.js';
-import { courseApiQuerySchema, courseMutationSchema, durationSchema, reviewSchema } from '../../validators/course.schema.js';
+import { courseApiQuerySchema, courseMutationSchema, durationSchema, progressSchema, reviewSchema } from '../../validators/course.schema.js';
 
 test('signup schema normalizes valid input', () => {
   const result = signupSchema({ username: 'junior.dev', password: 'password123', confirm_password: 'password123', name: 'Junior Dev', email: 'JUNIOR@example.com' });
@@ -41,6 +44,21 @@ test('cart prevents duplicates and calculates sale prices', () => {
   cart.addItem({ id: 1, price: 100, sale_price: 80 });
   assert.equal(cart.items.length, 1);
   assert.equal(cart.getTotalPrice(), 80);
+});
+
+test('progress schema accepts camelCase api fields', () => {
+  assert.deepEqual(progressSchema({ lectureId: 2, lastSecond: 120 }), { lectureId: 2, lastSecond: 120 });
+});
+
+test('checkout rejects an empty cart', async () => {
+  await assert.rejects(() => cartService.checkout(1, []), ConflictError);
+});
+
+test('checkout schema requires an idempotency key', () => {
+  assert.deepEqual(checkoutSchema({ idempotencyKey: 'abc123', courseIds: [1, '2'] }), { idempotencyKey: 'abc123', courseIds: [1, 2] });
+  assert.equal(checkoutSchema({ idempotency_key: 'legacy-key', course_ids: [3] }).idempotencyKey, 'legacy-key');
+  assert.throws(() => checkoutSchema({ idempotencyKey: '', courseIds: [1] }));
+  assert.throws(() => checkoutSchema({ idempotencyKey: 'abc123', courseIds: [] }));
 });
 
 test('api pagination supports client limits but clamps unsafe values', () => {
