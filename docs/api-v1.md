@@ -8,6 +8,14 @@ API v1 đang chạy song song với server-rendered pages dưới prefix:
 
 Web pages trả HTML bằng `res.render(...)`. REST API trả JSON bằng `res.json(...)`.
 
+OpenAPI contract:
+
+```text
+docs/openapi-v1.yaml
+```
+
+File này dùng để mô tả endpoint, params, request body, response, status code và auth requirement theo chuẩn OpenAPI.
+
 ## Response Shape
 
 Thành công:
@@ -205,7 +213,7 @@ GET /api/v1/cart
 
 Trả giỏ hàng đang lưu trong session của user hiện tại.
 
-Nếu chưa đăng nhập, API trả `401`.
+Endpoint này dành cho student. Nếu chưa đăng nhập, API trả `401`. Nếu đã đăng nhập nhưng không phải student, API trả `403`.
 
 ```http
 POST /api/v1/cart/items
@@ -292,7 +300,7 @@ GET /api/v1/me/courses
 
 Trả danh sách khóa học user hiện tại đã mua, kèm phần trăm hoàn thành.
 
-Nếu chưa đăng nhập, API trả `401`.
+Endpoint này dành cho student. Nếu chưa đăng nhập, API trả `401`. Nếu đã đăng nhập nhưng không phải student, API trả `403`.
 
 ```http
 GET /api/v1/me/courses/:courseId/progress
@@ -345,7 +353,7 @@ x-csrf-token: token
 
 Tạo review của user hiện tại cho course. User phải sở hữu course và đã học ít nhất một lecture.
 
-Nếu tạo thành công, API trả `201 Created`. Nếu user đã có review cho course này, API trả `409 Conflict`.
+Endpoint này dành cho student. Nếu tạo thành công, API trả `201 Created`. Nếu user đã có review cho course này, API trả `409 Conflict`.
 
 ```http
 PATCH /api/v1/courses/:courseId/reviews/me

@@ -92,6 +92,93 @@ Lỗi thường gặp:
 Mỗi endpoint trả một kiểu JSON khác nhau, frontend phải viết nhiều nhánh xử lý.
 ```
 
+## OpenAPI
+
+OpenAPI là chuẩn mô tả REST API bằng YAML hoặc JSON.
+
+Trong project:
+
+```text
+docs/openapi-v1.yaml
+```
+
+File này mô tả:
+
+```text
+- Method + path
+- Query params
+- Path params
+- Request body
+- Response body
+- Status code
+- Auth requirement
+```
+
+Ví dụ:
+
+```text
+GET /api/v1/courses?page=1&limit=12
+POST /api/v1/checkout cần session cookie + x-csrf-token
+```
+
+Vì sao cần:
+
+```text
+API docs là hợp đồng giữa backend, frontend, mobile, QA và cả chính backend dev khi quay lại đọc code sau này.
+```
+
+Ví dụ thực tế:
+
+```text
+Frontend dev nhìn OpenAPI biết POST /checkout cần idempotencyKey và courseIds, không phải đoán từ code backend.
+QA import OpenAPI vào Postman để test endpoint.
+Backend dev dùng docs để tránh đổi response shape làm hỏng client.
+```
+
+Lỗi thường gặp:
+
+```text
+Code đã đổi nhưng docs không đổi, khiến frontend gọi sai request body hoặc xử lý thiếu status code.
+```
+
+## API Contract
+
+API contract là lời hứa của backend với client về cách API hoạt động.
+
+Contract gồm:
+
+```text
+- URL
+- HTTP method
+- Input
+- Output
+- Error shape
+- Auth/permission requirement
+```
+
+Trong project:
+
+```text
+docs/api-v1.md          -> contract cho người đọc
+docs/openapi-v1.yaml    -> contract cho tool như Swagger/Postman
+```
+
+Ví dụ:
+
+```text
+POST /api/v1/checkout
+Body bắt buộc: idempotencyKey, courseIds
+Thành công lần đầu: 201
+Retry cùng key: 200 reused=true
+Cart rỗng hoặc đã mua: 409
+```
+
+Lỗi thường gặp:
+
+```text
+Backend đổi từ courseIds sang items nhưng không báo cho frontend, làm production lỗi dù backend test vẫn pass.
+```
+
 ## DTO
 
 DTO là object được backend chuẩn hóa trước khi trả cho client.
@@ -361,6 +448,90 @@ Lỗi thường gặp:
 
 ```text
 Chỉ check user đã login mà quên check user có sở hữu resource đang truy cập hay không.
+```
+
+## Role-Based Authorization
+
+Role-based authorization là kiểm tra user đã đăng nhập có đúng vai trò để gọi endpoint hay không.
+
+Trong project:
+
+```text
+requireApiUser     -> chỉ cần đăng nhập
+requireApiStudent  -> phải là student
+requireApiInstructor -> phải là instructor
+requireApiAdmin    -> phải là admin
+```
+
+Ví dụ endpoint student:
+
+```text
+GET /api/v1/cart
+POST /api/v1/checkout
+PATCH /api/v1/me/lectures/:lectureId/progress
+POST /api/v1/courses/:courseId/reviews
+```
+
+Các endpoint này dùng:
+
+```js
+requireApiStudent
+```
+
+Vì sao cần:
+
+```text
+Đăng nhập chỉ trả lời "bạn là ai".
+Role authorization trả lời "bạn được phép làm việc này không".
+```
+
+Ví dụ thực tế:
+
+```text
+Student được học và checkout.
+Instructor được quản lý khóa học của họ.
+Admin được khóa/mở tài khoản.
+Ba người đều đã login, nhưng quyền thao tác khác nhau.
+```
+
+Lỗi thường gặp:
+
+```text
+Chỉ dùng middleware check login cho mọi endpoint, khiến user role khác có thể gọi nhầm API không dành cho họ.
+```
+
+## Authentication vs Authorization
+
+Authentication là xác thực danh tính: hệ thống biết request này thuộc user nào.
+
+Authorization là phân quyền: user đó có được phép làm hành động này trên resource này không.
+
+Trong project:
+
+```text
+Authentication:
+- Đọc session cookie
+- Lấy req.session.authUser.id
+- Load user từ database
+- Gán req.user
+
+Authorization:
+- Check permission student/instructor/admin
+- Check ownership đã mua course chưa
+```
+
+Ví dụ:
+
+```text
+Chưa login gọi /api/v1/cart -> 401 Unauthorized
+Login bằng instructor nhưng gọi /api/v1/cart -> 403 Forbidden
+Login bằng student nhưng xem course chưa mua -> 403 Forbidden
+```
+
+Lỗi thường gặp:
+
+```text
+Nghĩ rằng login rồi là được làm mọi thứ.
 ```
 
 ## PATCH Method
@@ -903,6 +1074,79 @@ Lỗi thường gặp:
 
 ```text
 Chỉ test service/validator, không test route thật nên không phát hiện redirect HTML hoặc thiếu middleware ở API.
+```
+
+## Operational Error
+
+Operational error là lỗi nghiệp vụ hoặc lỗi dự kiến, có status code và message rõ ràng.
+
+Trong project:
+
+```js
+throw new UnauthorizedError('Bạn cần đăng nhập để tiếp tục.');
+throw new ConflictError('Giỏ hàng đang trống.');
+```
+
+Các lỗi này kế thừa `AppError`, và có:
+
+```js
+isOperational = true
+```
+
+Ví dụ:
+
+```text
+400 ValidationError
+401 UnauthorizedError
+403 ForbiddenError
+404 NotFoundError
+409 ConflictError
+```
+
+Vì sao cần:
+
+```text
+Backend phân biệt lỗi nghiệp vụ expected với bug thật như TypeError hoặc database crash.
+```
+
+Lỗi thường gặp:
+
+```text
+Log stack trace cho mọi lỗi 401/403/404/409 làm test output và production logs bị nhiễu.
+```
+
+## Test Hygiene
+
+Test hygiene là giữ output test sạch để lỗi thật nổi bật.
+
+Trong project:
+
+```js
+if (process.env.NODE_ENV !== 'test' || !error.isOperational) {
+  console.error(error);
+}
+```
+
+Nghĩa là:
+
+```text
+Trong test, operational errors như 401/403 expected không in stack trace.
+Bug thật vẫn được log.
+Ngoài test, backend vẫn log như bình thường.
+```
+
+Ví dụ:
+
+```text
+Integration test cố tình gọi /api/v1/auth/me khi chưa login.
+Backend trả 401 đúng như kỳ vọng.
+Không cần in stack trace UnauthorizedError trong test output.
+```
+
+Lỗi thường gặp:
+
+```text
+Test pass nhưng terminal đầy lỗi expected, khiến team dễ bỏ qua lỗi thật.
 ```
 
 ## Transaction vs Idempotency
