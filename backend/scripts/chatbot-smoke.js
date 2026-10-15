@@ -6,13 +6,13 @@ import path from 'node:path';
 import net from 'node:net';
 import { repositoryRoot } from '../src/config/paths.js';
 
-// Uses real Ollama with disposable PostgreSQL; never opens the configured production database.
+// Uses Groq and Cloudflare Workers AI with disposable PostgreSQL; never opens the configured production database.
 const probe = net.createServer();
 await new Promise((resolve, reject) => { probe.once('error', reject); probe.listen(4100, '127.0.0.1', resolve); });
 await new Promise(resolve => probe.close(resolve));
 const child = spawn(process.execPath, ['backend/scripts/demo-server.js'], {
   cwd: repositoryRoot, windowsHide: true, stdio: 'inherit',
-  env: { ...process.env, SERVE_CLIENT: 'false', OLLAMA_URL: process.env.OLLAMA_URL || 'http://127.0.0.1:11434' },
+  env: { ...process.env, SERVE_CLIENT: 'false' },
 });
 const base = 'http://127.0.0.1:4100/api/v1';
 const report = [];

@@ -70,14 +70,14 @@ test('chat failure is recoverable and never becomes conversation history', async
   let attempts = 0;
   await page.route('**/api/v1/chatbot/messages', async route => {
     attempts++;
-    if (attempts === 1) return route.fulfill({ status: 503, json: { error: { code: 'CHATBOT_MODEL_UNAVAILABLE', message: 'Ollama chưa sẵn sàng.', status: 503 } } });
+    if (attempts === 1) return route.fulfill({ status: 503, json: { error: { code: 'CHATBOT_MODEL_UNAVAILABLE', message: 'Dịch vụ chatbot chưa sẵn sàng.', status: 503 } } });
     expect(route.request().postDataJSON().history).toEqual([]);
     return route.fulfill({ json: { data: { answer: 'Đã kết nối lại.', sources: [], warnings: [] } } });
   });
   await page.goto('/');
   const dialog = await openChat(page);
   await ask(dialog, 'Lần đầu');
-  await expect(dialog.getByRole('alert')).toContainText('Ollama chưa sẵn sàng.');
+  await expect(dialog.getByRole('alert')).toContainText('Dịch vụ chatbot chưa sẵn sàng.');
   await ask(dialog, 'Thử lại');
   await expect(dialog.locator('.chatbot-assistant')).toContainText('Đã kết nối lại.');
 });

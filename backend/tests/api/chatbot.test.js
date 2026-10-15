@@ -6,13 +6,17 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import bcrypt from 'bcrypt';
 import request from 'supertest';
-import { createFakeOllama } from '../helpers/fake-ollama.js';
+import { createFakeAiProviders } from '../helpers/fake-ai-providers.js';
 
 const directory = await mkdtemp(path.join(tmpdir(), 'academy-chatbot-test-'));
-const fake = createFakeOllama();
+const fake = createFakeAiProviders();
 fake.server.listen(0, '127.0.0.1');
 await once(fake.server, 'listening');
-process.env.OLLAMA_URL = `http://127.0.0.1:${fake.server.address().port}`;
+process.env.GROQ_API_KEY = 'test-key';
+process.env.GROQ_API_URL = `http://127.0.0.1:${fake.server.address().port}`;
+process.env.CLOUDFLARE_ACCOUNT_ID = 'test-account';
+process.env.CLOUDFLARE_API_TOKEN = 'test-key';
+process.env.CLOUDFLARE_API_URL = `http://127.0.0.1:${fake.server.address().port}`;
 const { default: app } = await import('../../src/app.js');
 const { default: db } = await import('../../src/config/database.js');
 const { postgres } = await import('../helpers/embedded-db.js');
@@ -20,7 +24,8 @@ const { chatbotConfig } = await import('../../src/config/chatbot.js');
 const { selectHistory } = await import('../../src/modules/chatbot/schemas/chatbot.schema.js');
 const { chunkDocuments, plainText, readKnowledge, courseDocument } = await import('../../src/modules/chatbot/services/knowledge.service.js');
 const { createChatbotService, citationWarnings } = await import('../../src/modules/chatbot/services/chatbot.service.js');
-const { createOllamaClient, cosineSimilarity } = await import('../../src/modules/chatbot/services/ollama.service.js');
+const { createGroqClient } = await import('../../src/modules/chatbot/services/groq.service.js');
+const { createCloudflareEmbeddingsClient } = await import('../../src/modules/chatbot/services/cloudflare-embeddings.service.js');
 const { default: ChatbotRepository } = await import('../../src/modules/chatbot/repositories/chatbot.repository.js');
 const { vectorLiteral } = await import('../../src/modules/chatbot/schemas/vector.schema.js');
 const tokens = {};
@@ -68,8 +73,6 @@ test('chunks retain metadata, overlap long blocks, normalize HTML and validate v
   assert.equal(plainText('<p>A &amp; B &#x41;</p><script>bad()</script>'), 'A & B A');
   const summaryOnly = courseDocument({ id: 9, title: 'Node.js', short_desc: 'Xây dựng REST API với Express.', price: 300000 });
   assert.match(summaryOnly.text, /Nội dung: Xây dựng REST API với Express/);
-  assert.equal(cosineSimilarity([1, 0], [1, 0]), 1);
-  for (const vector of [[], [0, 0], [NaN, 0], [1]]) assert.throws(() => cosineSimilarity([1, 0], vector));
   assert.throws(() => vectorLiteral([1, 0]));
   assert.throws(() => vectorLiteral(Array(1024).fill(0)));
   const sources = [{ citation: 'S1' }];
@@ -146,8 +149,8 @@ test('concurrent sync embeds changed content once; failures roll back; missing S
   const calls = [];
   let fail = false, generated = 0, activeGenerations = 0, maxGenerations = 0;
   const settings = { ...chatbotConfig };
-  const ollama = { modelsReady: async () => true, embed: async texts => {
-    assert.equal(activeGenerations, 0, 'embedding must not overlap a chat generation on the local GPU');
+  const providers = { configured: () => true, embed: async texts => {
+    assert.equal(activeGenerations, 0, 'a queued turn must finish before the next embedding');
     if (fail) throw new Error('embedding failed');
     calls.push(...texts); return texts.map(() => Array(1024).fill(0.01));
   }, generate: async () => {
@@ -155,7 +158,7 @@ test('concurrent sync embeds changed content once; failures roll back; missing S
     await new Promise(resolve => setTimeout(resolve, 15));
     activeGenerations--; return { answer: 'Ok [S1]' };
   } };
-  const service = createChatbotService({ settings, readSources: async () => documents, ollama });
+  const service = createChatbotService({ settings, readSources: async () => documents, chat: providers, embeddings: providers });
   await Promise.all([service.answer('one'), service.answer('two')]);
   assert.equal(calls.filter(text => text.includes('old guide')).length, 1);
   assert.equal(maxGenerations, 1);
@@ -170,10 +173,10 @@ test('concurrent sync embeds changed content once; failures roll back; missing S
   assert.equal((await service.health()).indexState, 'needs_sync');
   await service.answer('repair');
   assert.equal((await service.health()).indexState, 'ready');
-  const changed = createChatbotService({ settings: { ...settings, embeddingModel: 'other-model' }, readSources: async () => documents, ollama });
+  const changed = createChatbotService({ settings: { ...settings, embeddingModel: 'other-model' }, readSources: async () => documents, chat: providers, embeddings: providers });
   const before = calls.length; await changed.answer('new model');
   assert.equal(calls.length - before, 2);
-  const missing = createChatbotService({ settings, readSources: async () => { throw new Error('db failed'); }, ollama });
+  const missing = createChatbotService({ settings, readSources: async () => { throw new Error('db failed'); }, chat: providers, embeddings: providers });
   await assert.rejects(missing.answer('missing'), error => error.code === 'CHATBOT_KNOWLEDGE_UNAVAILABLE');
 });
 
@@ -190,27 +193,35 @@ test('Markdown file edits are observed without restarting the service', async ()
   assert.ok((await db('chatbot_chunks').select('text')).some(chunk => chunk.text.includes('GUIDE-UPDATED')));
 });
 
-test('transport maps offline, timeout, invalid JSON, missing embeddings and empty final answers', async () => {
+test('provider transports map offline, timeout, invalid JSON, malformed embeddings and empty answers', async () => {
   const settings = { ...chatbotConfig, timeoutMs: 25 };
-  const sent = [];
-  const client = createOllamaClient(settings, async (url, options) => {
-    sent.push(JSON.parse(options.body));
-    return Response.json(url.endsWith('/api/embed') ? { embeddings: [[1, 0]] } : { message: { content: 'ok' } });
+  const urls = [];
+  const embed = createCloudflareEmbeddingsClient(settings, async (url, options) => {
+    urls.push([url, JSON.parse(options.body)]);
+    return Response.json({ success: true, errors: [], result: { data: [Array(1024).fill(0.01)] } });
   });
-  await client.embed(['q']); await client.generate([]);
-  assert.ok(sent.every(payload => payload.keep_alive === 0));
-  const failing = error => createOllamaClient(settings, async () => { throw error; });
-  await assert.rejects(failing(new Error('offline')).embed(['q']), error => error.statusCode === 503);
-  await assert.rejects(failing(new DOMException('timeout', 'TimeoutError')).embed(['q']), error => error.statusCode === 504);
-  await assert.rejects(createOllamaClient(settings, async () => new Response('bad')).embed(['q']), error => error.statusCode === 502);
-  await assert.rejects(createOllamaClient(settings, async () => Response.json({ embeddings: [] })).embed(['q']), error => error.statusCode === 502);
-  await assert.rejects(createOllamaClient(settings, async () => Response.json({ message: { thinking: 'only reasoning' }, done_reason: 'length' })).generate([]), error => error.statusCode === 502);
+  const chat = createGroqClient(settings, async (url, options) => {
+    urls.push([url, JSON.parse(options.body)]);
+    return Response.json({ choices: [{ message: { content: 'ok' }, finish_reason: 'length' }] });
+  });
+  await embed.embed(['q']);
+  assert.deepEqual(urls[0][1].text, ['q']);
+  assert.equal(urls[0][0].endsWith('/ai/run/@cf/baai/bge-m3'), true);
+  assert.equal((await chat.generate([{ role: 'system', content: 'rules' }, { role: 'user', content: 'q' }])).truncated, true);
+  assert.deepEqual(urls[1][1].messages[0], { role: 'system', content: 'rules' });
+  await assert.rejects(createCloudflareEmbeddingsClient({ ...settings, cloudflareApiToken: '' }).embed(['q']), error => error.statusCode === 503);
+  const failingEmbed = error => createCloudflareEmbeddingsClient(settings, async () => { throw error; });
+  await assert.rejects(failingEmbed(new Error('offline')).embed(['q']), error => error.statusCode === 503);
+  await assert.rejects(failingEmbed(new DOMException('timeout', 'TimeoutError')).embed(['q']), error => error.statusCode === 504);
+  await assert.rejects(createCloudflareEmbeddingsClient(settings, async () => new Response('bad')).embed(['q']), error => error.statusCode === 502);
+  await assert.rejects(createCloudflareEmbeddingsClient(settings, async () => Response.json({ success: true, result: { data: [] } })).embed(['q']), error => error.statusCode === 502);
+  await assert.rejects(createGroqClient(settings, async () => Response.json({ choices: [{ message: { content: '' } }] })).generate([{ role: 'system', content: 'rules' }]), error => error.statusCode === 502);
 });
 
 test('health and chatbot failure leave the rest of the website available', async () => {
   fake.state.offline = true;
   const health = await request(app).get('/api/v1/chatbot/health');
-  assert.equal(health.status, 200); assert.equal(health.body.data.ready, false);
+  assert.equal(health.status, 200); assert.equal(health.body.data.modelReady, true);
   assert.equal((await send({ question: 'React' })).status, 503);
   assert.equal((await request(app).get('/api/v1/courses')).status, 200);
   fake.state.offline = false;
@@ -233,7 +244,7 @@ test('PostgreSQL cosine search filters role and disabled courses before limiting
     { id: 'course:90', audience: 'public', title: 'course', url: '/courses/90', text: 'course' },
   ];
   const service = createChatbotService({ readSources: async () => documents,
-    ollama: { embed: async texts => texts.map(text => unit(text.includes('orthogonal') ? 1 : 0)) } });
+    embeddings: { configured: () => true, embed: async texts => texts.map(text => unit(text.includes('orthogonal') ? 1 : 0)) } });
   await service.synchronize();
   const results = await ChatbotRepository.withIndexLock(connection => ChatbotRepository.search(unit(0), 'guest', 5, connection));
   assert.equal(results.length, 3);
@@ -253,7 +264,7 @@ test('SQL sync can swap text between IDs while reusing vectors and rolls back fa
   ];
   let embedded = 0;
   const service = createChatbotService({ readSources: async () => documents,
-    ollama: { embed: async texts => { embedded += texts.length; return texts.map(() => Array(1024).fill(0.01)); } } });
+    embeddings: { configured: () => true, embed: async texts => { embedded += texts.length; return texts.map(() => Array(1024).fill(0.01)); } } });
   await service.synchronize();
   assert.equal(embedded, 2);
   documents = [{ ...documents[0], text: 'beta' }, { ...documents[1], text: 'alpha' }];

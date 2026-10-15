@@ -40,8 +40,11 @@ export default async function setup() {
   }
   try {
     // Direct child processes let Windows terminate exactly these servers without taskkill/tree enumeration.
-    start(['backend/tests/helpers/fake-ollama.js'], root, {});
-    start(['backend/scripts/demo-server.js'], root, { SERVE_CLIENT: 'true', OLLAMA_URL: 'http://127.0.0.1:11435' });
+    start(['backend/tests/helpers/fake-ai-providers.js'], root, {});
+    start(['backend/scripts/demo-server.js'], root, { SERVE_CLIENT: 'true',
+      GROQ_API_KEY: 'test-key', GROQ_API_URL: 'http://127.0.0.1:11435',
+      CLOUDFLARE_ACCOUNT_ID: 'test-account', CLOUDFLARE_API_TOKEN: 'test-key',
+      CLOUDFLARE_API_URL: 'http://127.0.0.1:11435' });
     start(
       [path.join(root, 'client/node_modules/vite/bin/vite.js'), '--host', '127.0.0.1'],
       path.join(root, 'client'),

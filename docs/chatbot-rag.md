@@ -6,7 +6,7 @@ Chatbot tư vấn từ catalog công khai và hướng dẫn Markdown. Khách c�
 
 Bot chưa đọc video/transcript, tiến độ học, lịch sử mua, dữ liệu cá nhân hoặc thống kê quản trị. Các hướng dẫn về thao tác là kiến thức nghiệp vụ đã kiểm tra trong source; bot không thực hiện thao tác thay người dùng. Nếu nguồn thiếu quy định như hoàn tiền, đáp án cần nói chưa có thông tin.
 
-Đây là RAG: tìm dữ liệu rồi đưa vào prompt của lượt hỏi. Tạo embedding không huấn luyện lại model. Qwen embedding biến văn bản thành vector; Qwen chat đọc văn bản các nguồn được chọn để viết đáp án.
+Đây là RAG: tìm dữ liệu rồi đưa vào prompt của lượt hỏi. Tạo embedding không huấn luyện lại model. Cloudflare Workers AI dùng `@cf/baai/bge-m3` để biến văn bản đa ngôn ngữ thành vector 1024 chiều; Groq dùng `qwen/qwen3.8-27b` để viết đáp án.
 
 ## Tổ chức mã
 
@@ -18,7 +18,8 @@ backend/src/modules/chatbot/
   schemas/chatbot.schema.js                   Validation và chọn history
   repositories/chatbot.repository.js          Đọc catalog từ PostgreSQL
   services/knowledge.service.js               Nguồn Markdown, projection và chunk
-  services/ollama.service.js                  HTTP Ollama, embedding và generation
+  services/groq.service.js                    Groq chat completions
+  services/cloudflare-embeddings.service.js   Cloudflare Workers AI embeddings
   services/chatbot.service.js                 Đồng bộ index và điều phối hỏi đáp
 backend/knowledge/chatbot/                    Hướng dẫn theo vai trò
 backend/database/migrations/004_chatbot_pgvector.js  Extension vector và hai bảng nội bộ
@@ -76,7 +77,7 @@ Ví dụ khách hỏi: “Tôi muốn học React, có khóa nào phù hợp và
 5. Embedding query có instruction tiếng Anh. Văn bản nguồn được embedding trực tiếp, không thêm instruction đó.
 6. `ChatbotRepository.search()` lọc public + đúng vai trò và khóa học còn hiển thị trong SQL trước khi chấm cosine và chọn tối đa 5 chunk. Khách không thể tìm hướng dẫn admin bằng cách tự nhận là admin trong câu hỏi.
 7. `buildMessages()` tạo `system → history → user chứa nguồn hiện tại và câu hỏi`. Mỗi nguồn có mã [S1]...[S5] của lượt này.
-8. `generate()` gửi payload tới Ollama; chỉ đọc câu trả lời cuối ở `message.content`.
+8. `generate()` gửi lịch sử, prompt và nguồn tới Groq Chat Completions; chỉ dùng nội dung đáp án.
 9. `citationWarnings()` kiểm tra mã trích dẫn. `answer()` trả `answer`, nguồn chứa đoạn trích và URL chính thức, cùng `warnings`; không trả prompt/vector.
 10. React render text an toàn, cho mở các nguồn và liên kết. Chỉ cặp hỏi/đáp thành công mới được thêm vào history.
 
@@ -99,12 +100,10 @@ Cosine là điểm xếp hạng, không phải phần trăm chính xác. Kiểm 
 | `readKnowledge()` | Ghép tài liệu từ repository với các file hướng dẫn cố định. Không đọc mọi file tùy ý trong thư mục. |
 | `chunkDocuments()` | Chia nguồn thành chunk, giữ metadata, lặp tiêu đề và overlap khi đoạn quá dài. |
 | `fingerprint()` | SHA-256 của dữ liệu JSON; phát hiện thay đổi nguồn/cấu hình và tìm vector tái dùng. |
-| `cosineSimilarity()` | Kiểm tra số chiều, giá trị hữu hạn, vector khác 0 rồi tính độ tương đồng. |
-| `createOllamaClient()` | Tạo client với URL/timeout; có thể thay transport khi test. |
-| `request()` trong Ollama client | Gọi HTTP, kiểm tra JSON và chuyển lỗi kết nối/model/timeout sang lỗi ứng dụng. |
-| `modelsReady()` | Đọc model đã cài từ `/api/tags`; không tạo embedding. |
-| `embed()` | Gọi `/api/embed` theo batch và kiểm tra vector nhận lại. |
-| `generate()` | Gọi `/api/chat`, không stream, tách nội dung cuối khỏi thinking và phát hiện đáp án rỗng/bị cắt. |
+| `createGroqClient()` | Tạo client chat backend với API key/timeout. |
+| `createCloudflareEmbeddingsClient()` | Tạo vector backend, kiểm tra đủ số lượng, 1024 chiều và giá trị hữu hạn. |
+| `embed()` | Gọi `batchEmbedContents`, dùng task type document hoặc query, yêu cầu 1024 chiều và kiểm tra vector nhận lại. |
+| `generate()` | Gọi `generateContent`, tách system instruction và lịch sử, bỏ qua thought part và phát hiện đáp án rỗng/bị cắt. |
 | `retrievalQuestion()` | Ghép câu hiện tại với tối đa hai câu hỏi cũ để hiểu chủ đề nối tiếp. |
 | `ChatbotRepository.search()` | Lọc audience/trạng thái khóa trong SQL, xếp hạng bằng `<=>`, lấy top 5 và cấp mã nguồn theo lượt. |
 | `buildMessages()` | Ghép chỉ dẫn nghiệp vụ, history và văn bản nguồn; không đưa URL do model tự sinh vào UI. |
@@ -115,7 +114,7 @@ Cosine là điểm xếp hạng, không phải phần trăm chính xác. Kiểm 
 | `ChatbotRepository.withIndexLock()` | Transaction cùng advisory lock, dùng một connection cho nguồn, đồng bộ và retrieval. |
 | `ChatbotRepository.replaceIndex()` | Bulk upsert, tái dùng embedding trong SQL, loại nguồn cũ và cập nhật snapshot atomically. |
 | `vectorLiteral()` | Kiểm tra đúng 1024 số hữu hạn, khác vector 0 rồi serialize cho parameter binding. |
-| `enqueue()` | Xếp hàng tác vụ index/chat để giữ chính sách VRAM trong một process. |
+| `enqueue()` | Xếp hàng tác vụ index/chat trong một process. |
 | `indexMatches()` | Đối chiếu signature, snapshot và từng ID/hash để phát hiện chunk thiếu hoặc thay đổi. |
 | `withIndex()` | Thực hiện transaction qua repository và ánh xạ lỗi database thành lỗi chatbot. |
 | `synchronize()` | Cho CLI đồng bộ kho vector mà không gọi generation. |
@@ -141,26 +140,26 @@ Nội dung hướng dẫn đã được xác nhận trong website.
 
 ## Cấu hình và chạy
 
-Mở Ollama; cần `qwen3:4b` và `qwen3-embedding:0.6b`. `npm run dev` chạy website với cấu hình database hiện tại; `npm run dev:demo` dùng database và index tạm. `npm run build` rồi `npm start` dùng React production.
+Tạo API key trên [Groq](https://console.groq.com/keys) và API token Workers AI cùng Account ID trên [Cloudflare Dashboard](https://dash.cloudflare.com/). Đặt `GROQ_API_KEY`, `CLOUDFLARE_ACCOUNT_ID` và `CLOUDFLARE_API_TOKEN` trong `backend/.env` khi chạy local và trong biến môi trường backend trên Render; không đưa credentials vào React hoặc Git. Cloudflare Workers AI có hạn mức miễn phí 10.000 Neurons mỗi ngày; vượt giới hạn sẽ dừng request trên gói Free. `npm run dev` chạy website với cấu hình database hiện tại; `npm run dev:demo` dùng database và index tạm. `npm run build` rồi `npm start` dùng React production.
 
-Các biến trong `backend/.env`: `OLLAMA_URL`, `CHAT_MODEL`, `EMBEDDING_MODEL`, `CHATBOT_TIMEOUT_MS`; kết nối vector dùng cùng `DB_*` với dữ liệu khóa học. `CHATBOT_INDEX_PATH` đã bỏ. Đổi embedding model sẽ làm index được tạo lại; đổi chat model không cần embedding lại. Ollama chỉ được gọi từ backend.
+Các biến trong `backend/.env`: `GROQ_API_KEY`, `CHAT_MODEL` (mặc định `qwen/qwen3.8-27b`), `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN`, `EMBEDDING_MODEL` (mặc định `@cf/baai/bge-m3`) và `CHATBOT_TIMEOUT_MS`; kết nối vector dùng cùng `DB_*` với dữ liệu khóa học. Đổi embedding model sẽ làm index được tạo lại; đổi chat model không cần embedding lại. Cả hai provider chỉ được gọi từ backend. Toàn bộ vector sẽ được tạo lại ở lượt hỏi đầu sau khi đổi provider; việc này dùng quota Cloudflare. Không cần migration mới nếu bảng `vector(1024)` đã có. Với database mới, migration chatbot là bước triển khai riêng, không tự chạy trên Supabase.
 
 History tối đa 3 cặp và 4000 ký tự; UI giữ tối đa 6 message, mỗi message cắt 1000 ký tự trước khi gửi. Backend kiểm tra độc lập. Tải lại/đăng xuất/đổi tài khoản xóa cuộc trò chuyện. Không có bảng lưu hội thoại. Rate limit 10 lượt/phút theo tài khoản hoặc IP khách, lưu trong bộ nhớ process.
 
-Retrieval `topK = 5` là số nguồn, khác với generation `top_k = 20` là tham số lấy mẫu token. Generation có `think: true`, `num_ctx: 8192`, `num_predict: 4096`, timeout mặc định 180 giây cho mỗi request Ollama. Tổng một lượt có thể dài hơn timeout nếu phải embedding nhiều batch hoặc chờ lượt trước.
+Retrieval `topK = 5` là số nguồn. Generation giới hạn `maxOutputTokens = 2048`; timeout mặc định 180 giây cho mỗi request provider. Tổng một lượt có thể dài hơn timeout nếu phải embedding nhiều batch hoặc chờ lượt trước.
 
-Smoke thực tế trên GPU local đã gặp `CUDA out of memory` khi model embedding và chat cùng chiếm VRAM. Vì vậy payload cả hai dùng `keep_alive: 0` và các lượt hỏi được xếp hàng tuần tự trong process. Model được nạp lại khi cần, có thể tăng độ trễ. Đây là chính sách của ứng dụng; không thay đổi cấu hình Ollama toàn máy. Xem tham số [keep_alive của embedding](https://docs.ollama.com/api/embed) và [hướng dẫn quản lý bộ nhớ model](https://docs.ollama.com/faq#how-do-i-keep-a-model-loaded-in-memory-or-make-it-unload-immediately).
+Các lượt hỏi vẫn được xếp hàng tuần tự trong mỗi process để tránh đồng bộ index chồng lên nhau. Embedding dùng `RETRIEVAL_DOCUMENT` cho nguồn và `RETRIEVAL_QUERY` cho câu hỏi.
 
 ## Kiểm tra
 
-`npm test` chạy các kiểm tra backend/client. Test chatbot dùng PostgreSQL nhúng, Ollama HTTP giả và thư mục hướng dẫn tạm. Extension `@electric-sql/pglite-pgvector` cho phép chạy kiểu vector, cosine SQL và RLS thật trong test. Bao phủ validation, JWT/role, nguồn công khai, cache, thay đổi KB/khóa, nguồn bị ẩn/xóa, đồng bộ đồng thời, khôi phục chunk thiếu, rollback khi lưu lỗi, tái dùng vector khi ID đổi, role/RLS, model lỗi và rate limit.
+`npm test` chạy các kiểm tra backend/client. Test chatbot dùng PostgreSQL nhúng, HTTP giả cho Groq/Cloudflare và thư mục hướng dẫn tạm. Extension `@electric-sql/pglite-pgvector` cho phép chạy kiểu vector, cosine SQL và RLS thật trong test. Bao phủ validation, JWT/role, nguồn công khai, cache, thay đổi KB/khóa, nguồn bị ẩn/xóa, đồng bộ đồng thời, khôi phục chunk thiếu, rollback khi lưu lỗi, tái dùng vector khi ID đổi, role/RLS, model lỗi và rate limit.
 
-`npm run build` rồi `npm run test:e2e` chạy Chromium với demo database và Ollama giả ở 11435; kiểm tra widget thật qua API, desktop/mobile, history, link nguồn, lỗi, reset, reload và chuyển tài khoản khi request chưa xong. Hình kiểm tra ở `client/test-results/`.
+`npm run build` rồi `npm run test:e2e` chạy Chromium với demo database và hai provider giả ở 11435; kiểm tra widget thật qua API, desktop/mobile, history, link nguồn, lỗi, reset, reload và chuyển tài khoản khi request chưa xong. Hình kiểm tra ở `client/test-results/`.
 
-`node backend/scripts/chatbot-smoke.js` chạy sáu câu hỏi bằng Ollama thật và demo database tạm, cần cổng 4100 trống. Báo cáo JSON nằm trong thư mục tạm; có thể đặt `CHATBOT_SMOKE_REPORT` để chọn đường dẫn. Test giả chứng minh luồng xử lý; smoke thật mới cho thấy chất lượng đáp án của model trên máy tại thời điểm chạy.
+`node backend/scripts/chatbot-smoke.js` chạy sáu câu hỏi bằng Groq và Cloudflare thật trên demo database tạm, cần đủ ba credential và cổng 4100 trống. Báo cáo JSON nằm trong thư mục tạm; có thể đặt `CHATBOT_SMOKE_REPORT` để chọn đường dẫn. Test giả chứng minh luồng xử lý; smoke thật mới cho thấy chất lượng đáp án của model tại thời điểm chạy.
 
 ## Đối chiếu với mẫu Lumen
 
 Giữ nguyên ý tưởng chunk → embedding → cosine → context → generation; giữ history có budget và citation theo lượt. Đổi nguồn một KB thành catalog + hướng dẫn phân quyền; index thủ công thành tự đồng bộ; mã [Sx] theo section thành theo nguồn mỗi lượt; chuyển UI DOM thuần sang widget React dùng JWT client hiện có.
 
-Không mang sang các quy tắc riêng Lumen về học phí, chương trình, ngày sửa đổi, Section 11 hoặc `examMode`. Prompt, projection dữ liệu và quyền truy xuất được viết cho Online Academy. Vector store hiện là PostgreSQL pgvector trên Supabase. Model chat và embedding vẫn chạy local bằng Ollama; không thêm framework RAG.
+Không mang sang các quy tắc riêng Lumen về học phí, chương trình, ngày sửa đổi, Section 11 hoặc `examMode`. Prompt, projection dữ liệu và quyền truy xuất được viết cho Online Academy. Vector store hiện là PostgreSQL pgvector trên Supabase. Model chat gọi Groq; embedding gọi Cloudflare Workers AI từ backend, không thêm framework RAG.

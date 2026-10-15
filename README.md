@@ -94,25 +94,20 @@ Backend có 56 thao tác API dưới `/api/v1`, dùng JWT. React đã nối các
 - [Cấu trúc module và trách nhiệm từng tầng](docs/project-structure.md)
 - [Ghi chú các khái niệm backend](docs/backend-concepts-notes.md)
 
-## Trợ lý RAG local
+## Trợ lý RAG dùng Groq và Cloudflare Workers AI
 
 Nút chat ở góc màn hình React tư vấn khóa học công khai và hướng dẫn website theo vai trò đã đăng nhập. Khách dùng hướng dẫn công khai; học viên, giảng viên và admin có thêm hướng dẫn riêng. Bot trả lời và gắn nguồn, người dùng tự thao tác ở màn hình được dẫn tới.
 
-Mở Ollama và chuẩn bị hai model:
+Chat dùng model `qwen/qwen3.8-27b` qua Groq; embedding tiếng Việt dùng `@cf/baai/bge-m3` qua Cloudflare Workers AI. Đặt `GROQ_API_KEY`, `CLOUDFLARE_ACCOUNT_ID` và `CLOUDFLARE_API_TOKEN` trong `backend/.env` khi chạy local và trong biến môi trường backend trên Render. Không đặt key trong `client/`, mã nguồn hoặc Git. Cloudflare Workers AI hiện có hạn mức miễn phí 10.000 Neurons/ngày; khi vượt mức, các request sẽ bị từ chối trên gói Free.
 
 ```powershell
-ollama pull qwen3:4b
-ollama pull qwen3-embedding:0.6b
-node backend/scripts/migrate-chatbot.js
-# Đồng bộ ngay để thấy các vector trong Supabase (lượt chat cũng tự đồng bộ):
-node backend/scripts/index-chatbot.js
 npm run dev
 ```
 
-Khóa học và các file `backend/knowledge/chatbot/*.md` tự đồng bộ ở lượt hỏi tiếp theo; embedding nội dung không đổi được tái dùng. Embedding được lưu trong bảng `public.chatbot_chunks` trên PostgreSQL/Supabase, cột `embedding` kiểu `vector(1024)`; cấu hình/snapshot ở `public.chatbot_index_state`. Tìm kiếm cosine và lọc vai trò chạy bằng SQL. Hai bảng bật RLS, chỉ backend truy cập bằng kết nối PostgreSQL sẵn có. File JSON cũ không còn được đọc hoặc ghi. Lượt đầu có thể chậm do tải model và tạo embedding. `backend/.env.example` liệt kê biến môi trường của chatbot. Ollama chưa chạy chỉ làm chatbot chưa sẵn sàng, các chức năng website vẫn hoạt động.
+Khóa học và các file `backend/knowledge/chatbot/*.md` tự đồng bộ ở lượt hỏi tiếp theo; embedding nội dung không đổi được tái dùng. Embedding được lưu trong bảng `public.chatbot_chunks` trên PostgreSQL/Supabase, cột `embedding` kiểu `vector(1024)`; cấu hình/snapshot ở `public.chatbot_index_state`. Tìm kiếm cosine và lọc vai trò chạy bằng SQL. Hai bảng bật RLS, chỉ backend truy cập bằng kết nối PostgreSQL sẵn có. Đổi embedding provider/model sẽ tạo lại vector ở lượt hỏi đầu. `backend/.env.example` liệt kê biến môi trường của chatbot. Nếu thiếu API key, các chức năng website khác vẫn hoạt động. Với database mới, áp dụng riêng migration chatbot theo `docs/chatbot-rag.md` như một bước triển khai database riêng; việc đổi frontend/backend này không tự chạy migration trên Supabase.
 
 Hội thoại chỉ ở bộ nhớ tab; chuyển trang vẫn giữ, tải lại hoặc đổi tài khoản sẽ xóa. Giới hạn 10 yêu cầu/phút theo tài khoản hoặc IP khách. Nguồn không chứa tiến độ, lịch sử mua, dữ liệu người dùng hay thống kê riêng. Kiểm tra citation chưa bảo đảm từng ý trong đáp án đúng; cần đối chiếu nguồn.
 
 - [Giải thích RAG, từng hàm và cách sửa hướng dẫn](docs/chatbot-rag.md).
-- `node backend/scripts/chatbot-smoke.js`: smoke test với Ollama thật và PostgreSQL demo tạm; cần cổng 4100 trống. Kết quả JSON ghi vào thư mục tạm của hệ điều hành.
-- API và browser tests dùng Ollama giả, PostgreSQL tạm và vector trong database tạm, không ghi database Supabase thật.
+- `node backend/scripts/chatbot-smoke.js`: smoke test với Groq/Cloudflare thật và PostgreSQL demo tạm, cần ba biến credentials và cổng 4100 trống. Kết quả JSON ghi vào thư mục tạm của hệ điều hành.
+- API và browser tests dùng hai provider giả, PostgreSQL tạm và vector trong database tạm, không ghi database Supabase thật.

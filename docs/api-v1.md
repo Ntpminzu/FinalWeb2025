@@ -123,10 +123,10 @@ API integration tests thực thi Express → service → repository → PostgreS
 
 React frontend đã có trong `client/`; xem [cách chạy và kiểm thử](frontend.md). Có thể phát triển với database demo nhúng. Khi tích hợp database đích, cần áp dụng migration an toàn, cấu hình HTTPS/origin/cookie tương ứng và chạy smoke test với tài khoản của môi trường đó trước khi sử dụng đầy đủ API JWT/cart.
 
-## Chatbot RAG local
+## Chatbot RAG dùng Groq và Cloudflare Workers AI
 
 `POST /api/v1/chatbot/messages` nhận `{ question, history? }`, trả `{ data: { answer, sources, warnings } }`. `GET /api/v1/chatbot/health` trả trạng thái phụ thuộc; `indexState: needs_sync` là bình thường trước lượt chat đầu hoặc sau khi nguồn thay đổi. Không có token dùng quyền khách; token sai trả 401. Không nhận role/userId từ client. Nội dung chỉ gồm catalog công khai và hướng dẫn theo vai trò; không đọc dữ liệu tài khoản riêng.
 
-Giới hạn 2000 ký tự/câu hỏi, tối đa 10 cặp history đầu vào và 20000 ký tự; server chọn tối đa 3 cặp, 4000 ký tự. Mã nguồn chỉ có giá trị trong lượt hiện tại. Chat bị giới hạn 10 yêu cầu/phút theo tài khoản hoặc IP khách. Lỗi 502 là phản hồi model không hợp lệ, 503 là nguồn/index/Ollama chưa sẵn sàng, 504 là timeout. Xem OpenAPI và [luồng xử lý RAG](chatbot-rag.md).
+Giới hạn 2000 ký tự/câu hỏi, tối đa 10 cặp history đầu vào và 20000 ký tự; server chọn tối đa 3 cặp, 4000 ký tự. Mã nguồn chỉ có giá trị trong lượt hiện tại. Chat bị giới hạn 10 yêu cầu/phút theo tài khoản hoặc IP khách. Health `modelReady` kiểm tra cấu hình credentials mà không gọi provider để tránh tốn quota; lỗi 502 là phản hồi model không hợp lệ, 503 là nguồn/index/provider chưa sẵn sàng, 504 là timeout. Xem OpenAPI và [luồng xử lý RAG](chatbot-rag.md).
 
 Kho vector chatbot dùng PostgreSQL/Supabase qua cùng cấu hình `DB_*`: `chatbot_chunks.embedding` là `vector(1024)`, `chatbot_index_state` lưu hash/cấu hình. Chạy `node backend/scripts/migrate-chatbot.js` để chỉ áp dụng migration 004; không tự chạy các migration cũ còn pending. `node backend/scripts/index-chatbot.js` đồng bộ ngay từ catalog và hướng dẫn; chat vẫn tự đồng bộ trước retrieval. Cosine chạy bằng SQL với bộ lọc vai trò và khóa học đang hiển thị trước LIMIT. Hai bảng bật RLS và thu hồi quyền PostgREST anon/authenticated. Request/response của API không đổi.

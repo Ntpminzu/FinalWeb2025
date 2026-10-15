@@ -1,7 +1,8 @@
 import { AppError } from '../../../common/errors/app-error.js';
 import { chatbotConfig } from '../../../config/chatbot.js';
 import { readKnowledge, chunkDocuments, fingerprint } from './knowledge.service.js';
-import { createOllamaClient } from './ollama.service.js';
+import { createGroqClient } from './groq.service.js';
+import { createCloudflareEmbeddingsClient } from './cloudflare-embeddings.service.js';
 import ChatbotRepository from '../repositories/chatbot.repository.js';
 import { vectorLiteral } from '../schemas/vector.schema.js';
 import { selectHistory } from '../schemas/chatbot.schema.js';
@@ -43,12 +44,13 @@ export function citationWarnings(answer, sources) {
   return warnings;
 }
 
-// Each process queues complete turns to keep local embedding and chat from competing for VRAM.
+// Keep index synchronization and retrieval ordered within each process.
 export function createChatbotService({ settings = chatbotConfig,
-  readSources = connection => readKnowledge(settings, connection), ollama = createOllamaClient(settings) } = {}) {
+  readSources = connection => readKnowledge(settings, connection),
+  chat = createGroqClient(settings), embeddings = createCloudflareEmbeddingsClient(settings) } = {}) {
   let answerTail = Promise.resolve();
-  const signature = fingerprint({ version: 2, model: settings.embeddingModel, dimensions: settings.embeddingDimensions,
-    chunkSize: settings.chunkSize, overlap: settings.overlap, context: settings.embeddingContext });
+  const signature = fingerprint({ version: 4, model: settings.embeddingModel, dimensions: settings.embeddingDimensions,
+    chunkSize: settings.chunkSize, overlap: settings.overlap, provider: 'cloudflare-workers-ai' });
 
   function enqueue(work) {
     const result = answerTail.then(work);
@@ -91,7 +93,7 @@ export function createChatbotService({ settings = chatbotConfig,
       const vectors = new Map();
       for (let i = 0; i < missing.length; i += settings.embeddingBatchSize) {
         const batch = missing.slice(i, i + settings.embeddingBatchSize);
-        const embedded = await ollama.embed(batch.map(([, text]) => text));
+        const embedded = await embeddings.embed(batch.map(([, text]) => text));
         if (embedded.length !== batch.length) throw new AppError('Thiếu embedding nguồn.', 502, 'CHATBOT_MODEL_RESPONSE');
         batch.forEach(([hash], j) => { vectorLiteral(embedded[j]); vectors.set(hash, embedded[j]); });
       }
@@ -113,10 +115,10 @@ export function createChatbotService({ settings = chatbotConfig,
         const sources = await withIndex(async connection => {
           await synchronizeIndex(connection);
           const query = retrievalQuestion(question, selectedHistory);
-          const [vector] = await ollama.embed([`Instruct: Given a question about Online Academy, retrieve relevant course information and website usage instructions\nQuery: ${query}`]);
+          const [vector] = await embeddings.embed([query]);
           return ChatbotRepository.search(vector, role, settings.topK, connection);
         });
-        const generated = await ollama.generate(buildMessages(question, selectedHistory, sources, role));
+        const generated = await chat.generate(buildMessages(question, selectedHistory, sources, role));
         const warnings = citationWarnings(generated.answer, sources);
         if (generated.truncated) warnings.push('Câu trả lời có thể bị cắt do đạt giới hạn độ dài. Hãy hỏi ngắn hơn.');
         return { answer: generated.answer, sources: sources.map(({ id, title, url, text, citation }) =>
@@ -124,7 +126,9 @@ export function createChatbotService({ settings = chatbotConfig,
       });
     },
     async health() {
-      const [models, knowledge] = await Promise.allSettled([ollama.modelsReady(), readCurrentChunks()]);
+      const [models, knowledge] = await Promise.allSettled([
+        Promise.resolve(chat.configured() && embeddings.configured()), readCurrentChunks(),
+      ]);
       const modelReady = models.status === 'fulfilled' && models.value === true;
       const sourcesReady = knowledge.status === 'fulfilled';
       let indexState = 'unavailable';
@@ -137,7 +141,7 @@ export function createChatbotService({ settings = chatbotConfig,
       const ready = modelReady && sourcesReady && indexState !== 'unavailable';
       return { ready, modelReady, sourcesReady, indexState,
         message: ready ? (indexState === 'ready' ? 'Trợ lý sẵn sàng.' : 'Trợ lý sẵn sàng; lượt đầu sẽ đồng bộ kiến thức.')
-          : !modelReady ? 'Chưa kết nối được Ollama hoặc thiếu model cấu hình.' : 'Kho vector PostgreSQL chưa sẵn sàng. Kiểm tra kết nối và migration chatbot.' };
+          : !modelReady ? 'Chưa cấu hình đủ GROQ_API_KEY, CLOUDFLARE_ACCOUNT_ID và CLOUDFLARE_API_TOKEN.' : 'Kho vector PostgreSQL chưa sẵn sàng. Kiểm tra kết nối và migration chatbot.' };
     },
   };
 }
