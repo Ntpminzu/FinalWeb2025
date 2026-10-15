@@ -1,7 +1,19 @@
 node_modules/
-.agents/
+client/dist/
+client/.browsers/
+client/test-results/
+client/playwright-report/
+.agents/*
+!.agents/skills/
+.agents/skills/*
+!.agents/skills/graphify-ponytail/
+!.agents/skills/ponytail/
 .env
 .env.*
 !.env.example
-uploads/*
-!uploads/.gitkeep
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Legacy local RAG files; the active vector store is now PostgreSQL/Supabase.
+backend/data/
+graphify-out

@@ -1,302 +1,295 @@
 openapi: 3.0.3
 info:
   title: Online Academy REST API
-  version: 1.0.0
-  description: REST API v1 chạy song song với server-rendered pages.
+  version: 1.1.0
+  description: JWT API alongside session-based HTML pages. Access tokens expire after 900 seconds; refresh
+    cookies after 7 days. Status/isCompleted means course completion, not publication.
 servers:
-  - url: http://localhost:4000/api/v1
-    description: Local development
+  - url: /api/v1
 tags:
   - name: Health
   - name: Auth
-  - name: Courses
-  - name: Categories
-  - name: Cart
-  - name: Checkout
+  - name: Catalog
+  - name: Account
   - name: Learning
   - name: Reviews
-
+  - name: Cart
+  - name: Instructor
+  - name: Admin
+  - name: Chatbot
 paths:
+  /chatbot/health:
+    get:
+      tags: [Chatbot]
+      summary: Check local chatbot dependencies without generating embeddings
+      operationId: getChatbotHealth
+      security: []
+      responses:
+        "200":
+          description: Dependency status; needs_sync means the next message creates or updates the index
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: object
+                    required: [ready, modelReady, sourcesReady, indexState, message]
+                    properties:
+                      ready: { type: boolean }
+                      modelReady: { type: boolean }
+                      sourcesReady: { type: boolean }
+                      indexState: { type: string, enum: [ready, needs_sync, unavailable] }
+                      message: { type: string }
+  /chatbot/messages:
+    post:
+      tags: [Chatbot]
+      summary: Recommend public courses and explain website usage for the authenticated role
+      operationId: sendChatbotMessage
+      description: >-
+        Authorization is optional. Missing credentials use public guest sources; invalid or expired
+        Bearer credentials return 401. Roles come only from the authenticated account. Catalog and
+        allowlisted Markdown sources are synchronized transactionally into PostgreSQL pgvector before retrieval.
+        Role and live catalog visibility filters run before exact SQL cosine ordering and LIMIT.
+        Both chatbot tables use RLS and are accessible only through the backend. History is context, not evidence.
+        The server selects up to three complete recent pairs with a 4000-character budget.
+        Limit ten requests per minute per authenticated account, or per guest IP. No account data or
+        model prompt/vector payload is returned. Citations are checked for existence, not semantic proof.
+      security:
+        - {}
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [question]
+              properties:
+                question: { type: string, minLength: 1, maxLength: 2000 }
+                history:
+                  type: array
+                  maxItems: 20
+                  description: Complete alternating user/assistant pairs, maximum 20000 input characters
+                  items:
+                    type: object
+                    required: [role, content]
+                    properties:
+                      role: { type: string, enum: [user, assistant] }
+                      content: { type: string, minLength: 1, maxLength: 6000 }
+      responses:
+        "200":
+          description: Answer and retrieved sources from the caller's allowed knowledge
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: object
+                    required: [answer, sources, warnings]
+                    properties:
+                      answer: { type: string }
+                      warnings:
+                        type: array
+                        items: { type: string }
+                      sources:
+                        type: array
+                        maxItems: 5
+                        items:
+                          type: object
+                          required: [id, citation, title, url, excerpt]
+                          properties:
+                            id: { type: string }
+                            citation: { type: string, pattern: '^S[1-5]$' }
+                            title: { type: string }
+                            url: { type: string, description: Server-owned relative website route }
+                            excerpt: { type: string }
+        "400":
+          $ref: '#/components/responses/Error400'
+        "401":
+          $ref: '#/components/responses/Error401'
+        "403":
+          $ref: '#/components/responses/Error403'
+        "429":
+          $ref: '#/components/responses/Error429'
+        "502":
+          description: Model returned invalid JSON, embeddings or an empty final answer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "503":
+          description: Knowledge, index or local model unavailable; no known stale index is used
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "504":
+          description: Local model request exceeded CHATBOT_TIMEOUT_MS
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /health:
     get:
-      tags: [Health]
-      summary: Kiểm tra API server còn chạy
+      tags:
+        - Health
+      summary: Health check
+      operationId: get__health
+      description: ""
+      security: []
       responses:
-        '200':
-          description: API đang hoạt động
+        "200":
+          description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HealthResponse'
-
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      service:
+                        type: string
+                      timestamp:
+                        type: string
+                        format: date-time
+                    required:
+                      - service
+                      - timestamp
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+  /home:
+    get:
+      tags:
+        - Catalog
+      summary: Home page sections
+      operationId: get__home
+      description: ""
+      security: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      outstandingCourses:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Course"
+                      mostViewedCourses:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Course"
+                      newestCourses:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Course"
+                      topCategories:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              minimum: 1
+                              maximum: 2147483647
+                            name:
+                              type: string
+                            enrollCount:
+                              type: integer
+                          required:
+                            - id
+                            - name
+                            - enrollCount
+                    required:
+                      - outstandingCourses
+                      - mostViewedCourses
+                      - newestCourses
+                      - topCategories
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
   /courses:
     get:
-      tags: [Courses]
-      summary: Lấy danh sách khóa học
+      tags:
+        - Catalog
+      summary: Search and list courses
+      operationId: get__courses
+      description: ""
+      security: []
       parameters:
-        - $ref: '#/components/parameters/Page'
-        - $ref: '#/components/parameters/Limit'
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 12
+          description: Page size, capped at 50
         - name: q
           in: query
+          required: false
           schema:
             type: string
-          description: Từ khóa tìm kiếm
+          description: Search phrase
         - name: categoryId
           in: query
+          required: false
           schema:
             type: integer
             minimum: 1
-          description: Lọc theo category
+            maximum: 2147483647
+          description: Category filter
         - name: sort
           in: query
+          required: false
           schema:
             type: string
-            enum: [relevance, newest, popular, rating_desc, price_asc, price_desc]
-            default: relevance
+            enum:
+              - relevance
+              - newest
+              - popular
+              - rating_desc
+              - price_asc
+              - price_desc
+          description: Default relevance with q, newest otherwise
       responses:
-        '200':
-          description: Danh sách khóa học
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CourseListResponse'
-        '400':
-          $ref: '#/components/responses/ValidationError'
-
-  /courses/{id}:
-    get:
-      tags: [Courses]
-      summary: Lấy chi tiết khóa học
-      parameters:
-        - $ref: '#/components/parameters/CourseId'
-      responses:
-        '200':
-          description: Chi tiết khóa học
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CourseResponse'
-        '400':
-          $ref: '#/components/responses/ValidationError'
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-  /categories:
-    get:
-      tags: [Categories]
-      summary: Lấy danh sách category
-      responses:
-        '200':
-          description: Danh sách category
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CategoryListResponse'
-
-  /categories/{id}/courses:
-    get:
-      tags: [Categories, Courses]
-      summary: Lấy danh sách khóa học theo category
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            minimum: 1
-        - $ref: '#/components/parameters/Page'
-        - $ref: '#/components/parameters/Limit'
-      responses:
-        '200':
-          description: Danh sách khóa học trong category
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CourseListResponse'
-        '400':
-          $ref: '#/components/responses/ValidationError'
-
-  /auth/csrf-token:
-    get:
-      tags: [Auth]
-      summary: Lấy CSRF token cho session hiện tại
-      responses:
-        '200':
-          description: CSRF token
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CsrfTokenResponse'
-
-  /auth/login:
-    post:
-      tags: [Auth]
-      summary: Đăng nhập bằng session cookie
-      security:
-        - csrfHeader: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LoginRequest'
-      responses:
-        '200':
-          description: Đăng nhập thành công
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/CsrfError'
-
-  /auth/me:
-    get:
-      tags: [Auth]
-      summary: Lấy user hiện tại từ session
-      security:
-        - sessionCookie: []
-      responses:
-        '200':
-          description: User hiện tại
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-
-  /cart:
-    get:
-      tags: [Cart]
-      summary: Lấy cart của student hiện tại
-      security:
-        - sessionCookie: []
-      responses:
-        '200':
-          description: Cart hiện tại
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CartResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-    delete:
-      tags: [Cart]
-      summary: Xóa toàn bộ cart
-      security:
-        - sessionCookie: []
-        - csrfHeader: []
-      responses:
-        '200':
-          description: Cart rỗng
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CartResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-
-  /cart/items:
-    post:
-      tags: [Cart]
-      summary: Thêm khóa học vào cart
-      security:
-        - sessionCookie: []
-        - csrfHeader: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AddCartItemRequest'
-      responses:
-        '200':
-          description: Cart sau khi thêm item
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CartResponse'
-        '400':
-          $ref: '#/components/responses/ValidationError'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-
-  /cart/items/{courseId}:
-    delete:
-      tags: [Cart]
-      summary: Xóa một khóa học khỏi cart
-      security:
-        - sessionCookie: []
-        - csrfHeader: []
-      parameters:
-        - $ref: '#/components/parameters/CourseId'
-      responses:
-        '200':
-          description: Cart sau khi xóa item
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CartResponse'
-        '400':
-          $ref: '#/components/responses/ValidationError'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-
-  /checkout:
-    post:
-      tags: [Checkout]
-      summary: Checkout cart hiện tại
-      security:
-        - sessionCookie: []
-        - csrfHeader: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CheckoutRequest'
-      responses:
-        '201':
-          description: Checkout lần đầu thành công
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CheckoutResponse'
-        '200':
-          description: Replay kết quả cũ do idempotency key
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CheckoutResponse'
-        '400':
-          $ref: '#/components/responses/ValidationError'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '409':
-          $ref: '#/components/responses/Conflict'
-
-  /me/courses:
-    get:
-      tags: [Learning]
-      summary: Lấy khóa học đã mua của student hiện tại
-      security:
-        - sessionCookie: []
-      responses:
-        '200':
-          description: Danh sách khóa học của tôi
+        "200":
+          description: Success
           content:
             application/json:
               schema:
@@ -305,41 +298,742 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/MyCourse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-
-  /me/courses/{courseId}/progress:
+                      $ref: "#/components/schemas/Course"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+                required:
+                  - data
+                  - pagination
+        "400":
+          $ref: "#/components/responses/Error400"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+  /courses/{id}:
     get:
-      tags: [Learning]
-      summary: Lấy progress của student hiện tại trong một course
-      security:
-        - sessionCookie: []
+      tags:
+        - Catalog
+      summary: Course detail and feedbacks
+      operationId: get__courses_id_
+      description: ""
+      security: []
       parameters:
-        - $ref: '#/components/parameters/CourseId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2147483647
       responses:
-        '200':
-          description: Progress của course
+        "200":
+          description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CourseProgressResponse'
-        '400':
-          $ref: '#/components/responses/ValidationError'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/CourseDetail"
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+  /categories:
+    get:
+      tags:
+        - Catalog
+      summary: Category tree
+      operationId: get__categories
+      description: ""
+      security: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Category"
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+  /categories/{id}/courses:
+    get:
+      tags:
+        - Catalog
+      summary: Courses in category and children
+      operationId: get__categories_id_courses
+      description: Also returns category metadata at the envelope root.
+      security: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2147483647
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 12
+          description: Page size, capped at 50
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Course"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+                  category:
+                    $ref: "#/components/schemas/Category"
+                required:
+                  - data
+                  - pagination
+                  - category
+        "400":
+          $ref: "#/components/responses/Error400"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+  /auth/username-availability:
+    get:
+      tags:
+        - Auth
+      summary: Check username availability
+      operationId: get__auth_username_availability
+      description: ""
+      security: []
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Candidate username
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      available:
+                        type: boolean
+                    required:
+                      - available
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "429":
+          $ref: "#/components/responses/Error429"
+        "500":
+          $ref: "#/components/responses/Error500"
+  /auth/csrf-token:
+    get:
+      tags:
+        - Auth
+      summary: Read CSRF token for current refresh cookie
+      operationId: get__auth_csrf_token
+      description: No web session is created. Returns null before login. After reload, call with credentials
+        included to recover the refresh CSRF token.
+      security: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      csrfToken:
+                        type: string
+                        nullable: true
+                    required:
+                      - csrfToken
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+  /auth/register:
+    post:
+      tags:
+        - Auth
+      summary: Register a student and issue tokens
+      operationId: post__auth_register
+      description: Access token and user are JSON data. Refresh token is only in the HttpOnly academy.refresh
+        cookie. CSRF token is returned in JSON. Requests must use application/json and an allowed Origin.
+      security: []
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Tokens"
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "415":
+          $ref: "#/components/responses/Error415"
+        "429":
+          $ref: "#/components/responses/Error429"
+        "500":
+          $ref: "#/components/responses/Error500"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Signup"
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Login and issue tokens
+      operationId: post__auth_login
+      description: Access token and user are JSON data. Refresh token is only in the HttpOnly academy.refresh
+        cookie. CSRF token is returned in JSON. Requests must use application/json and an allowed Origin.
+      security: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Tokens"
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "415":
+          $ref: "#/components/responses/Error415"
+        "429":
+          $ref: "#/components/responses/Error429"
+        "500":
+          $ref: "#/components/responses/Error500"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Login"
+  /auth/refresh:
+    post:
+      tags:
+        - Auth
+      summary: Rotate refresh token and issue access token
+      operationId: post__auth_refresh
+      description: Send refresh cookie and its CSRF token. Rotation changes both. Reusing a consumed refresh token
+        revokes the entire session, including existing access tokens.
+      security:
+        - RefreshCookie: []
+      parameters:
+        - name: x-csrf-token
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Tokens"
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+  /auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: Revoke the current token session
+      operationId: post__auth_logout
+      description: Clears the refresh cookie. The revoked session is rejected immediately; if access expired,
+        refresh first. Other device sessions remain active.
+      security:
+        - BearerAuth: []
+      responses:
+        "204":
+          description: Completed, no response body
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+  /auth/me:
+    get:
+      tags:
+        - Auth
+      summary: Current account
+      operationId: get__auth_me
+      description: ""
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/User"
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+  /me/profile:
+    patch:
+      tags:
+        - Account
+      summary: Update own profile
+      operationId: patch__me_profile
+      description: ""
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/User"
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfilePatch"
+  /me/password:
+    patch:
+      tags:
+        - Account
+      summary: Change password and revoke all JWT sessions
+      operationId: patch__me_password
+      description: User must login again after success. Existing HTML sessions remain separate.
+      security:
+        - BearerAuth: []
+      responses:
+        "204":
+          description: Completed, no response body
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasswordChange"
+  /me/watchlist:
+    get:
+      tags:
+        - Account
+      summary: Student watchlist
+      operationId: get__me_watchlist
+      description: ""
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: "#/components/schemas/Course"
+                        - type: object
+                          properties:
+                            addedAt:
+                              type: string
+                              format: date-time
+                          required:
+                            - addedAt
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+  /me/watchlist/items:
+    post:
+      tags:
+        - Account
+      summary: Add to watchlist (idempotent)
+      operationId: post__me_watchlist_items
+      description: ""
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      courseId:
+                        type: integer
+                        minimum: 1
+                        maximum: 2147483647
+                      inWatchlist:
+                        type: boolean
+                    required:
+                      - courseId
+                      - inWatchlist
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                courseId:
+                  type: integer
+                  minimum: 1
+                  maximum: 2147483647
+              required:
+                - courseId
+  /me/watchlist/items/{courseId}:
+    delete:
+      tags:
+        - Account
+      summary: Remove from watchlist
+      operationId: delete__me_watchlist_items_courseId_
+      description: ""
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2147483647
+      responses:
+        "204":
+          description: Completed, no response body
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+  /me/courses:
+    get:
+      tags:
+        - Learning
+      summary: Purchased courses with completion
+      operationId: get__me_courses
+      description: ""
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PurchasedCourse"
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+  /me/courses/{courseId}/progress:
+    get:
+      tags:
+        - Learning
+      summary: Lectures, progress and overall completion
+      operationId: get__me_courses_courseId_progress
+      description: ""
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2147483647
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/CourseProgress"
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+  /me/courses/{courseId}/lectures/{lectureId}:
+    get:
+      tags:
+        - Learning
+      summary: Lecture player and resume position
+      operationId: get__me_courses_courseId_lectures_lectureId_
+      description: ""
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2147483647
+        - name: lectureId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2147483647
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/LectureDetail"
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
   /me/lectures/{lectureId}/progress:
     patch:
-      tags: [Learning]
-      summary: Cập nhật progress của một lecture
+      tags:
+        - Learning
+      summary: Save monotonic viewing progress
+      operationId: patch__me_lectures_lectureId_progress
+      description: Requires course purchase and instructor-provided duration. Position is capped at duration and
+        never decreases. Lecture completes at 90%.
       security:
-        - sessionCookie: []
-        - csrfHeader: []
+        - BearerAuth: []
       parameters:
         - name: lectureId
           in: path
@@ -347,444 +1041,1740 @@ paths:
           schema:
             type: integer
             minimum: 1
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ProgressRequest'
+            maximum: 2147483647
       responses:
-        '200':
-          description: Progress đã cập nhật
+        "200":
+          description: Success
           content:
             application/json:
               schema:
                 type: object
                 properties:
                   data:
-                    type: object
-        '400':
-          $ref: '#/components/responses/ValidationError'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-
-  /courses/{courseId}/reviews:
-    post:
-      tags: [Reviews]
-      summary: Tạo review cho course
-      security:
-        - sessionCookie: []
-        - csrfHeader: []
-      parameters:
-        - $ref: '#/components/parameters/CourseId'
+                    $ref: "#/components/schemas/Progress"
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ReviewRequest'
-      responses:
-        '201':
-          description: Review được tạo
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-        '400':
-          $ref: '#/components/responses/ValidationError'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '409':
-          $ref: '#/components/responses/Conflict'
-
-  /courses/{courseId}/reviews/me:
+              type: object
+              properties:
+                lastSecond:
+                  type: number
+                  minimum: 0
+              required:
+                - lastSecond
+  /me/lectures/{lectureId}/duration:
     patch:
-      tags: [Reviews]
-      summary: Cập nhật review của student hiện tại
+      tags:
+        - Learning
+      summary: Verify known duration without changing it
+      operationId: patch__me_lectures_lectureId_duration
+      description: Student cannot set shared video duration. Missing or mismatching instructor metadata returns 409.
       security:
-        - sessionCookie: []
-        - csrfHeader: []
+        - BearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/CourseId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ReviewRequest'
-      responses:
-        '200':
-          description: Review được cập nhật
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-        '400':
-          $ref: '#/components/responses/ValidationError'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-components:
-  securitySchemes:
-    sessionCookie:
-      type: apiKey
-      in: cookie
-      name: online_academy.sid
-      description: Session cookie do Express session cấp.
-    csrfHeader:
-      type: apiKey
-      in: header
-      name: x-csrf-token
-      description: CSRF token lấy từ GET /auth/csrf-token.
-
-  parameters:
-    Page:
-      name: page
-      in: query
-      schema:
-        type: integer
-        minimum: 1
-        default: 1
-    Limit:
-      name: limit
-      in: query
-      schema:
-        type: integer
-        minimum: 1
-        maximum: 50
-        default: 12
-    CourseId:
-      name: courseId
-      in: path
-      required: true
-      schema:
-        type: integer
-        minimum: 1
-
-  responses:
-    ValidationError:
-      description: Dữ liệu không hợp lệ
-      content:
-        application/json:
+        - name: lectureId
+          in: path
+          required: true
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    Unauthorized:
-      description: Chưa đăng nhập hoặc session không hợp lệ
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    Forbidden:
-      description: Không đủ quyền hoặc không sở hữu resource
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    NotFound:
-      description: Không tìm thấy tài nguyên
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    Conflict:
-      description: Trạng thái hiện tại không cho phép thực hiện request
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    CsrfError:
-      description: CSRF token thiếu, sai hoặc hết hạn
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-
-  schemas:
-    HealthResponse:
-      type: object
-      properties:
-        data:
-          type: object
-          properties:
-            service:
-              type: string
-              example: online-academy
-            status:
-              type: string
-              example: ok
-            timestamp:
-              type: string
-              format: date-time
-
-    Pagination:
-      type: object
-      properties:
-        page:
-          type: integer
-          example: 1
-        limit:
-          type: integer
-          example: 12
-        total:
-          type: integer
-          example: 120
-        totalPages:
-          type: integer
-          example: 10
-
-    Course:
-      type: object
-      properties:
-        id:
-          type: integer
-          example: 1
-        title:
-          type: string
-          example: Node.js Backend
-        shortDescription:
-          type: string
-          nullable: true
-        price:
-          type: number
-          example: 300000
-        salePrice:
-          type: number
-          nullable: true
-          example: 199000
-        ratingAverage:
-          type: number
-          example: 4.7
-        ratingCount:
-          type: integer
-          example: 20
-        category:
-          type: string
-          nullable: true
-          example: Backend
-        instructorName:
-          type: string
-          nullable: true
-          example: Nguyen Van A
-        thumbnail:
-          type: string
-          nullable: true
-
-    CourseListResponse:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Course'
-        pagination:
-          $ref: '#/components/schemas/Pagination'
-
-    CourseResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/Course'
-
-    Category:
-      type: object
-      properties:
-        id:
-          type: integer
-        name:
-          type: string
-        children:
-          type: array
-          items:
-            type: object
-
-    CategoryListResponse:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Category'
-
-    User:
-      type: object
-      properties:
-        id:
-          type: integer
-        username:
-          type: string
-        name:
-          type: string
-        email:
-          type: string
-        permission:
-          type: integer
-          enum: [1, 2, 3]
-
-    UserResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/User'
-
-    CsrfTokenResponse:
-      type: object
-      properties:
-        data:
-          type: object
-          properties:
-            csrfToken:
-              type: string
-
-    LoginRequest:
-      type: object
-      required: [username, password]
-      properties:
-        username:
-          type: string
-          example: student1
-        password:
-          type: string
-          example: password123
-
-    CartCourse:
-      allOf:
-        - $ref: '#/components/schemas/Course'
-        - type: object
-          properties:
-            effectivePrice:
-              type: number
-              example: 199000
-
-    Cart:
-      type: object
-      properties:
-        courses:
-          type: array
-          items:
-            $ref: '#/components/schemas/CartCourse'
-        total:
-          type: number
-          example: 499000
-        empty:
-          type: boolean
-          example: false
-
-    CartResponse:
-      type: object
-      properties:
-        data:
-          type: object
-          properties:
-            cart:
-              $ref: '#/components/schemas/Cart'
-
-    AddCartItemRequest:
-      type: object
-      required: [courseId]
-      properties:
-        courseId:
-          type: integer
-          minimum: 1
-
-    CheckoutRequest:
-      type: object
-      required: [idempotencyKey, courseIds]
-      properties:
-        idempotencyKey:
-          type: string
-          example: checkout-2026-08-04-001
-        courseIds:
-          type: array
-          minItems: 1
-          items:
             type: integer
             minimum: 1
-          example: [1, 2]
-
-    CheckoutResponse:
-      type: object
-      properties:
-        data:
-          type: object
-          properties:
-            purchased:
-              type: integer
-              example: 2
-            cart:
-              $ref: '#/components/schemas/Cart'
-            reused:
-              type: boolean
-              example: false
-
-    MyCourse:
-      allOf:
-        - $ref: '#/components/schemas/Course'
-        - type: object
-          properties:
-            progressPercent:
-              type: number
-              example: 75
-
-    CourseProgressResponse:
-      type: object
-      properties:
-        data:
-          type: object
-          properties:
-            course:
-              $ref: '#/components/schemas/Course'
-            lectures:
-              type: array
-              items:
+            maximum: 2147483647
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
                 type: object
-            feedback:
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      lectureId:
+                        type: integer
+                        minimum: 1
+                        maximum: 2147483647
+                      durationSec:
+                        type: integer
+                    required:
+                      - lectureId
+                      - durationSec
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
               type: object
-              nullable: true
-
-    ProgressRequest:
-      type: object
-      properties:
-        lastSecond:
-          type: integer
-          minimum: 0
-          example: 120
-        watchedPercent:
-          type: number
-          minimum: 0
-          maximum: 100
-          example: 80
-        isCompleted:
-          type: boolean
-          example: false
-
-    ReviewRequest:
-      type: object
-      required: [rating]
-      properties:
-        rating:
-          type: integer
-          minimum: 1
-          maximum: 5
-          example: 5
-        comment:
-          type: string
-          example: Khoa hoc rat de hieu
-
-    ErrorResponse:
+              properties:
+                durationSec:
+                  type: integer
+                  minimum: 1
+                  maximum: 43200
+              required:
+                - durationSec
+  /courses/{courseId}/reviews/me:
+    get:
+      tags:
+        - Reviews
+      summary: Own review and eligibility
+      operationId: get__courses_courseId_reviews_me
+      description: ""
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2147483647
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ReviewContext"
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+    patch:
+      tags:
+        - Reviews
+      summary: Update own review
+      operationId: patch__courses_courseId_reviews_me
+      description: ""
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2147483647
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      courseId:
+                        type: integer
+                        minimum: 1
+                        maximum: 2147483647
+                      review:
+                        $ref: "#/components/schemas/MyReview"
+                    required:
+                      - courseId
+                      - review
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewInput"
+  /courses/{courseId}/reviews:
+    post:
+      tags:
+        - Reviews
+      summary: Create review
+      operationId: post__courses_courseId_reviews
+      description: Student must own the course and complete at least one lecture. Duplicate review returns 409.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2147483647
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      courseId:
+                        type: integer
+                        minimum: 1
+                        maximum: 2147483647
+                      review:
+                        $ref: "#/components/schemas/MyReview"
+                    required:
+                      - courseId
+                      - review
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewInput"
+  /cart:
+    get:
+      tags:
+        - Cart
+      summary: Persistent student cart
+      operationId: get__cart
+      description: ""
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Cart"
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+    delete:
+      tags:
+        - Cart
+      summary: Clear cart
+      operationId: delete__cart
+      description: ""
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Cart"
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+  /cart/items:
+    post:
+      tags:
+        - Cart
+      summary: Add course to persistent cart
+      operationId: post__cart_items
+      description: ""
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Cart"
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                courseId:
+                  type: integer
+                  minimum: 1
+                  maximum: 2147483647
+              required:
+                - courseId
+  /cart/items/{courseId}:
+    delete:
+      tags:
+        - Cart
+      summary: Remove cart item
+      operationId: delete__cart_items_courseId_
+      description: ""
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2147483647
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Cart"
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+  /checkout:
+    post:
+      tags:
+        - Cart
+      summary: Atomic purchase with idempotent retries
+      operationId: post__checkout
+      description: Snapshot must match current cart. Prices and availability come from DB. Existing purchases, a
+        changed snapshot or key reuse with a different payload return 409. Retrying the same key/payload
+        returns 200 and reused=true. Purchase and cart clearing commit together. No payment gateway is
+        implemented.
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Replayed idempotency key, reused=true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Checkout"
+                required:
+                  - data
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Checkout"
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                idempotencyKey:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                courseIds:
+                  type: array
+                  items:
+                    type: integer
+                    minimum: 1
+                    maximum: 2147483647
+                  minItems: 1
+                  uniqueItems: true
+              required:
+                - idempotencyKey
+                - courseIds
+  /instructor/dashboard:
+    get:
+      tags:
+        - Instructor
+      summary: Own course dashboard
+      operationId: get__instructor_dashboard
+      description: ""
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/InstructorDashboard"
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+  /instructor/courses:
+    get:
+      tags:
+        - Instructor
+      summary: Own courses including disabled
+      operationId: get__instructor_courses
+      description: ""
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 12
+          description: Page size, capped at 50
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Search text
+        - name: disabled
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - "true"
+              - "false"
+          description: Disabled filter
+        - name: categoryId
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2147483647
+          description: Category filter
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ManagedCourse"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+                required:
+                  - data
+                  - pagination
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+    post:
+      tags:
+        - Instructor
+      summary: Create course with optional thumbnail
+      operationId: post__instructor_courses
+      description: ""
+      security:
+        - BearerAuth: []
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ManagedCourse"
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CourseInput"
+          multipart/form-data:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/CourseInput"
+                - type: object
+                  properties:
+                    thumbnail:
+                      type: string
+                      format: binary
+                      description: JPEG, PNG or WebP, max 5 MiB
+  /instructor/courses/{courseId}:
+    get:
+      tags:
+        - Instructor
+      summary: Read own course for editing
+      operationId: get__instructor_courses_courseId_
+      description: ""
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2147483647
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ManagedCourse"
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+    patch:
+      tags:
+        - Instructor
+      summary: Partially update own course
+      operationId: patch__instructor_courses_courseId_
+      description: Ownership is checked before storing an uploaded thumbnail. Omitted fields and existing thumbnail
+        are preserved.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2147483647
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ManagedCourse"
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CoursePatch"
+          multipart/form-data:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/CoursePatch"
+                - type: object
+                  properties:
+                    thumbnail:
+                      type: string
+                      format: binary
+                      description: JPEG, PNG or WebP, max 5 MiB
+    delete:
+      tags:
+        - Instructor
+      summary: Delete own course with no purchases
+      operationId: delete__instructor_courses_courseId_
+      description: ""
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2147483647
+      responses:
+        "204":
+          description: Completed, no response body
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+  /instructor/courses/{courseId}/status:
+    patch:
+      tags:
+        - Instructor
+      summary: Set course completion explicitly
+      operationId: patch__instructor_courses_courseId_status
+      description: Status is course completion, not public visibility. At least one lecture is required when setting true.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2147483647
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      courseId:
+                        type: integer
+                        minimum: 1
+                        maximum: 2147483647
+                      isCompleted:
+                        type: boolean
+                    required:
+                      - courseId
+                      - isCompleted
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isCompleted:
+                  type: boolean
+              required:
+                - isCompleted
+  /instructor/courses/{courseId}/lectures:
+    get:
+      tags:
+        - Instructor
+      summary: List own course lectures
+      operationId: get__instructor_courses_courseId_lectures
+      description: ""
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2147483647
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Lecture"
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+    post:
+      tags:
+        - Instructor
+      summary: Add lecture and trusted duration
+      operationId: post__instructor_courses_courseId_lectures
+      description: ""
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2147483647
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Lecture"
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LectureInput"
+  /instructor/lectures/{lectureId}:
+    patch:
+      tags:
+        - Instructor
+      summary: Update lecture metadata and duration
+      operationId: patch__instructor_lectures_lectureId_
+      description: ""
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: lectureId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2147483647
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Lecture"
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LecturePatch"
+    delete:
+      tags:
+        - Instructor
+      summary: Delete own lecture
+      operationId: delete__instructor_lectures_lectureId_
+      description: ""
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: lectureId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2147483647
+      responses:
+        "204":
+          description: Completed, no response body
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+  /instructor/profile:
+    get:
+      tags:
+        - Instructor
+      summary: Professional profile with aggregate counts
+      operationId: get__instructor_profile
+      description: ""
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/InstructorProfile"
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+    patch:
+      tags:
+        - Instructor
+      summary: Update professional profile
+      operationId: patch__instructor_profile
+      description: ""
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/InstructorProfile"
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bio:
+                  type: string
+                  maxLength: 5000
+                specialization:
+                  type: string
+                  maxLength: 200
+  /admin/dashboard:
+    get:
+      tags:
+        - Admin
+      summary: Dashboard statistics
+      operationId: get__admin_dashboard
+      description: ""
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/AdminDashboard"
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+  /admin/users:
+    get:
+      tags:
+        - Admin
+      summary: Paginated users without password hashes
+      operationId: get__admin_users
+      description: ""
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 12
+          description: Page size, capped at 50
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Search text
+        - name: disabled
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - "true"
+              - "false"
+          description: Disabled filter
+        - name: permission
+          in: query
+          required: false
+          schema:
+            type: integer
+            enum:
+              - 1
+              - 2
+              - 3
+          description: Role filter
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: "#/components/schemas/User"
+                        - type: object
+                          properties:
+                            isDisabled:
+                              type: boolean
+                          required:
+                            - isDisabled
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+                required:
+                  - data
+                  - pagination
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+  /admin/users/{userId}/role:
+    patch:
+      tags:
+        - Admin
+      summary: Promote a student to instructor
+      operationId: patch__admin_users_userId_role
+      description: ""
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2147483647
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      userId:
+                        type: integer
+                        minimum: 1
+                        maximum: 2147483647
+                      permission:
+                        type: integer
+                        enum:
+                          - 2
+                      role:
+                        type: string
+                        enum:
+                          - instructor
+                    required:
+                      - userId
+                      - permission
+                      - role
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                permission:
+                  type: integer
+                  enum:
+                    - 2
+              required:
+                - permission
+  /admin/users/{userId}/status:
+    patch:
+      tags:
+        - Admin
+      summary: Disable/unblock account
+      operationId: patch__admin_users_userId_status
+      description: Disabling revokes all JWT sessions. Cannot act on own account.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2147483647
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      userId:
+                        type: integer
+                        minimum: 1
+                        maximum: 2147483647
+                      isDisabled:
+                        type: boolean
+                    required:
+                      - userId
+                      - isDisabled
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isDisabled:
+                  type: boolean
+              required:
+                - isDisabled
+  /admin/users/{userId}:
+    delete:
+      tags:
+        - Admin
+      summary: Delete account without purchases or authored courses
+      operationId: delete__admin_users_userId_
+      description: ""
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2147483647
+      responses:
+        "204":
+          description: Completed, no response body
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+  /admin/courses:
+    get:
+      tags:
+        - Admin
+      summary: Paginated courses
+      operationId: get__admin_courses
+      description: ""
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 12
+          description: Page size, capped at 50
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Search text
+        - name: disabled
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - "true"
+              - "false"
+          description: Disabled filter
+        - name: categoryId
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2147483647
+          description: Category filter
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ManagedCourse"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+                required:
+                  - data
+                  - pagination
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+  /admin/courses/{courseId}/status:
+    patch:
+      tags:
+        - Admin
+      summary: Disable/unblock a course
+      operationId: patch__admin_courses_courseId_status
+      description: ""
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2147483647
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      courseId:
+                        type: integer
+                        minimum: 1
+                        maximum: 2147483647
+                      isDisabled:
+                        type: boolean
+                    required:
+                      - courseId
+                      - isDisabled
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isDisabled:
+                  type: boolean
+              required:
+                - isDisabled
+  /admin/courses/{courseId}:
+    delete:
+      tags:
+        - Admin
+      summary: Delete course without purchases
+      operationId: delete__admin_courses_courseId_
+      description: ""
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2147483647
+      responses:
+        "204":
+          description: Completed, no response body
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+  /admin/categories:
+    get:
+      tags:
+        - Admin
+      summary: Categories with course counts
+      operationId: get__admin_categories
+      description: ""
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CategoryAdmin"
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+    post:
+      tags:
+        - Admin
+      summary: Create a category
+      operationId: post__admin_categories
+      description: ""
+      security:
+        - BearerAuth: []
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        minimum: 1
+                        maximum: 2147483647
+                      name:
+                        type: string
+                      parentId:
+                        type: integer
+                        minimum: 1
+                        maximum: 2147483647
+                        nullable: true
+                    required:
+                      - id
+                      - name
+                      - parentId
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+              required:
+                - name
+  /admin/categories/{categoryId}:
+    patch:
+      tags:
+        - Admin
+      summary: Rename a category
+      operationId: patch__admin_categories_categoryId_
+      description: ""
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2147483647
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        minimum: 1
+                        maximum: 2147483647
+                      name:
+                        type: string
+                    required:
+                      - id
+                      - name
+                required:
+                  - data
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+              required:
+                - name
+    delete:
+      tags:
+        - Admin
+      summary: Delete a category without children/courses
+      operationId: delete__admin_categories_categoryId_
+      description: ""
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2147483647
+      responses:
+        "204":
+          description: Completed, no response body
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "500":
+          $ref: "#/components/responses/Error500"
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    RefreshCookie:
+      type: apiKey
+      in: cookie
+      name: academy.refresh
+  schemas:
+    Error:
       type: object
       properties:
         error:
@@ -792,12 +2782,770 @@ components:
           properties:
             code:
               type: string
-              example: VALIDATION_ERROR
             message:
               type: string
-              example: Du lieu khong hop le.
             status:
               type: integer
-              example: 400
-            details:
+          required:
+            - code
+            - message
+            - status
+      required:
+        - error
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        totalPages:
+          type: integer
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        username:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        dob:
+          type: string
+          format: date
+          nullable: true
+        permission:
+          type: integer
+          enum:
+            - 1
+            - 2
+            - 3
+        role:
+          type: string
+          enum:
+            - student
+            - instructor
+            - admin
+      required:
+        - id
+        - username
+        - name
+        - email
+        - dob
+        - permission
+        - role
+    Course:
+      type: object
+      properties:
+        id:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        title:
+          type: string
+        shortDescription:
+          type: string
+          nullable: true
+        price:
+          type: number
+        salePrice:
+          type: number
+          nullable: true
+        ratingAverage:
+          type: number
+        ratingCount:
+          type: integer
+        category:
+          type: string
+          nullable: true
+        instructorName:
+          type: string
+          nullable: true
+        thumbnail:
+          type: string
+          nullable: true
+      required:
+        - id
+        - title
+        - shortDescription
+        - price
+        - salePrice
+        - ratingAverage
+        - ratingCount
+        - category
+        - instructorName
+        - thumbnail
+    CourseDetail:
+      allOf:
+        - $ref: "#/components/schemas/Course"
+        - type: object
+          properties:
+            fullDescription:
+              type: string
               nullable: true
+            instructorBio:
+              type: string
+              nullable: true
+            instructorSpecialization:
+              type: string
+              nullable: true
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+            feedbacks:
+              type: array
+              items:
+                $ref: "#/components/schemas/Feedback"
+          required:
+            - fullDescription
+            - instructorBio
+            - instructorSpecialization
+            - createdAt
+            - updatedAt
+            - feedbacks
+    Feedback:
+      type: object
+      properties:
+        studentName:
+          type: string
+          nullable: true
+        rating:
+          type: number
+        comment:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - studentName
+        - rating
+        - comment
+        - createdAt
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        catname:
+          type: string
+        parent_id:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+          nullable: true
+        children:
+          type: array
+          items:
+            $ref: "#/components/schemas/Category"
+      required:
+        - id
+        - catname
+        - parent_id
+        - children
+    CategoryAdmin:
+      type: object
+      properties:
+        id:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        name:
+          type: string
+        courseCount:
+          type: integer
+      required:
+        - id
+        - name
+        - courseCount
+    Lecture:
+      type: object
+      properties:
+        id:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        title:
+          type: string
+        videoUrl:
+          type: string
+          nullable: true
+        durationSec:
+          type: integer
+          nullable: true
+        orderIndex:
+          type: integer
+      required:
+        - id
+        - title
+        - videoUrl
+        - durationSec
+        - orderIndex
+    Progress:
+      type: object
+      properties:
+        lectureId:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        lastSecond:
+          type: number
+        watchedPercent:
+          type: number
+        isCompleted:
+          type: boolean
+      required:
+        - lectureId
+        - lastSecond
+        - watchedPercent
+        - isCompleted
+    Completion:
+      type: object
+      properties:
+        total:
+          type: integer
+        done:
+          type: integer
+        percent:
+          type: integer
+      required:
+        - total
+        - done
+        - percent
+    CourseProgress:
+      type: object
+      properties:
+        courseId:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        lectures:
+          type: array
+          items:
+            $ref: "#/components/schemas/Lecture"
+        feedbacks:
+          type: array
+          items:
+            $ref: "#/components/schemas/Feedback"
+        progress:
+          type: array
+          items:
+            $ref: "#/components/schemas/Progress"
+        completion:
+          $ref: "#/components/schemas/Completion"
+      required:
+        - courseId
+        - lectures
+        - feedbacks
+        - progress
+        - completion
+    LectureDetail:
+      type: object
+      properties:
+        courseId:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        lectures:
+          type: array
+          items:
+            $ref: "#/components/schemas/Lecture"
+        current:
+          $ref: "#/components/schemas/Lecture"
+        progress:
+          $ref: "#/components/schemas/Progress"
+      required:
+        - courseId
+        - lectures
+        - current
+        - progress
+    Cart:
+      type: object
+      properties:
+        courses:
+          type: array
+          items:
+            $ref: "#/components/schemas/Course"
+        total:
+          type: number
+        empty:
+          type: boolean
+      required:
+        - courses
+        - total
+        - empty
+    Checkout:
+      type: object
+      properties:
+        purchased:
+          type: integer
+        reused:
+          type: boolean
+        cart:
+          $ref: "#/components/schemas/Cart"
+      required:
+        - purchased
+        - reused
+        - cart
+    Tokens:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        tokenType:
+          type: string
+          enum:
+            - Bearer
+        expiresIn:
+          type: integer
+        csrfToken:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+      required:
+        - accessToken
+        - tokenType
+        - expiresIn
+        - csrfToken
+    Signup:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 32
+          pattern: ^[a-zA-Z0-9._-]+$
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+        email:
+          type: string
+          format: email
+        dob:
+          type: string
+          format: date
+          nullable: true
+        password:
+          type: string
+          minLength: 8
+          maxLength: 72
+        confirmPassword:
+          type: string
+      required:
+        - username
+        - name
+        - email
+        - password
+        - confirmPassword
+    Login:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+      required:
+        - username
+        - password
+    ProfilePatch:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+        email:
+          type: string
+          format: email
+    PasswordChange:
+      type: object
+      properties:
+        currentPassword:
+          type: string
+        newPassword:
+          type: string
+          minLength: 8
+          maxLength: 72
+        confirmPassword:
+          type: string
+      required:
+        - currentPassword
+        - newPassword
+        - confirmPassword
+    CourseInput:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        categoryId:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        shortDescription:
+          type: string
+          nullable: true
+        fullDescription:
+          type: string
+          nullable: true
+        price:
+          type: number
+          minimum: 0
+        salePrice:
+          type: number
+          minimum: 0
+          nullable: true
+      required:
+        - title
+        - categoryId
+        - price
+    CoursePatch:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        categoryId:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        shortDescription:
+          type: string
+          nullable: true
+        fullDescription:
+          type: string
+          nullable: true
+        price:
+          type: number
+          minimum: 0
+        salePrice:
+          type: number
+          minimum: 0
+          nullable: true
+    LectureInput:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        videoUrl:
+          type: string
+          format: uri
+          description: HTTP/HTTPS URL; video bytes are not uploaded by this API.
+        durationSec:
+          type: integer
+          minimum: 1
+          maximum: 43200
+      required:
+        - title
+        - videoUrl
+        - durationSec
+    LecturePatch:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        videoUrl:
+          type: string
+          format: uri
+          description: HTTP/HTTPS URL; video bytes are not uploaded by this API.
+        durationSec:
+          type: integer
+          minimum: 1
+          maximum: 43200
+    ReviewInput:
+      type: object
+      properties:
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+          maxLength: 2000
+      required:
+        - rating
+    ManagedCourse:
+      allOf:
+        - $ref: "#/components/schemas/Course"
+        - type: object
+          properties:
+            categoryId:
+              type: integer
+              minimum: 1
+              maximum: 2147483647
+              nullable: true
+            instructorId:
+              type: integer
+              minimum: 1
+              maximum: 2147483647
+            fullDescription:
+              type: string
+              nullable: true
+            isDisabled:
+              type: boolean
+            isCompleted:
+              type: boolean
+            totalStudents:
+              type: integer
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+          required:
+            - categoryId
+            - instructorId
+            - fullDescription
+            - isDisabled
+            - isCompleted
+            - totalStudents
+            - createdAt
+            - updatedAt
+    InstructorProfile:
+      type: object
+      properties:
+        userId:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        name:
+          type: string
+        email:
+          type: string
+        username:
+          type: string
+        bio:
+          type: string
+          nullable: true
+        specialization:
+          type: string
+          nullable: true
+        totalStudents:
+          type: integer
+        totalCourses:
+          type: integer
+        ratingAverage:
+          type: number
+      required:
+        - userId
+        - name
+        - email
+        - username
+        - bio
+        - specialization
+        - totalStudents
+        - totalCourses
+        - ratingAverage
+    InstructorDashboard:
+      type: object
+      properties:
+        totalCourses:
+          type: integer
+        courses:
+          type: array
+          items:
+            $ref: "#/components/schemas/ManagedCourse"
+      required:
+        - totalCourses
+        - courses
+    PurchasedCourse:
+      type: object
+      properties:
+        courseId:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        title:
+          type: string
+        thumbnail:
+          type: string
+          nullable: true
+        shortDescription:
+          type: string
+          nullable: true
+        price:
+          type: number
+        salePrice:
+          type: number
+          nullable: true
+        purchasedAt:
+          type: string
+          format: date-time
+        completionPercent:
+          type: number
+        isCompleted:
+          type: boolean
+      required:
+        - courseId
+        - title
+        - thumbnail
+        - shortDescription
+        - price
+        - salePrice
+        - purchasedAt
+        - completionPercent
+        - isCompleted
+    MyReview:
+      type: object
+      properties:
+        rating:
+          type: number
+        comment:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - rating
+        - comment
+        - createdAt
+    ReviewContext:
+      type: object
+      properties:
+        courseId:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        canReview:
+          type: boolean
+        completion:
+          $ref: "#/components/schemas/Completion"
+        review:
+          allOf:
+            - $ref: "#/components/schemas/MyReview"
+          nullable: true
+      required:
+        - courseId
+        - canReview
+        - completion
+        - review
+    AdminDashboard:
+      type: object
+      properties:
+        stats:
+          type: object
+          properties:
+            totalCourses:
+              type: integer
+            totalStudents:
+              type: integer
+            totalInstructors:
+              type: integer
+            totalCategories:
+              type: integer
+            publishedCourses:
+              type: integer
+            newStudentsThisMonth:
+              type: integer
+            newInstructorsThisMonth:
+              type: integer
+          required:
+            - totalCourses
+            - totalStudents
+            - totalInstructors
+            - totalCategories
+            - publishedCourses
+            - newStudentsThisMonth
+            - newInstructorsThisMonth
+        topCategories:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              count:
+                oneOf:
+                  - type: integer
+                  - type: string
+            required:
+              - name
+              - count
+        courseStatuses:
+          type: object
+          properties:
+            Published:
+              type: integer
+            Disabled:
+              type: integer
+          required:
+            - Published
+            - Disabled
+      required:
+        - stats
+        - topCategories
+        - courseStatuses
+  responses:
+    Error400:
+      description: Invalid input
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Error404:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Error409:
+      description: Duplicate or business conflict
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Error500:
+      description: Unexpected server error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Error429:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Error401:
+      description: Missing, expired or revoked credentials
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Error403:
+      description: Role, ownership, origin or CSRF denied
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Error415:
+      description: JSON content type required
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"

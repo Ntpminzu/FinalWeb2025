@@ -1,0 +1,26 @@
+import express from 'express';
+import authRouter from '../modules/auth/routes/auth.web.routes.js';
+import usersRouter from '../modules/users/routes/users.web.routes.js';
+import watchlistRouter from '../modules/watchlist/routes/watchlist.web.routes.js';
+import learningRouter from '../modules/learning/routes/learning.web.routes.js';
+import reviewsRouter from '../modules/reviews/routes/reviews.web.routes.js';
+import instructorRouter from '../modules/instructor/routes/instructor.web.routes.js';
+import adminRouter from '../modules/admin/routes/admin.web.routes.js';
+import coursesRouter from '../modules/courses/routes/courses.web.routes.js';
+import categoriesRouter from '../modules/categories/routes/categories.web.routes.js';
+import cartRouter from '../modules/cart/routes/cart.web.routes.js';
+import homeRouter from '../modules/home/routes/home.web.routes.js';
+
+const router = express.Router();
+router.use(authRouter);
+router.use(usersRouter);
+router.use(watchlistRouter);
+router.use(learningRouter);
+router.use(reviewsRouter);
+router.use(instructorRouter);
+router.use(adminRouter);
+router.use(coursesRouter);
+router.use(categoriesRouter);
+router.use(cartRouter);
+router.use(homeRouter);
+export default router;

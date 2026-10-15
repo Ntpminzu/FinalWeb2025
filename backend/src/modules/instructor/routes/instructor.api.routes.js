@@ -1,0 +1,21 @@
+import express from 'express';
+import * as instructorApiController from '../controllers/instructor.api.controller.js';
+import { requireApiInstructor } from '../../auth/middlewares/api-auth.middleware.js';
+import { thumbnailUpload } from '../../../common/middlewares/upload.middleware.js';
+
+const router = express.Router();
+router.use('/instructor', requireApiInstructor);
+router.get('/instructor/dashboard', instructorApiController.dashboard);
+router.get('/instructor/courses', instructorApiController.list);
+router.post('/instructor/courses', thumbnailUpload.single('thumbnail'), instructorApiController.create);
+router.get('/instructor/courses/:courseId', instructorApiController.detail);
+router.patch('/instructor/courses/:courseId', instructorApiController.ownedCourse, thumbnailUpload.single('thumbnail'), instructorApiController.update);
+router.delete('/instructor/courses/:courseId', instructorApiController.removeCourse);
+router.patch('/instructor/courses/:courseId/status', instructorApiController.status);
+router.get('/instructor/courses/:courseId/lectures', instructorApiController.lectures);
+router.post('/instructor/courses/:courseId/lectures', instructorApiController.addLecture);
+router.patch('/instructor/lectures/:lectureId', instructorApiController.updateLecture);
+router.delete('/instructor/lectures/:lectureId', instructorApiController.removeLecture);
+router.get('/instructor/profile', instructorApiController.profile);
+router.patch('/instructor/profile', instructorApiController.updateProfile);
+export default router;

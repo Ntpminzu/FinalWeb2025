@@ -1,0 +1,22 @@
+import express from 'express';
+import { restrictInstructor } from '../../auth/middlewares/auth.mdw.js';
+import { requireOwnedCourse } from '../middlewares/ownership.middleware.js';
+import { thumbnailUpload } from '../../../common/middlewares/upload.middleware.js';
+import * as instructorController from '../controllers/instructor.web.controller.js';
+
+const router = express.Router();
+router.get('/instructor', restrictInstructor, instructorController.redirectToDashboard);
+router.get('/instructor/dashboard', restrictInstructor, instructorController.dashboard);
+router.get('/instructor/new', restrictInstructor, instructorController.showNewForm);
+router.post('/instructor/new', restrictInstructor, thumbnailUpload.single('thumbnail'), instructorController.createCourse);
+router.get('/instructor/edit/course/:id', restrictInstructor, instructorController.showEditCourse);
+router.post('/instructor/edit/:id', restrictInstructor, requireOwnedCourse, thumbnailUpload.single('thumbnail'), instructorController.updateCourse);
+router.get('/instructor/edit/lectures/:id', restrictInstructor, instructorController.showEditLectures);
+router.post('/instructor/lectures/:courseId/add', restrictInstructor, instructorController.addLecture);
+router.post('/instructor/lectures/:lectureId/delete', restrictInstructor, instructorController.deleteLecture);
+router.get('/instructor/profile', restrictInstructor, instructorController.showProfile);
+router.get('/instructor/profile/edit', restrictInstructor, instructorController.showEditProfile);
+router.post('/instructor/profile/edit', restrictInstructor, instructorController.updateProfile);
+router.post('/instructor/courses/toggle/:id', restrictInstructor, instructorController.toggleCourseStatus);
+router.post('/instructor/delete/:id', restrictInstructor, instructorController.deleteCourse);
+export default router;

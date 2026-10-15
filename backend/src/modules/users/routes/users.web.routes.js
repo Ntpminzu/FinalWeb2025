@@ -1,0 +1,21 @@
+import express from 'express';
+import { restrict } from '../../auth/middlewares/auth.mdw.js';
+import * as userController from '../controllers/user.web.controller.js';
+import { restrictStudent } from '../../auth/middlewares/auth.mdw.js';
+import * as studentProfileController from '../controllers/student-profile.web.controller.js';
+import * as adminProfileController from '../controllers/admin-profile.web.controller.js';
+import { restrictAdmin } from '../../auth/middlewares/auth.mdw.js';
+
+const router = express.Router();
+router.get('/account/profile', restrict, userController.showProfile);
+router.post('/account/profile', restrict, userController.updateProfile);
+router.get('/account/change-pwd', restrict, userController.showChangePwd);
+router.post('/account/change-pwd', restrict, userController.doChangePwd);
+router.get('/student', restrictStudent, studentProfileController.home);
+router.get('/student/profile', restrictStudent, studentProfileController.showProfile);
+router.post('/student/profile', restrictStudent, studentProfileController.updateProfile);
+router.post('/student/change-pwd', restrictStudent, studentProfileController.changePwd);
+router.get('/admin/profile', restrictAdmin, adminProfileController.showProfile);
+router.post('/admin/profile', restrictAdmin, adminProfileController.updateProfile);
+router.post('/admin/change-pwd', restrictAdmin, adminProfileController.changePwd);
+export default router;

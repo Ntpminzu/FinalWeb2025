@@ -1,5 +1,9 @@
 # Backend Concepts Notes
 
+> Cấu trúc hiện tại: `backend/src/modules/<feature>/` chứa các tầng của từng chức năng. Cấu hình nằm trong `backend/src/config/`, phần dùng chung trong `backend/src/common/`, migration trong `backend/database/`. Xem `project-structure.md` để đối chiếu các file đã tách; các đường dẫn ở bài học cũ bên dưới là lịch sử trước khi gom module.
+
+> Cập nhật 15/10/2026: source hiện dùng Controller → Service → Repository → PostgreSQL; API dùng JWT, HTML vẫn dùng session. Các phần DAO/session API bên dưới là ghi chú lịch sử. Hợp đồng hiện tại nằm ở `api-v1.md` và `openapi-v1.yaml`; xem phần JWT và Repository ở cuối file.
+
 File này ghi lại các khái niệm backend quan trọng đã học trong quá trình chuyển project sang REST API. Mỗi khái niệm gồm: định nghĩa, vì sao thực tế cần, ví dụ trong project, ví dụ thực tế, lỗi thường gặp.
 
 ## REST API
@@ -1202,3 +1206,53 @@ Kết luận:
 ```text
 Checkout/payment thực tế thường cần cả Transaction và Idempotency.
 ```
+
+## JWT và Repository — 15/10/2026
+
+### Service và Repository
+
+Luồng hiện tại: Route → Middleware → Controller → Service → Repository → PostgreSQL.
+
+- Controller lấy dữ liệu HTTP, gọi service và định dạng response.
+- Service kiểm tra nghiệp vụ: đã mua chưa, khóa học thuộc ai, có được đánh giá hoặc xóa không.
+- Repository thực hiện truy vấn, insert/update/delete, khóa bản ghi và mở transaction bằng Knex.
+- Service không import database; controller không import repository. Các DAO đã chuyển thành repository, không giữ hai tầng truy vấn song song.
+
+Ví dụ checkout: `cart.api.controller.checkout()` gọi `cartService.checkoutUserCart()`. Service gọi `transaction()` của `backend/src/common/database/transaction.js`, rồi điều phối các repository với cùng connection. Service quyết định khi nào ném ConflictError; repository thực hiện truy vấn và quản lý transaction.
+
+```js
+return transaction(async connection => {
+  await UserRepository.lock(userId, connection);
+  const items = await CartRepository.list(userId, connection);
+  // Service kiểm tra snapshot, quyền sở hữu và trạng thái khóa học.
+  await PurchasedRepository.addMultiple(userId, items, connection);
+  await IdempotencyRepository.save(userId, 'checkout', key, fingerprint, 201, response, connection);
+  await CartRepository.clear(userId, connection);
+});
+```
+
+Các repository tham gia transaction phải dùng cùng connection. Dùng connection global bên trong có thể gây chờ pool hoặc đọc dữ liệu ngoài transaction.
+
+### JWT, refresh token và logout
+
+Access token chứa định danh user (`sub`), phiên (`sid`), loại token, thời hạn, issuer và audience; được ký bằng khóa JWT riêng. Middleware xác minh chữ ký rồi kiểm tra phiên và tài khoản qua service/repository. Quyền hiện tại được đọc từ DB để thay đổi quyền có hiệu lực ngay.
+
+Access token sống 15 phút. Refresh token là chuỗi ngẫu nhiên lưu trong cookie HttpOnly; DB chỉ lưu hash. Refresh xoay token và đánh dấu token cũ đã dùng. Nếu token cũ được dùng lại, toàn bộ phiên bị thu hồi. Logout thu hồi phiên; đổi mật khẩu thu hồi mọi phiên JWT.
+
+JWT không đồng nghĩa backend không lưu trạng thái: lưu phiên cho phép logout và khóa tài khoản có hiệu lực ngay. Cookie refresh vẫn cần chống CSRF. API Bearer không dùng CSRF của session HTML; login/register yêu cầu JSON và origin hợp lệ, refresh dùng CSRF HMAC gắn với refresh cookie.
+
+### Giỏ hàng và bảo toàn dữ liệu
+
+API lưu giỏ bằng `cart_items(user_id, course_id)`. Khách web vẫn dùng giỏ session; khi login web, các mục hợp lệ được nhập vào DB, loại trùng và khóa học đã sở hữu. HTML và API của cùng học viên sau đó dùng chung giỏ persistent.
+
+Checkout khóa user trước khi xử lý, kể cả giỏ trống. Giá đọc lại từ DB; `sale_price=0` hợp lệ nên chọn giá bằng `??`, không dùng `||`. Mua, lưu idempotency và xóa giỏ cùng commit hoặc cùng rollback.
+
+Database cũ có bảng nhưng lịch sử migration trống. `backend/scripts/migrate.js` kiểm tra schema rồi bỏ qua `001` trên database legacy; không xóa bảng hay giả ghi migration cũ. `002` thêm JWT/giỏ; `003` sửa uniqueness của username/email và watchlist. Nếu phát hiện dữ liệu trùng, migration dừng thay vì tự xóa.
+
+### Bằng chứng kiểm thử
+
+`npm test` kiểm tra cú pháp, ranh giới kiến trúc, template, unit tests, OpenAPI và integration tests với PostgreSQL nhúng. Database test nằm trong bộ nhớ, không dùng Supabase từ `.env`. Có nhánh checkout bị lỗi khi lưu receipt để chứng minh rollback giữ giỏ và không mua một phần.
+
+PostgreSQL nhúng dùng pool một connection; kết quả này không tự chứng minh khóa tranh chấp nhiều connection hoặc cấu hình cookie của môi trường thật. Hợp đồng và cách tích hợp frontend hiện tại nằm trong `api-v1.md` và `openapi-v1.yaml`.
+
+Nguồn: [jsonwebtoken](https://github.com/auth0/node-jsonwebtoken), [JWT Best Current Practices](https://www.rfc-editor.org/rfc/rfc8725.html), [OWASP CSRF](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html).
